@@ -35,6 +35,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { FirebaseModule } from './shared/firebase/firebase.module';
 import { StorageModule } from './shared/storage/storage.module';
 import { MailModule } from './shared/mail/mail.module';
+import { SmsModule } from './shared/sms/sms.module';
 import { NotificationModule } from './shared/notifications/notification.module';
 import { QueueModule } from './shared/queue/queue.module';
 import { GlobalCacheModule } from './shared/cache/cache.module';
@@ -86,6 +87,7 @@ import { GlobalCacheModule } from './shared/cache/cache.module';
     FirebaseModule,
     StorageModule,
     MailModule,
+    SmsModule,
     NotificationModule,
     QueueModule,
     GlobalCacheModule,
