@@ -1,0 +1,38 @@
+import { Injectable } from '@nestjs/common';
+import { CourseRepository } from '../course.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
+@Injectable()
+export class LearningEngineService {
+  constructor(
+    private readonly repo: CourseRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
+
+  async syncVideoProgress(
+    userId: string,
+    videoId: string,
+    seconds: number,
+    isCompleted: boolean,
+  ) {
+    const progress = await this.repo.updateVideoProgress(
+      userId,
+      videoId,
+      seconds,
+      isCompleted,
+    );
+    // Logic to recalculate total lesson progress goes here
+    return progress;
+  }
+
+  async completeLesson(userId: string, lessonId: string, courseId: string) {
+    const progress = await this.repo.markLessonCompleted(userId, lessonId);
+    this.eventEmitter.emit('course.lesson.completed', {
+      userId,
+      lessonId,
+      courseId,
+    });
+    // Triggers recalculation of course progress
+    return progress;
+  }
+}

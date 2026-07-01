@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Backend compiled output — not part of frontend linting
+    "backend/dist/**",
+    "backend/node_modules/**",
   ]),
 ]);
 

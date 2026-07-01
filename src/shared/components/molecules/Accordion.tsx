@@ -1,0 +1,2 @@
+import { Accordion as ShadcnAccordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+export { ShadcnAccordion as Accordion, AccordionItem, AccordionTrigger, AccordionContent }

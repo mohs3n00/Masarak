@@ -20,6 +20,22 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Design Review Workflow (Frontend)
+
+Every UI component, page, layout, and feature must be reviewed inside the permanent Design Review System before API integration. This ensures responsive and visual correctness across all states.
+
+1. **Build UI**: Develop the page or component. Utilize the `useApi()` hook from `src/lib/providers/ApiProvider.tsx` to read the active `dataState` and inject mock data accordingly.
+2. **Add to Review**: Register the new page in `src/features/design-review/registry.ts`. The homepage at `/design-review` will automatically display it.
+3. **Review Visually**: Access `/design-review` (Development Mode only) or click the floating **🎨 Design Review** button. Use the Developer Toolbar to toggle:
+   - Viewport widths (Desktop/Tablet/Mobile)
+   - Light/Dark modes (Ctrl+D)
+   - RTL/LTR layouts (Ctrl+R)
+   - Data States (Loading (Ctrl+L), Empty (Ctrl+E), Error (Ctrl+X), Success (Ctrl+S))
+4. **Approve**: Address any UI/UX or accessibility feedback. Use the Performance HUD to verify 60fps renders.
+5. **Connect APIs**: Integrate the backend only after the UI is perfectly polished and approved.
+
+*Note: The `/design-review` route and the Global Dev Button are strictly blocked in production builds.*
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
