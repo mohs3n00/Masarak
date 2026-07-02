@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayoutWrapper } from "@/shared/components/AppLayoutWrapper";
 import "./globals.css";
 import { ApiProvider } from '@/lib/providers/ApiProvider';
+import { AuthProvider } from '@/lib/providers/AuthProvider';
 import { GlobalDevButton } from '@/features/design-review/components/GlobalDevButton';
 
 const cairo = Cairo({
@@ -31,10 +32,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <ApiProvider>
-          <TooltipProvider>
-            <AppLayoutWrapper>{children}</AppLayoutWrapper>
-          </TooltipProvider>
-          <GlobalDevButton />
+          <AuthProvider>
+            <TooltipProvider>
+              <AppLayoutWrapper>{children}</AppLayoutWrapper>
+            </TooltipProvider>
+            <GlobalDevButton />
+          </AuthProvider>
         </ApiProvider>
       </body>
     </html>

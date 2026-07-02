@@ -9,9 +9,9 @@ export function ClientLogger() {
       const header = document.querySelector('header');
       if (!header) return;
       let out = '';
-      let current = header.querySelector('img') || header;
+      let current: Element | null = header.querySelector('img') || header;
       
-      while (current && current !== document) {
+      while (current && current !== document as unknown as HTMLElement) {
         const style = window.getComputedStyle(current);
         const rect = current.getBoundingClientRect();
         out += `${current.tagName}.${current.className}\n`;

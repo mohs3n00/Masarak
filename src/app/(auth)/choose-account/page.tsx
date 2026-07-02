@@ -22,7 +22,7 @@ export default function ChooseAccountPage() {
 
           <div className="grid grid-cols-1 gap-4">
             <Link
-              href={`${AUTH_ROUTES.REGISTER}?role=${AUTH_ROLES.STUDENT}`}
+              href="/register/student"
               className="flex items-center gap-4 p-4 border border-border/60 rounded-xl hover:border-primary/50 hover:bg-primary/[0.03] transition-all duration-200 group"
             >
               <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
@@ -35,7 +35,7 @@ export default function ChooseAccountPage() {
             </Link>
 
             <Link
-              href={`${AUTH_ROUTES.REGISTER}?role=${AUTH_ROLES.TEACHER}`}
+              href="/register/teacher"
               className="flex items-center gap-4 p-4 border border-border/60 rounded-xl hover:border-primary/50 hover:bg-primary/[0.03] transition-all duration-200 group"
             >
               <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/20 transition-colors">

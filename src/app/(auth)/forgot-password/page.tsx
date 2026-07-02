@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
     try {
       setIsLoading(true);
       setError(null);
-      await authService.forgotPassword(data.email);
+      await authService.forgotPassword(data.phone);
       setSuccess(true);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
         <AuthCard>
           <AuthHeader
             title="نسيت كلمة المرور؟"
-            description="أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور الخاصة بك."
+            description="أدخل رقم هاتفك وسنرسل لك رمزاً لإعادة تعيين كلمة المرور الخاصة بك."
           />
 
           {error && (
@@ -63,24 +63,24 @@ export default function ForgotPasswordPage() {
           {success ? (
             <div className="text-center">
               <div className="mb-6 p-4 bg-success/8 text-success text-sm rounded-xl border border-success/20">
-                تم إرسال تعليمات إعادة تعيين كلمة المرور إلى بريدك الإلكتروني بنجاح.
+                تم إرسال رمز إعادة تعيين كلمة المرور إلى هاتفك بنجاح.
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-foreground" htmlFor="email">
-                  البريد الإلكتروني
+                <label className="text-sm font-bold text-foreground" htmlFor="phone">
+                  رقم الهاتف
                 </label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="example@masarak.com"
-                  error={!!errors.email}
-                  {...register('email')}
+                  id="phone"
+                  type="tel"
+                  placeholder="01012345678"
+                  error={!!errors.phone}
+                  {...register('phone')}
                 />
-                {errors.email && (
-                  <p className="text-xs text-error font-medium">{errors.email.message}</p>
+                {errors.phone && (
+                  <p className="text-xs text-error font-medium">{errors.phone.message}</p>
                 )}
               </div>
 

@@ -74,6 +74,7 @@ export class AuthController {
     return this.authService.login(dto, req.ip, req.headers['user-agent']);
   }
 
+
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
@@ -110,7 +111,7 @@ export class AuthController {
       // In a real app we'd target email or phone based on the enum
       await this.authService['otpService'].generateAndSendOtp(
         user.id,
-        user.email,
+        user.phone,
         dto.type,
       );
     }
@@ -127,12 +128,12 @@ export class AuthController {
   }
 
   @Public()
-  @Post('password/forgot')
+  @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Request a password reset email' })
-  async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(dto.email);
-    return { message: 'If email exists, reset instructions have been sent.' };
+  @ApiOperation({ summary: 'Request password reset' })
+  async forgotPassword(@Body('phone') phone: string) {
+    await this.authService.forgotPassword(phone);
+    return { message: 'If user exists, a reset code was sent' };
   }
 
   @Public()

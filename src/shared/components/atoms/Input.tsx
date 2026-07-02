@@ -28,14 +28,14 @@ export const PasswordInput = React.forwardRef<React.ElementRef<typeof ShadcnInpu
       <div className="relative">
         <Input
           type={showPassword ? "text" : "password"}
-          className={cn("pe-10", className)}
+          className={cn("pe-12", className)}
           ref={ref}
           {...props}
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 end-0 flex items-center pe-3 text-muted-foreground hover:text-foreground focus:outline-none"
+          className="absolute inset-y-0 end-0 flex items-center pe-4 text-muted-foreground hover:text-foreground focus:outline-none"
         >
           {showPassword ? (
             <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -54,10 +54,10 @@ export const SearchInput = React.forwardRef<React.ElementRef<typeof ShadcnInput>
   ({ className, ...props }, ref) => {
     return (
       <div className="relative flex items-center">
-        <Search className="absolute start-3 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute start-4 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          className={cn("ps-9", className)}
+          className={cn("ps-10", className)}
           ref={ref}
           {...props}
         />

@@ -5,7 +5,7 @@ import { User, Role } from '@prisma/client';
 
 export interface JwtPayload {
   sub: string;
-  email: string;
+  phone: string;
   role: Role;
   sessionId: string;
 }
@@ -23,7 +23,7 @@ export class TokenService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload: JwtPayload = {
       sub: user.id,
-      email: user.email,
+      phone: user.phone,
       role: user.role,
       sessionId,
     };

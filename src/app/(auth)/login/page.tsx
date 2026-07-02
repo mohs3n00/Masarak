@@ -17,7 +17,7 @@ import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { PasswordInput, Input } from '@/shared/components/atoms/Input';
 import { Button } from '@/shared/components/atoms/Button';
 import { RememberMe } from '@/features/auth/components/RememberMe';
-import { SocialButtons } from '@/features/auth/components/SocialButtons';
+
 import { ApiError } from '@/shared/api/error.models';
 
 export default function LoginPage() {
@@ -37,8 +37,8 @@ export default function LoginPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await authService.login(data);
-      setAuth(response.user, response.tokens);
+      await authService.login(data);
+      // setAuth is now handled automatically by AuthProvider via onAuthStateChanged
       router.push(PROTECTED_ROUTES.DASHBOARD);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -68,18 +68,18 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-foreground" htmlFor="email">
-                البريد الإلكتروني
+              <label className="text-sm font-bold text-foreground" htmlFor="phone">
+                رقم الهاتف
               </label>
               <Input
-                id="email"
-                type="email"
-                placeholder="example@masarak.com"
-                error={!!errors.email}
-                {...register('email')}
+                id="phone"
+                type="tel"
+                placeholder="01012345678"
+                error={!!errors.phone}
+                {...register('phone')}
               />
-              {errors.email && (
-                <p className="text-xs text-error font-medium">{errors.email.message}</p>
+              {errors.phone && (
+                <p className="text-xs text-error font-medium">{errors.phone.message}</p>
               )}
             </div>
 
@@ -112,8 +112,6 @@ export default function LoginPage() {
               تسجيل الدخول
             </Button>
           </form>
-
-          <SocialButtons />
 
           <AuthFooter
             question="ليس لديك حساب؟"

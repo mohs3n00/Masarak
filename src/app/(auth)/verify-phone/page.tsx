@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { verifyEmailSchema, VerifyEmailFormData } from '@/features/auth/schemas/auth.schemas';
+import { verifyPhoneSchema, VerifyPhoneFormData } from '@/features/auth/schemas/auth.schemas';
 import { authService } from '@/features/auth/services/auth.service';
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
@@ -16,7 +16,7 @@ import { Button } from '@/shared/components/atoms/Button';
 import { VerificationStatus } from '@/features/auth/components/VerificationStatus';
 import { ApiError } from '@/shared/api/error.models';
 
-export default function VerifyEmailPage() {
+export default function VerifyPhonePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
@@ -26,19 +26,19 @@ export default function VerifyEmailPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<VerifyEmailFormData>({
-    resolver: zodResolver(verifyEmailSchema),
+  } = useForm<VerifyPhoneFormData>({
+    resolver: zodResolver(verifyPhoneSchema),
     defaultValues: { code: '' },
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const codeValue = watch('code');
 
-  const onSubmit = async (data: VerifyEmailFormData) => {
+  const onSubmit = async (data: VerifyPhoneFormData) => {
     try {
       setIsLoading(true);
       setStatus('loading');
-      await authService.verifyEmail(data.code);
+      await authService.verifyPhone(data.code);
       setStatus('success');
     } catch (err: unknown) {
       setStatus('error');
@@ -78,8 +78,8 @@ export default function VerifyEmailPage() {
       <AuthLayout>
         <AuthCard>
           <AuthHeader
-            title="تحقق من بريدك الإلكتروني"
-            description="أدخل الرمز المكون من 6 أرقام الذي أرسلناه إلى بريدك الإلكتروني."
+            title="تحقق من رقم الهاتف"
+            description="أدخل الرمز المكون من 6 أرقام الذي أرسلناه إلى رقم هاتفك."
           />
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 mt-6">

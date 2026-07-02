@@ -10,8 +10,9 @@ import { TokenService } from './token.service';
 import { SessionService } from './session.service';
 import { OtpService } from './otp.service';
 import { AuditService } from './audit.service';
-import * as bcrypt from 'bcrypt';
-import { Role, OtpType, AuditAction } from '@prisma/client';
+import * as argon2 from 'argon2';
+import { Role, AuditAction, OtpType } from '@prisma/client';
+import { extractNationalIdInfo } from '../../../common/validators/egyptian-national-id.validator';
 import { RegisterStudentDto } from '../dto/register-student.dto';
 import { RegisterTeacherDto } from '../dto/register-teacher.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -33,26 +34,37 @@ export class AuthService {
     userAgent?: string,
   ) {
     const existing = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: dto.email },
-          ...(dto.phone ? [{ phone: dto.phone }] : []),
-        ],
-      },
+      where: { phone: dto.phone },
     });
     if (existing)
       throw new ConflictException(
-        'User with this email or phone already exists',
+        'User with this phone already exists',
       );
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await argon2.hash(dto.password);
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         phone: dto.phone,
         password: hashedPassword,
-        name: dto.name,
+        firstName: dto.firstName,
+        middleName: dto.middleName || '',
+        lastName: dto.lastName || '',
+        familyName: dto.familyName || '',
+        name: `${dto.firstName} ${dto.familyName}`,
         role: Role.STUDENT,
+        avatar: dto.avatar,
+        studentProfile: {
+          create: {
+            countryId: dto.country,
+            governorate: dto.governorate || null,
+            city: dto.city || null,
+            grade: dto.grade,
+            track: dto.track,
+            parentPhone: dto.parentPhone,
+            school: dto.school,
+          }
+        }
       },
     });
 
@@ -62,11 +74,13 @@ export class AuthService {
       ipAddress,
       userAgent,
     );
-    await this.otpService.generateAndSendOtp(
-      user.id,
-      user.email,
-      OtpType.EMAIL_VERIFICATION,
-    );
+    if (user.email) {
+      await this.otpService.generateAndSendOtp(
+        user.id,
+        user.email,
+        OtpType.EMAIL_VERIFICATION,
+      );
+    }
 
     return {
       message: 'Registration successful. Please verify your email.',
@@ -80,30 +94,62 @@ export class AuthService {
     userAgent?: string,
   ) {
     const existing = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: dto.email },
-          ...(dto.phone ? [{ phone: dto.phone }] : []),
-        ],
-      },
+      where: { phone: dto.phone },
     });
     if (existing)
       throw new ConflictException(
-        'User with this email or phone already exists',
+        'User with this phone already exists',
       );
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const existingNid = await this.prisma.teacherProfile.findUnique({
+      where: { nationalId: dto.nationalId }
+    });
+    if (existingNid) {
+      throw new ConflictException('National ID already registered');
+    }
+
+    let dateOfBirth: Date;
+    let gender: 'MALE' | 'FEMALE';
+    try {
+      const info = extractNationalIdInfo(dto.nationalId);
+      dateOfBirth = info.dateOfBirth;
+      gender = info.gender as 'MALE' | 'FEMALE';
+    } catch (e) {
+      throw new BadRequestException('Invalid National ID');
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - dateOfBirth.getFullYear();
+    const m = today.getMonth() - dateOfBirth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
+      age--;
+    }
+
+    if (age < 21) {
+      throw new BadRequestException('Teacher must be at least 21 years old.');
+    }
+
+    const hashedPassword = await argon2.hash(dto.password);
     const user = await this.prisma.user.create({
       data: {
-        email: dto.email,
+        email: dto.email || null,
         phone: dto.phone,
         password: hashedPassword,
+        firstName: dto.name.split(' ')[0] || '',
+        middleName: '',
+        lastName: '',
+        familyName: dto.name.split(' ').slice(1).join(' ') || '',
         name: dto.name,
         role: Role.TEACHER,
+        dateOfBirth,
+        gender,
+        avatar: dto.avatar,
         teacherProfile: {
           create: {
-            title: dto.title,
-            qualifications: dto.qualifications,
+            nationalId: dto.nationalId,
+            teachingSubjects: dto.subjects || [],
+            experience: dto.experience || 0,
+            verificationStatus: 'PENDING',
           },
         },
       },
@@ -115,29 +161,29 @@ export class AuthService {
       ipAddress,
       userAgent,
     );
+
     await this.otpService.generateAndSendOtp(
       user.id,
-      user.email,
-      OtpType.EMAIL_VERIFICATION,
+      user.phone,
+      OtpType.PHONE_VERIFICATION,
     );
 
     return {
-      message: 'Registration successful. Please verify your email.',
+      message: 'Registration successful. Please verify your phone number.',
       userId: user.id,
     };
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { phone: dto.phone },
     });
     if (!user || !user.isActive)
       throw new UnauthorizedException('Invalid credentials or account banned');
 
-    const isMatch = await bcrypt.compare(dto.password, user.password);
+    const isMatch = await argon2.verify(user.password, dto.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
-    // Create session (placeholder for refresh token)
     const tempRefreshToken = `temp_${Date.now()}`;
     const session = await this.sessionService.createSession(
       user.id,
@@ -147,11 +193,9 @@ export class AuthService {
       dto.fcmToken,
     );
 
-    // Generate real tokens using the session ID
     const tokens = await this.tokenService.generateTokens(user, session.id);
 
-    // Update session with the real hashed refresh token
-    const hashedRefresh = await bcrypt.hash(tokens.refreshToken, 10);
+    const hashedRefresh = await argon2.hash(tokens.refreshToken);
     await this.prisma.session.update({
       where: { id: session.id },
       data: { hashedRefreshToken: hashedRefresh },
@@ -218,12 +262,12 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+  async forgotPassword(phone: string) {
+    const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) return; // Silent fail for security
     await this.otpService.generateAndSendOtp(
       user.id,
-      user.email,
+      user.phone,
       OtpType.PASSWORD_RESET,
     );
   }
@@ -234,7 +278,7 @@ export class AuthService {
       dto.code,
       OtpType.PASSWORD_RESET,
     );
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const hashedPassword = await argon2.hash(dto.newPassword);
 
     await this.prisma.user.update({
       where: { id: dto.userId },
@@ -249,10 +293,10 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException();
 
-    const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
+    const isMatch = await argon2.verify(user.password, dto.oldPassword);
     if (!isMatch) throw new BadRequestException('Incorrect old password');
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const hashedPassword = await argon2.hash(dto.newPassword);
     await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },

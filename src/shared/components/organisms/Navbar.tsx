@@ -73,7 +73,7 @@ export function Navbar() {
                   key={route.href}
                   href={route.href}
                   className={cn(
-                    "relative flex items-center justify-center px-4 py-2.5 rounded-full text-[15px] font-bold transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    "relative flex items-center justify-center px-4 h-10 rounded-full text-[15px] font-bold transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     isActive
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -88,7 +88,6 @@ export function Navbar() {
           {/* Right Actions */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
-            {/* Theme + Language Dropdown */}
             {/* Theme & Language Toggles (Hidden on Mobile) */}
             <div className="hidden lg:flex items-center gap-3 bg-muted/30 p-1.5 rounded-2xl border border-border/50">
               <SegmentedSwitch
@@ -113,18 +112,20 @@ export function Navbar() {
             </div>
 
             {/* Auth Buttons — Desktop */}
-            <div className="hidden sm:flex items-center gap-3">
-              <Link href="/login" className="flex">
+            <div className="hidden sm:flex items-center gap-2">
+              <Link href="/login" className="flex items-center">
                 <Button
                   variant="ghost"
-                  className="rounded-full px-5 font-bold text-[15px] text-muted-foreground hover:text-foreground hover:bg-muted h-10"
+                  size="sm"
+                  className="rounded-full font-bold text-[15px] text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   {lang === 'ar' ? 'تسجيل دخول' : 'Log in'}
                 </Button>
               </Link>
-              <Link href="/register" className="flex">
+              <Link href="/register" className="flex items-center">
                 <Button
-                  className="rounded-full px-6 font-bold text-[15px] h-10 shadow-md hover:shadow-lg transition-all"
+                  size="sm"
+                  className="rounded-full font-bold text-[15px] shadow-md hover:shadow-lg transition-all"
                 >
                   {lang === 'ar' ? 'ابدأ مجاناً' : 'Sign up'}
                 </Button>

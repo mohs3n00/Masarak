@@ -30,9 +30,9 @@ import { SearchModule } from './modules/search/search.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { MediaModule } from './modules/media/media.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 // Shared Infrastructure Modules
-import { FirebaseModule } from './shared/firebase/firebase.module';
 import { StorageModule } from './shared/storage/storage.module';
 import { MailModule } from './shared/mail/mail.module';
 import { SmsModule } from './shared/sms/sms.module';
@@ -84,7 +84,6 @@ import { GlobalCacheModule } from './shared/cache/cache.module';
     PrismaModule,
 
     // Shared Infrastructure Modules
-    FirebaseModule,
     StorageModule,
     MailModule,
     SmsModule,
@@ -107,6 +106,7 @@ import { GlobalCacheModule } from './shared/cache/cache.module';
     AnalyticsModule,
     MediaModule,
     MonitoringModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [

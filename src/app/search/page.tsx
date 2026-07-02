@@ -98,7 +98,7 @@ export default function SearchPage() {
               </span>
               
               <div className="flex items-center gap-4">
-                <select className="bg-card border border-border rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:border-primary">
+                <select className="bg-card border-2 border-border/50 rounded-xl px-4 h-[52px] text-sm font-medium focus:outline-none focus:border-primary">
                   <option>Most Relevant</option>
                   <option>Highest Rated</option>
                   <option>Newest</option>
