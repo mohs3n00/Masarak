@@ -11,21 +11,17 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 
 export const studentRegisterSchema = z
   .object({
-    firstName: z.string().min(2, { message: 'الاسم الأول يجب أن يتكون من حرفين على الأقل' }),
-    middleName: z.string().optional(),
-    lastName: z.string().optional(),
-    familyName: z.string().min(2, { message: 'الاسم الأخير يجب أن يتكون من حرفين على الأقل' }),
-    phone: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
-    parentPhone: z.string().regex(phoneRegex, { message: 'رقم هاتف ولي أمر مصري غير صالح' }).optional().or(z.literal('')),
-    email: z.string().email({ message: 'البريد الإلكتروني غير صالح' }).optional().or(z.literal('')),
+    firstName: z.string().min(2, { message: 'الاسم الأول مطلوب' }),
+    middleName: z.string().min(2, { message: 'الاسم الثاني مطلوب' }),
+    lastName: z.string().min(2, { message: 'الاسم الثالث مطلوب' }),
+    familyName: z.string().min(2, { message: 'الاسم الأخير مطلوب' }),
+    phone: z.string().regex(phoneRegex, { message: 'رقم هاتف غير صالح' }),
+    parentPhone: z.string().regex(phoneRegex, { message: 'رقم ولي الأمر غير صالح' }),
     password: z.string().min(8, { message: 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل' }),
     confirmPassword: z.string(),
-    country: z.string().optional(),
-    governorate: z.string().optional(),
-    city: z.string().optional(),
-    grade: z.string().optional(),
-    track: z.string().optional(),
-    school: z.string().optional(),
+    governorate: z.string().min(2, { message: 'المحافظة مطلوبة' }),
+    city: z.string().min(2, { message: 'الإدارة التعليمية مطلوبة' }),
+    grade: z.string().min(1, { message: 'السنة الدراسية مطلوبة' }),
     avatar: z.string().optional(),
     termsAccepted: z.literal(true, {
       message: 'يجب الموافقة على الشروط والأحكام'

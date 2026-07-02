@@ -53,7 +53,7 @@ export default function LoginPage() {
 
   return (
     <GuestGuard>
-      <AuthLayout>
+      <AuthLayout illustration="/images/auth/login-illustration.png">
         <AuthCard>
           <AuthHeader
             title="تسجيل الدخول إلى حسابك"

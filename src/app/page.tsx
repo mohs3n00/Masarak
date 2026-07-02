@@ -2,35 +2,30 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { AppContainer, Section } from '@/shared/layouts/Containers';
 import { AnimatedDiv } from '@/shared/components/atoms/Motion';
-import { Button } from '@/shared/components/atoms/Button';
+import { Button } from '@/components/ui/button';
 import { FAQAccordion } from '@/features/marketing/components/blocks/FAQAccordion';
 import { SectionHeader } from '@/features/marketing/components/blocks/SectionHeader';
 import { CategoryCard } from '@/features/marketing/components/cards/CategoryCard';
-import { CoursePreviewCard } from '@/features/marketing/components/cards/CoursePreviewCard';
-import { FeatureCard } from '@/features/marketing/components/cards/FeatureCard';
-import { TeacherPreviewCard } from '@/features/marketing/components/cards/TeacherPreviewCard';
 import { TestimonialCard } from '@/features/marketing/components/cards/TestimonialCard';
 import { HeroBackground } from '@/features/marketing/components/hero/HeroBackground';
 import { HeroImage } from '@/features/marketing/components/hero/HeroImage';
+import { CTASection } from '@/features/marketing/components/blocks/CTASection';
+import { CourseCard } from '@/features/student-experience/components/CourseCard';
+import { TeacherCard } from '@/shared/components/organisms/TeacherCard';
 import homeStartImage from '@/assets/images/home start.png';
 
-import { courses, teachers, categories, features, faqs, statistics, testimonials } from '@/mock';
-import { BookOpen, GraduationCap, Star, Users, ArrowLeft, CheckCircle } from 'lucide-react';
+import { courses, teachers, categories, faqs, testimonials } from '@/mock';
+import { ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'مسارك | منصة التعليم الذكية',
-  description: 'منصة مسارك التعليمية الرائدة للتعليم عن بعد. انضم لآلاف الطلاب والمعلمين الآن.',
+  title: 'مسارك | منصة ثانوية عامة',
+  description: 'منصة مسارك التعليمية، كل ما يحتاجه طالب الثانوية العامة في مكان واحد.',
 };
-
-const trustBadges = [
-  'شهادات معتمدة',
-  '+500 كورس',
-  'دعم 24/7',
-  'تعلم بأي وقت',
-];
 
 export default function LandingPage() {
   const featuredCourses = courses.slice(0, 4);
+  const latestCourses = courses.slice(4, 8);
+  const revisionCourses = courses.slice(2, 6);
   const featuredTeachers = teachers.slice(0, 4);
   const featuredCategories = categories.slice(0, 8);
 
@@ -47,7 +42,6 @@ export default function LandingPage() {
             
             {/* Right: Copy (Since RTL) */}
             <div className="flex flex-col items-start text-start order-2 lg:order-1">
-              
               {/* Headline */}
               <h1 className="text-5xl md:text-6xl lg:text-[4.5rem] font-black tracking-tight leading-[1.2] mb-6 text-foreground">
                 <span className="text-primary">مسارك</span>
@@ -56,31 +50,17 @@ export default function LandingPage() {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-lg">
-                منصة متكاملة بها كل ما يحتاجه الطالب ليتفوق.
+              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-lg font-medium">
+                كل ما يحتاجه طالب الثانوية العامة في مكان واحد.
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 mb-12">
-                <Link href="/register">
-                  <Button size="lg" className="rounded-2xl px-12 font-bold h-14 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all hover:-translate-y-1">
-                    عمل حساب جديد !
+              <div className="flex flex-wrap items-center gap-4 mb-8">
+                <Link href="/register/student">
+                  <Button size="lg" className="rounded-2xl px-12 font-bold h-14 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
+                    ابدأ رحلتك مجاناً
                   </Button>
                 </Link>
-              </div>
-
-              {/* Trust Badges - Reduced to 3 */}
-              <div className="flex flex-wrap items-center gap-6">
-                {[
-                  'شهادات معتمدة',
-                  'نخبة الخبراء',
-                  'محتوى تفاعلي'
-                ].map((badge) => (
-                  <div key={badge} className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                    <CheckCircle className="w-5 h-5 text-primary shrink-0" />
-                    {badge}
-                  </div>
-                ))}
               </div>
             </div>
 
@@ -88,7 +68,7 @@ export default function LandingPage() {
             <div className="relative flex justify-center lg:justify-end items-center order-1 lg:order-2 w-full aspect-[4/3] min-h-[400px]">
                 <HeroImage
                   src={homeStartImage}
-                  alt="منصة مسارك"
+                  alt="طالب ثانوية عامة"
                   className="w-full max-w-[700px] h-full object-contain scale-110"
                 />
             </div>
@@ -97,55 +77,7 @@ export default function LandingPage() {
       </AppContainer>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          2. STATS STRIP
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="border-y border-border/50 bg-muted/30">
-        <AppContainer>
-          <div className="py-8">
-            <AnimatedDiv variant="staggerContainer" className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/50">
-              {[
-                { value: statistics.totalStudents.toLocaleString('ar-SA'), label: 'طالب مسجل', icon: Users },
-                { value: statistics.totalTeachers.toLocaleString('ar-SA'), label: 'معلم خبير', icon: GraduationCap },
-                { value: statistics.totalCourses.toLocaleString('ar-SA'), label: 'كورس متاح', icon: BookOpen },
-                { value: statistics.totalHoursWatched.toLocaleString('ar-SA'), label: 'ساعة تعليمية', icon: Star },
-              ].map(({ value, label, icon: Icon }) => (
-                <AnimatedDiv key={label} variant="fadeUp" className="flex flex-col items-center justify-center py-6 bg-background gap-1">
-                  <span className="text-2xl md:text-3xl font-bold text-primary">{value}</span>
-                  <span className="text-xs text-muted-foreground font-medium">{label}</span>
-                </AnimatedDiv>
-              ))}
-            </AnimatedDiv>
-          </div>
-        </AppContainer>
-      </div>
-
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          3. CATEGORIES
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <AppContainer>
-        <Section className="py-20 md:py-24">
-          <div className="flex items-end justify-between mb-10">
-            <SectionHeader
-              badge="التصنيفات"
-              title="تصفح مجالات التعلم"
-              subtitle="اختر مجالك واحصل على المسار المثالي لك"
-              align="left"
-              className="mb-0 max-w-lg"
-            />
-            <Link href="/courses" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
-              عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
-            </Link>
-          </div>
-          <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {featuredCategories.map(category => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </AnimatedDiv>
-        </Section>
-      </AppContainer>
-
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          4. FEATURED COURSES
+          2. FEATURED COURSES
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="bg-muted/30 border-y border-border/50">
         <AppContainer>
@@ -153,8 +85,8 @@ export default function LandingPage() {
             <div className="flex items-end justify-between mb-10">
               <SectionHeader
                 badge="الكورسات"
-                title="أكثر الكورسات طلباً"
-                subtitle="منتقاة بعناية من قِبَل فريق المحتوى"
+                title="كورسات مميزة"
+                subtitle="أفضل الكورسات اللي هتساعدك تقفل المادة"
                 align="left"
                 className="mb-0 max-w-lg"
               />
@@ -165,7 +97,22 @@ export default function LandingPage() {
             <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {featuredCourses.map(course => {
                 const teacher = teachers.find(t => t.id === course.teacherId);
-                return <CoursePreviewCard key={course.id} course={course} teacher={teacher} />;
+                return (
+                  <CourseCard 
+                    key={course.id}
+                    id={course.id.toString()}
+                    title={course.title}
+                    teacher={teacher?.name || ''}
+                    teacherAvatar={teacher?.avatar}
+                    thumbnail={course.thumbnail}
+                    subject={categories.find(c => c.id === course.categoryId)?.name || ''}
+                    totalLessons={course.lessonsCount}
+                    rating={course.rating}
+                    studentsCount={course.studentsCount}
+                    price={parseFloat(course.price.toString())}
+                    originalPrice={course.originalPrice ? parseFloat(course.originalPrice.toString()) : undefined}
+                  />
+                );
               })}
             </AnimatedDiv>
           </Section>
@@ -173,27 +120,33 @@ export default function LandingPage() {
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          5. PLATFORM FEATURES
+          3. POPULAR TEACHERS
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <AppContainer>
         <Section className="py-20 md:py-24">
-          <SectionHeader
-            badge="لماذا مسارك؟"
-            title="تجربة تعليمية مختلفة"
-            subtitle="أدوات وميزات مصممة لتمنحك أفضل رحلة تعلم ممكنة"
-          />
-          <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {features.map(feature => (
-              <FeatureCard
-                key={feature.id}
-                title={feature.title}
-                description={feature.description}
-                iconName={
-                  feature.icon === 'video' ? 'PlayCircle'
-                  : feature.icon === 'users' ? 'Users'
-                  : feature.icon === 'check-circle' ? 'CheckCircle'
-                  : 'Headphones'
-                }
+          <div className="flex items-end justify-between mb-10">
+            <SectionHeader
+              badge="المعلمون"
+              title="أشهر المدرسين"
+              subtitle="نخبة من أفضل مدرسين الثانوية العامة في مصر"
+              align="left"
+              className="mb-0 max-w-lg"
+            />
+            <Link href="/teachers" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
+              عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
+            </Link>
+          </div>
+          <AnimatedDiv variant="staggerContainer" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {featuredTeachers.map(teacher => (
+              <TeacherCard 
+                key={teacher.id} 
+                id={teacher.id.toString()}
+                name={teacher.name}
+                subject={teacher.specialization}
+                avatar={teacher.avatar}
+                bio={teacher.bio}
+                studentsCount={teacher.studentsCount}
+                coursesCount={teacher.coursesCount}
               />
             ))}
           </AnimatedDiv>
@@ -201,26 +154,26 @@ export default function LandingPage() {
       </AppContainer>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          6. TEACHERS
+          4. SUBJECTS (Categories)
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="bg-muted/30 border-y border-border/50">
         <AppContainer>
           <Section className="py-20 md:py-24">
             <div className="flex items-end justify-between mb-10">
               <SectionHeader
-                badge="المعلمون"
-                title="تعلّم من الخبراء"
-                subtitle="نخبة من المتخصصين المعتمدين في مختلف المجالات"
+                badge="المواد الدراسية"
+                title="تصفح بالمواد الدراسية"
+                subtitle="اختر المادة اللي محتاج تذاكرها وابدأ فوراً"
                 align="left"
                 className="mb-0 max-w-lg"
               />
-              <Link href="/teachers" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
+              <Link href="/courses" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
                 عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
               </Link>
             </div>
-            <AnimatedDiv variant="staggerContainer" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredTeachers.map(teacher => (
-                <TeacherPreviewCard key={teacher.id} teacher={teacher} />
+            <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {featuredCategories.map(category => (
+                <CategoryCard key={category.id} category={category} />
               ))}
             </AnimatedDiv>
           </Section>
@@ -228,14 +181,98 @@ export default function LandingPage() {
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          7. TESTIMONIALS
+          5. LATEST COURSES
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <AppContainer>
+        <Section className="py-20 md:py-24">
+          <div className="flex items-end justify-between mb-10">
+            <SectionHeader
+              badge="جديد"
+              title="أحدث الكورسات"
+              subtitle="كورسات لسه نازلة جديد، ابدأ معاها من الأول"
+              align="left"
+              className="mb-0 max-w-lg"
+            />
+            <Link href="/courses" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
+              عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
+            </Link>
+          </div>
+          <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {latestCourses.map(course => {
+              const teacher = teachers.find(t => t.id === course.teacherId);
+              return (
+                <CourseCard 
+                  key={course.id}
+                  id={course.id.toString()}
+                  title={course.title}
+                  teacher={teacher?.name || ''}
+                  teacherAvatar={teacher?.avatar}
+                  thumbnail={course.thumbnail}
+                  subject={categories.find(c => c.id === course.categoryId)?.name || ''}
+                  totalLessons={course.lessonsCount}
+                  rating={course.rating}
+                  studentsCount={course.studentsCount}
+                  price={parseFloat(course.price.toString())}
+                  originalPrice={course.originalPrice ? parseFloat(course.originalPrice.toString()) : undefined}
+                />
+              );
+            })}
+          </AnimatedDiv>
+        </Section>
+      </AppContainer>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          6. REVISION COURSES
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="bg-muted/30 border-y border-border/50">
+        <AppContainer>
+          <Section className="py-20 md:py-24">
+            <div className="flex items-end justify-between mb-10">
+              <SectionHeader
+                badge="المراجعات"
+                title="كورسات المراجعة النهائية"
+                subtitle="لم المنهج كله في وقت قياسي قبل الامتحان"
+                align="left"
+                className="mb-0 max-w-lg"
+              />
+              <Link href="/courses" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
+                عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
+              </Link>
+            </div>
+            <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {revisionCourses.map(course => {
+                const teacher = teachers.find(t => t.id === course.teacherId);
+                return (
+                  <CourseCard 
+                    key={course.id}
+                    id={course.id.toString()}
+                    title={course.title}
+                    teacher={teacher?.name || ''}
+                    teacherAvatar={teacher?.avatar}
+                    thumbnail={course.thumbnail}
+                    subject={categories.find(c => c.id === course.categoryId)?.name || ''}
+                    totalLessons={course.lessonsCount}
+                    rating={course.rating}
+                    studentsCount={course.studentsCount}
+                    price={parseFloat(course.price.toString())}
+                    originalPrice={course.originalPrice ? parseFloat(course.originalPrice.toString()) : undefined}
+                  />
+                );
+              })}
+            </AnimatedDiv>
+          </Section>
+        </AppContainer>
+      </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          7. STUDENT REVIEWS
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <AppContainer>
         <Section className="py-20 md:py-24">
           <SectionHeader
             badge="الآراء"
-            title="ماذا يقول طلابنا؟"
-            subtitle="تجارب حقيقية من طلاب غيّروا مسارهم معنا"
+            title="آراء الطلاب"
+            subtitle="شوف زمايلك بيقولوا إيه عن تجربتهم في مسارك"
           />
           <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {testimonials.slice(0, 3).map(testimonial => (
@@ -248,13 +285,13 @@ export default function LandingPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           8. FAQ
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="bg-muted/30 border-y border-border/50">
+      <div className="bg-muted/30 border-t border-border/50">
         <AppContainer>
           <Section className="py-20 md:py-24">
             <SectionHeader
               badge="الأسئلة الشائعة"
-              title="هل لديك استفسار؟"
-              subtitle="إجابات واضحة لأكثر الأسئلة شيوعاً"
+              title="عندك استفسار؟"
+              subtitle="إجابات واضحة لأكتر الأسئلة اللي بتهمك كطالب"
             />
             <AnimatedDiv variant="fadeUp" className="max-w-2xl mx-auto">
               <FAQAccordion items={faqs.slice(0, 5)} />
@@ -264,39 +301,20 @@ export default function LandingPage() {
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          9. CTA BANNER
+          9. CTA SECTION
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <AppContainer>
-        <Section className="py-20 md:py-28">
+        <Section className="pb-20 md:pb-24 pt-10">
           <AnimatedDiv variant="fadeUp">
-            <div className="relative rounded-3xl overflow-hidden bg-foreground text-background p-10 md:p-16 text-center">
-              {/* Decorative element */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,110,0.12)_0%,transparent_60%)] pointer-events-none" />
-              
-              <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center gap-6">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-sm font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  ابدأ الآن مجاناً
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold leading-tight">
-                  جاهز لتبدأ رحلتك التعليمية؟
-                </h2>
-                <p className="text-background/70 leading-relaxed">
-                  انضم إلى أكثر من 50,000 طالب يثقون في مسارك لبناء مهاراتهم ومستقبلهم.
-                </p>
-                <Link href="/register">
-                  <Button
-                    size="lg"
-                    className="rounded-full px-10 font-semibold h-12 text-[15px] bg-primary text-primary-foreground hover:bg-primary/90 shadow-none"
-                  >
-                    إنشاء حساب مجاني
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            <CTASection 
+              title="جاهز تبدأ تذاكر صح؟"
+              description="انضم لأكتر من 50,000 طالب ثانوية عامة بيعتمدوا على مسارك في مذاكرتهم."
+              primaryAction={{ label: "اعمل حساب مجاني", href: "/register/student" }}
+            />
           </AnimatedDiv>
         </Section>
       </AppContainer>
+
     </div>
   );
 }

@@ -36,7 +36,8 @@ export function PreviewPage() {
           <h1 className="text-2xl font-bold text-primary">Masarak Design System</h1>
           <p className="text-sm text-muted-foreground">Component Preview & Verification</p>
         </div>
-        <Button variant="outline" onClick={() => setIsDark(!isDark)} leftIcon={isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}>
+        <Button variant="outline" onClick={() => setIsDark(!isDark)}>
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {isDark ? "Light Mode" : "Dark Mode"}
         </Button>
       </div>
@@ -60,9 +61,9 @@ export function PreviewPage() {
                   <Button variant="secondary">Secondary</Button>
                   <Button variant="outline">Outline</Button>
                   <Button variant="ghost">Ghost</Button>
-                  <Button variant="destructive">Destructive</Button>
+                  <Button variant="danger">Danger</Button>
                   <Button loading>Loading</Button>
-                  <Button leftIcon={<BookOpen className="h-4 w-4" />}>With Icon</Button>
+                  <Button><BookOpen className="h-4 w-4" />With Icon</Button>
                 </div>
               </CardContent>
             </Card>
@@ -89,9 +90,9 @@ export function PreviewPage() {
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   <Badge>Default Badge</Badge>
-                  <Badge variant="secondary">Secondary</Badge>
+                  <Badge variant="default">Default</Badge>
                   <Badge variant="outline">Outline</Badge>
-                  <Badge variant="destructive">Destructive</Badge>
+                  <Badge variant="error">Error</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Chip onRemove={() => {}}>Removable Chip</Chip>
@@ -164,10 +165,13 @@ export function PreviewPage() {
 
             {/* Teacher Card */}
             <TeacherCard 
+              id="t1"
               name="Sarah Mohamed"
               subject="Mathematics"
               avatar="https://i.pravatar.cc/150?u=sarah"
               bio="Experienced math teacher with over 10 years of helping students excel in Calculus and Algebra."
+              studentsCount={4200}
+              coursesCount={5}
             />
 
             {/* Stat Card */}

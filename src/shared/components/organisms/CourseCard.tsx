@@ -21,7 +21,7 @@ export function CourseCard({ title, image, instructor, price, rating, studentsCo
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={image} alt={title} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" />
         <div className="absolute top-2 start-2 flex flex-wrap gap-1">
-          {tags.map(tag => <Badge key={tag} variant="secondary" className="backdrop-blur-md bg-background/80">{tag}</Badge>)}
+          {tags.map(tag => <Badge key={tag} variant="outline" className="bg-background text-xs">{tag}</Badge>)}
         </div>
       </div>
       <CardContent className="p-4">

@@ -111,7 +111,7 @@ export default function CoursesPage() {
                   <Button variant="outline" size="icon" className="w-10 h-10 rounded-lg text-muted-foreground" disabled>
                     <ChevronRight className="h-5 w-5 rtl:rotate-180" />
                   </Button>
-                  <Button variant="default" className="w-10 h-10 rounded-lg p-0 font-bold">1</Button>
+                  <Button variant="primary" className="w-10 h-10 rounded-lg p-0 font-bold">1</Button>
                   <Button variant="ghost" className="w-10 h-10 rounded-lg p-0 font-bold text-muted-foreground">2</Button>
                   <Button variant="ghost" className="w-10 h-10 rounded-lg p-0 font-bold text-muted-foreground">3</Button>
                   <span className="text-muted-foreground px-2">...</span>

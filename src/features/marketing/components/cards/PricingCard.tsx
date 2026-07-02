@@ -47,7 +47,7 @@ export function PricingCard({ plan, className }: PricingCardProps) {
         </CardContent>
         <CardFooter className="p-8 pt-0 mt-4">
           <Button 
-            variant={plan.isPopular ? "default" : "outline"} 
+            variant={plan.isPopular ? "primary" : "outline"} 
             className={cn(
               "w-full h-14 rounded-2xl text-[15px]",
               plan.isPopular ? "shadow-xl shadow-primary/25" : "border-2 hover:bg-muted/50"

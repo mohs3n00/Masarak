@@ -11,7 +11,7 @@ export function TagGroup({ tags, className }: TagGroupProps) {
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {tags.map((tag, idx) => (
-        <Badge key={idx} variant="secondary" className="font-normal text-xs">{tag}</Badge>
+        <Badge key={idx} variant="outline" className="font-normal text-xs">{tag}</Badge>
       ))}
     </div>
   );

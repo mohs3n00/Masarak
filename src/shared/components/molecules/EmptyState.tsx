@@ -1,56 +1,59 @@
-import React from 'react';
-import { FileIcon, SearchIcon, FolderOpenIcon, StarIcon, DownloadIcon, BellIcon, BookmarkIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/shared/components/atoms/Button';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export type EmptyStateType = 'search' | 'folder' | 'document' | 'favorites' | 'downloads' | 'notifications' | 'bookmarks';
+/**
+ * EmptyState — Masarak Design System
+ *
+ * Used when: no courses, no search results, no notifications, empty wishlist, etc.
+ * Clean, minimal, educational feeling. No glassmorphism.
+ *
+ * States: default (icon + title + description + action)
+ */
 
-interface EmptyStateProps {
-  type?: EmptyStateType;
-  title: string;
-  description: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  className?: string;
+interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
+  icon?: React.ReactNode
+  title: string
+  description?: string
+  action?: React.ReactNode
 }
 
-const icons = {
-  search: SearchIcon,
-  folder: FolderOpenIcon,
-  document: FileIcon,
-  favorites: StarIcon,
-  downloads: DownloadIcon,
-  notifications: BellIcon,
-  bookmarks: BookmarkIcon,
-};
-
-export function EmptyState({
-  type = 'document',
+function EmptyState({
+  icon,
   title,
   description,
-  actionLabel,
-  onAction,
-  className
+  action,
+  className,
+  ...props
 }: EmptyStateProps) {
-  const Icon = icons[type];
-
   return (
-    <div className={cn(
-      "w-full flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border border-border border-dashed bg-card/30 backdrop-blur-sm shadow-sm",
-      className
-    )}>
-      <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6 text-muted-foreground shadow-inner">
-        <Icon className="w-10 h-10 opacity-50" />
-      </div>
-      <h3 className="text-xl font-bold font-heading mb-2">{title}</h3>
-      <p className="text-text-secondary max-w-md mx-auto mb-8 leading-relaxed">
-        {description}
-      </p>
-      {actionLabel && onAction && (
-        <Button onClick={onAction} size="lg" className="rounded-full shadow-md font-bold px-8">
-          {actionLabel}
-        </Button>
+    <div
+      data-slot="empty-state"
+      className={cn(
+        "flex flex-col items-center justify-center text-center",
+        "py-16 px-6 rounded-xl border border-dashed border-border",
+        "bg-surface",
+        className
       )}
+      {...props}
+    >
+      {icon && (
+        <div className="mb-4 flex items-center justify-center w-16 h-16 rounded-2xl bg-muted text-text-muted [&_svg]:size-8">
+          {icon}
+        </div>
+      )}
+      <h3 className="text-base font-bold text-foreground mb-1">
+        {title}
+      </h3>
+      {description && (
+        <p className="text-sm text-text-muted max-w-xs leading-relaxed mb-6">
+          {description}
+        </p>
+      )}
+      {action && !description && <div className="mt-4">{action}</div>}
+      {action && description && <div>{action}</div>}
     </div>
-  );
+  )
 }
+
+export { EmptyState }
+export type { EmptyStateProps }

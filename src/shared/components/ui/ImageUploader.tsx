@@ -116,7 +116,7 @@ export function ImageUploader({
             <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
               <Button
                 type="button"
-                variant="destructive"
+                variant="danger"
                 size="sm"
                 onClick={handleRemove}
                 className="gap-2"

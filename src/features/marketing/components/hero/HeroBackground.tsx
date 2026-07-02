@@ -1,13 +1,16 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * HeroBackground — Clean, no AI/SaaS effects.
+ * Uses a simple solid surface-level tint.
+ * No radial gradients, no blurs, no glows.
+ */
 export function HeroBackground({ className }: { className?: string }) {
   return (
     <div className={cn("absolute inset-0 -z-10 overflow-hidden pointer-events-none", className)}>
-      {/* Soft radial gradient from top-center — very subtle green warmth */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-[radial-gradient(ellipse_at_top,rgba(0,212,110,0.07)_0%,transparent_70%)]" />
-      {/* Secondary soft glow bottom-right for depth */}
-      <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_bottom_right,rgba(0,212,110,0.04)_0%,transparent_60%)]" />
+      {/* Subtle top border line for definition */}
+      <div className="absolute inset-x-0 bottom-0 h-px bg-border" />
     </div>
   );
 }

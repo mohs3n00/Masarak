@@ -2,68 +2,112 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Logo } from '@/shared/components/atoms/Logo';
+import { cn } from '@/lib/utils';
+
+/**
+ * AuthLayout — Masarak Design System
+ *
+ * Two-column layout: Form (right, RTL) + Illustration (left)
+ * - No glows, no blurs, no AI effects
+ * - Clean educational styling
+ * - Illustration panel uses solid surface color
+ * - Mobile: single column, logo at top
+ */
 
 interface AuthLayoutProps {
   children: React.ReactNode;
   illustration?: string;
   illustrationAlt?: string;
   title?: string;
+  className?: string;
 }
 
-export const AuthLayout: React.FC<AuthLayoutProps> = ({ 
-  children, 
-  illustration = '/images/auth/login-illustration.png', 
-  illustrationAlt = 'Authentication Illustration',
-  title
+export const AuthLayout: React.FC<AuthLayoutProps> = ({
+  children,
+  illustration,
+  illustrationAlt = 'Masarak Platform',
+  title,
+  className,
 }) => {
   return (
-    <div className="flex min-h-screen bg-background" dir="rtl">
-      {/* Right Column: Form (since RTL, right is where the form should visually be or we use flex-row-reverse) */}
-      <div className="flex flex-col justify-center flex-1 w-full max-w-md px-6 py-12 mx-auto lg:px-8 xl:max-w-lg z-10">
+    <div className={cn("flex min-h-screen bg-background", className)} dir="rtl">
+
+      {/* Form Column (right side in RTL) */}
+      <main className="flex flex-col justify-center flex-1 w-full max-w-[480px] px-6 py-10 mx-auto lg:px-10 lg:mx-0">
         <div className="w-full">
           {/* Mobile Logo */}
           <div className="flex items-center justify-center mb-8 lg:hidden">
-            <Link href="/" className="flex items-center gap-2">
-              <Logo width={120} height={35} />
+            <Link href="/" className="focus-ring rounded-md">
+              <Logo width={110} height={30} href={null} />
             </Link>
           </div>
-          
+
+          {/* Form Content */}
           <div className="w-full">
             {children}
           </div>
 
-          {/* Bottom footnote */}
-          <p className="mt-8 text-xs text-muted-foreground text-center relative z-10">
+          {/* Footer note */}
+          <p className="mt-8 text-xs text-text-muted text-center">
             © {new Date().getFullYear()} منصة مسارك. جميع الحقوق محفوظة.
           </p>
         </div>
-      </div>
+      </main>
 
-      {/* Left Column: Illustration (Since RTL, it goes to the left) */}
-      <div className="hidden lg:flex lg:flex-1 relative bg-primary/5 border-r border-border/50 overflow-hidden items-center justify-center p-12">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,212,110,0.1)_0%,transparent_70%)] pointer-events-none" />
-        
+      {/* Illustration Column (left side in RTL) — desktop only */}
+      <aside
+        className={cn(
+          "hidden lg:flex lg:flex-1 flex-col",
+          "bg-surface border-e border-border",
+          "items-center justify-center p-12",
+          "relative overflow-hidden"
+        )}
+        aria-hidden="true"
+      >
         {/* Desktop Logo */}
-        <div className="absolute top-8 right-8 z-10">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo width={140} height={40} />
+        <div className="absolute top-8 start-8">
+          <Link href="/" className="focus-ring rounded-md block">
+            <Logo width={120} height={32} href={null} />
           </Link>
         </div>
 
         {/* Illustration */}
-        <div className="relative z-10 w-full max-w-2xl aspect-square flex items-center justify-center">
-          {/* Fallback to a placeholder if image is missing, you should place actual SVGs in public/images/auth/ */}
-          <div className="w-full h-full bg-primary/10 rounded-full animate-pulse blur-3xl absolute opacity-50" />
-          {/* For now, we use an image tag assuming the user will place images, or we can use a CSS shape */}
-          <Image
-            src={illustration}
-            alt={illustrationAlt}
-            fill
-            className="object-contain drop-shadow-2xl z-10"
-            priority
-          />
-        </div>
-      </div>
+        {illustration ? (
+          <div className="relative w-full max-w-md aspect-[4/3]">
+            <Image
+              src={illustration}
+              alt={illustrationAlt}
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+        ) : (
+          /* Default placeholder when no illustration provided */
+          <div className="flex flex-col items-center gap-6 text-center max-w-xs">
+            <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Logo width={60} height={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                {title ?? 'مرحباً بك في مسارك'}
+              </h2>
+              <p className="text-text-muted text-sm leading-relaxed">
+                منصة تعليمية لطلاب الثانوية العامة المصرية
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom pattern — just a subtle grid, no glows */}
+        <div
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
+        />
+      </aside>
     </div>
   );
 };

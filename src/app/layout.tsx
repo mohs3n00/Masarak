@@ -14,8 +14,8 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "Masarak | Educational Platform",
-  description: "A large-scale educational SaaS platform.",
+  title: "منصة مسارك | للثانوية العامة",
+  description: "المنصة التعليمية الأولى لطلاب الثانوية العامة في مصر.",
 };
 
 export default function RootLayout({

@@ -14,6 +14,10 @@ enum Role {
   STUDENT
   TEACHER
   ADMIN
+  SUPER_ADMIN
+  CONTENT_MANAGER
+  ASSISTANT_TEACHER
+  PARENT
 }
 
 enum Gender {
@@ -1614,4 +1618,31 @@ model ExportReport {
   createdAt   DateTime @default(now())
 
   requester User @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+}
+
+// ------------------------------------------------------
+// CMS & SETTINGS
+// ------------------------------------------------------
+
+model HomepageConfig {
+  id          String  @id @default(uuid())
+  section     String  @unique // e.g. HERO, CTA
+  title       String?
+  subtitle    String?
+  imageUrl    String?
+  buttonText  String?
+  buttonLink  String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FooterConfig {
+  id          String  @id @default(uuid())
+  platform    String  @unique // e.g. FACEBOOK, WHATSAPP, EMAIL, ADDRESS, LOGO
+  value       String
+  icon        String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

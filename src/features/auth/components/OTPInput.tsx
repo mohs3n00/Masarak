@@ -1,20 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
-interface OTPInputProps {
+export interface OTPInputProps {
   length?: number;
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  className?: string;
 }
 
-export const OTPInput: React.FC<OTPInputProps> = ({ length = 6, value, onChange, error }) => {
+/**
+ * OTPInput — Masarak Design System
+ * Controlled component for entering verification codes.
+ */
+export const OTPInput: React.FC<OTPInputProps> = ({ 
+  length = 6, 
+  value, 
+  onChange, 
+  error,
+  className 
+}) => {
   const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (value) {
       const valueArray = value.split('').slice(0, length);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOtp((prev) => {
         const newOtp = [...prev];
         valueArray.forEach((char, index) => {
@@ -30,14 +41,12 @@ export const OTPInput: React.FC<OTPInputProps> = ({ length = 6, value, onChange,
     if (isNaN(Number(val))) return;
 
     const newOtp = [...otp];
-    // Take only the last character in case of pasting multiple
     newOtp[index] = val.substring(val.length - 1);
     setOtp(newOtp);
 
     const newValue = newOtp.join('');
     onChange(newValue);
 
-    // Focus next input
     if (val && index < length - 1 && inputRefs.current[index + 1]) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -45,7 +54,6 @@ export const OTPInput: React.FC<OTPInputProps> = ({ length = 6, value, onChange,
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
-      // Focus previous input on backspace if current is empty
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -67,8 +75,8 @@ export const OTPInput: React.FC<OTPInputProps> = ({ length = 6, value, onChange,
   };
 
   return (
-    <div>
-      <div className="flex justify-between gap-2" dir="ltr">
+    <div className={className}>
+      <div className="flex justify-between gap-3" dir="ltr">
         {otp.map((digit, index) => (
           <input
             key={index}
@@ -80,13 +88,18 @@ export const OTPInput: React.FC<OTPInputProps> = ({ length = 6, value, onChange,
             onKeyDown={(e) => handleKeyDown(e, index)}
             onPaste={handlePaste}
             ref={(el) => { inputRefs.current[index] = el; }}
-            className={`w-12 h-12 text-center text-xl font-semibold border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors ${
-              error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
-            }`}
+            className={cn(
+              "w-12 h-14 text-center text-xl font-bold rounded-lg border transition-colors",
+              "bg-input text-foreground outline-none",
+              "focus:ring-2 focus:ring-offset-1 focus:ring-primary focus:border-primary",
+              error 
+                ? "border-error focus:ring-error focus:border-error" 
+                : "border-input-border hover:border-border-strong"
+            )}
           />
         ))}
       </div>
-      {error && <p className="mt-2 text-sm text-red-600 text-right">{error}</p>}
+      {error && <p className="mt-2 text-sm font-medium text-error text-start">{error}</p>}
     </div>
   );
 };

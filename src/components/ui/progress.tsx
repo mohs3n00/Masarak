@@ -1,83 +1,84 @@
-"use client"
-
-import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
-
+import * as React from "react"
 import { cn } from "@/lib/utils"
 
+/**
+ * Progress — Masarak Design System
+ *
+ * Used for: course completion, lesson progress, upload progress.
+ * Clean bar — no glows, no animations except smooth width transition.
+ *
+ * Variants: default (green), info (blue), warning (orange)
+ * Sizes: sm (4px), md (8px, default), lg (12px)
+ */
+
+interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
+  value: number          // 0–100
+  max?: number
+  variant?: "default" | "info" | "warning" | "success"
+  size?: "sm" | "md" | "lg"
+  showLabel?: boolean
+  label?: string
+}
+
+const variantColor = {
+  default: "bg-primary",
+  success: "bg-success",
+  info:    "bg-info",
+  warning: "bg-warning",
+}
+
+const sizeClass = {
+  sm: "h-1",
+  md: "h-2",
+  lg: "h-3",
+}
+
 function Progress({
-  className,
-  children,
   value,
+  max = 100,
+  variant = "default",
+  size = "md",
+  showLabel = false,
+  label,
+  className,
   ...props
-}: ProgressPrimitive.Root.Props) {
+}: ProgressProps) {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100))
+
   return (
-    <ProgressPrimitive.Root
-      value={value}
+    <div
       data-slot="progress"
-      className={cn("flex flex-wrap gap-3", className)}
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      aria-label={label}
+      className={cn("w-full space-y-1", className)}
       {...props}
     >
-      {children}
-      <ProgressTrack>
-        <ProgressIndicator />
-      </ProgressTrack>
-    </ProgressPrimitive.Root>
-  )
-}
-
-function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
-  return (
-    <ProgressPrimitive.Track
-      className={cn(
-        "relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted",
-        className
+      {(showLabel || label) && (
+        <div className="flex items-center justify-between text-xs text-text-muted">
+          <span>{label}</span>
+          <span className="font-semibold text-foreground">{Math.round(pct)}%</span>
+        </div>
       )}
-      data-slot="progress-track"
-      {...props}
-    />
+      <div
+        className={cn(
+          "w-full rounded-full bg-muted overflow-hidden",
+          sizeClass[size]
+        )}
+      >
+        <div
+          className={cn(
+            "h-full rounded-full transition-all duration-500 ease-out",
+            variantColor[variant]
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   )
 }
 
-function ProgressIndicator({
-  className,
-  ...props
-}: ProgressPrimitive.Indicator.Props) {
-  return (
-    <ProgressPrimitive.Indicator
-      data-slot="progress-indicator"
-      className={cn("h-full bg-primary transition-all", className)}
-      {...props}
-    />
-  )
-}
-
-function ProgressLabel({ className, ...props }: ProgressPrimitive.Label.Props) {
-  return (
-    <ProgressPrimitive.Label
-      className={cn("text-sm font-medium", className)}
-      data-slot="progress-label"
-      {...props}
-    />
-  )
-}
-
-function ProgressValue({ className, ...props }: ProgressPrimitive.Value.Props) {
-  return (
-    <ProgressPrimitive.Value
-      className={cn(
-        "ml-auto text-sm text-muted-foreground tabular-nums",
-        className
-      )}
-      data-slot="progress-value"
-      {...props}
-    />
-  )
-}
-
-export {
-  Progress,
-  ProgressTrack,
-  ProgressIndicator,
-  ProgressLabel,
-  ProgressValue,
-}
+export { Progress }
+export type { ProgressProps }

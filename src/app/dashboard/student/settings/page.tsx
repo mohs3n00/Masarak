@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, Bell, Lock, Globe, CreditCard, Palette, Settings } from 'lucide-react';
+import { User, Bell, Lock, CreditCard, Palette, Settings } from 'lucide-react';
 import { studentMockData } from '@/lib/mock-data/student-dashboard';
 
 export default function SettingsPage() {
@@ -14,7 +14,6 @@ export default function SettingsPage() {
     { id: 'notifications', label: 'الإشعارات', icon: Bell },
     { id: 'billing', label: 'الفواتير', icon: CreditCard },
     { id: 'appearance', label: 'المظهر', icon: Palette },
-    { id: 'language', label: 'اللغة والمنطقة', icon: Globe },
   ];
 
   return (

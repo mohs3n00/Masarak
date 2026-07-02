@@ -1,15 +1,88 @@
 import * as React from "react"
 import { Input as InputPrimitive } from "@base-ui/react/input"
-
 import { cn } from "@/lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+/**
+ * Input — Masarak Design System
+ *
+ * Height: 52px (--input-h)
+ * All states: default, hover, focus, disabled, error, readonly
+ * Supports: start/end icons, helper text, error message, label
+ */
+
+export interface InputProps extends React.ComponentProps<"input"> {
+  error?: boolean
+  startIcon?: React.ReactNode
+  endIcon?: React.ReactNode
+}
+
+function Input({
+  className,
+  type,
+  error,
+  startIcon,
+  endIcon,
+  ...props
+}: InputProps) {
+  if (startIcon || endIcon) {
+    return (
+      <div className="relative flex items-center w-full">
+        {startIcon && (
+          <span className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none [&_svg]:size-5">
+            {startIcon}
+          </span>
+        )}
+        <InputPrimitive
+          type={type}
+          data-slot="input"
+          data-error={error || undefined}
+          className={cn(
+            // Base
+            "h-[52px] w-full min-w-0 rounded-lg",
+            "border border-input-border bg-input",
+            "px-4 text-[15px] text-foreground",
+            "placeholder:text-text-muted",
+            // Transitions
+            "transition-colors duration-200",
+            // Hover
+            "hover:border-border-strong",
+            // Focus
+            "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
+            // Disabled
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
+            // Error
+            error && "border-error focus-visible:border-error focus-visible:ring-error/20",
+            // Icon padding
+            startIcon && "pe-11",
+            endIcon && "ps-11",
+            className
+          )}
+          {...props}
+        />
+        {endIcon && (
+          <span className="absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none [&_svg]:size-5">
+            {endIcon}
+          </span>
+        )}
+      </div>
+    )
+  }
+
   return (
     <InputPrimitive
       type={type}
       data-slot="input"
+      data-error={error || undefined}
       className={cn(
-        "h-[52px] w-full min-w-0 rounded-xl border-2 border-border/50 bg-muted/30 px-4 text-[15px] transition-all duration-300 outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:bg-transparent focus-visible:ring-4 focus-visible:ring-primary/10 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-4 aria-invalid:ring-destructive/10 hover:border-border",
+        "h-[52px] w-full min-w-0 rounded-lg",
+        "border border-input-border bg-input",
+        "px-4 text-[15px] text-foreground",
+        "placeholder:text-text-muted",
+        "transition-colors duration-200",
+        "hover:border-border-strong",
+        "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
+        error && "border-error focus-visible:border-error focus-visible:ring-error/20",
         className
       )}
       {...props}
