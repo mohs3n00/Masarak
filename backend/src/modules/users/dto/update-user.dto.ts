@@ -21,10 +21,6 @@ export class UpdateUserDto {
 }
 
 export class UpdateStudentProfileDto {
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  grade?: string;
 
   @ApiPropertyOptional()
   @IsString()

@@ -23,6 +23,7 @@ export const studentRegisterSchema = z
     city: z.string().min(2, { message: 'الإدارة التعليمية مطلوبة' }),
     grade: z.string().min(1, { message: 'السنة الدراسية مطلوبة' }),
     avatar: z.string().optional(),
+    invitationCode: z.string().min(1, { message: 'كود الدعوة مطلوب' }),
     termsAccepted: z.literal(true, {
       message: 'يجب الموافقة على الشروط والأحكام'
     }),

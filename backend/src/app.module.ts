@@ -12,7 +12,6 @@ import {
   storageConfig,
   cacheConfig,
   firebaseConfig,
-  mailConfig,
   queueConfig,
   smsConfig,
 } from './config';
@@ -34,7 +33,6 @@ import { UploadModule } from './modules/upload/upload.module';
 
 // Shared Infrastructure Modules
 import { StorageModule } from './shared/storage/storage.module';
-import { MailModule } from './shared/mail/mail.module';
 import { SmsModule } from './shared/sms/sms.module';
 import { NotificationModule } from './shared/notifications/notification.module';
 import { QueueModule } from './shared/queue/queue.module';
@@ -53,7 +51,6 @@ import { SettingsModule } from './modules/settings/settings.module';
         storageConfig,
         cacheConfig,
         firebaseConfig,
-        mailConfig,
         queueConfig,
         smsConfig,
       ],
@@ -86,7 +83,6 @@ import { SettingsModule } from './modules/settings/settings.module';
 
     // Shared Infrastructure Modules
     StorageModule,
-    MailModule,
     SmsModule,
     NotificationModule,
     QueueModule,

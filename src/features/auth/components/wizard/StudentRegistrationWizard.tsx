@@ -192,6 +192,12 @@ export function StudentRegistrationWizard() {
             {errors.grade && <p className="text-xs text-error font-medium">{errors.grade.message}</p>}
           </div>
 
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-foreground">كود الدعوة</label>
+            <Input placeholder="أدخل كود الدعوة (مدرس أو إدارة)" error={!!errors.invitationCode} {...register('invitationCode')} />
+            {errors.invitationCode && <p className="text-xs text-error font-medium">{errors.invitationCode.message}</p>}
+          </div>
+
           <div className="flex items-center gap-3 mt-4">
             <Button type="button" variant="outline" size="lg" className="w-1/3" onClick={() => setStep(0)}>
               رجوع

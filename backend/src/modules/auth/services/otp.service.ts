@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
-import { MailService } from '../../../shared/mail/mail.service';
 import { SmsService } from '../../../shared/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { OtpType } from '@prisma/client';
@@ -9,7 +8,6 @@ import { OtpType } from '@prisma/client';
 export class OtpService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
     private readonly smsService: SmsService,
     private readonly configService: ConfigService,
   ) {}
@@ -40,23 +38,8 @@ export class OtpService {
       },
     });
 
-    if (
-      type === OtpType.EMAIL_VERIFICATION ||
-      type === OtpType.PASSWORD_RESET
-    ) {
-      const subject =
-        type === OtpType.EMAIL_VERIFICATION
-          ? 'Verify your Masarak Account'
-          : 'Reset your Masarak Password';
-      // Basic text email for now, normally use a template
-      await this.mailService.sendMail({
-        to: target,
-        subject,
-        html: `<p>Your verification code is: <strong>${code}</strong></p>`,
-      });
-    } else if (type === OtpType.PHONE_VERIFICATION) {
-      await this.smsService.sendVerificationCode(target, code);
-    }
+    // Send SMS for all verification requests
+    await this.smsService.sendVerificationCode(target, code);
   }
 
   async verifyOtp(userId: string, code: string, type: OtpType): Promise<void> {

@@ -13,12 +13,38 @@ export class CourseRepository {
     return this.prisma.course.create({ data });
   }
 
-  async findCourses(skip?: number, take?: number) {
-    return this.prisma.course.findMany({
+  async findCourses(
+    skip?: number,
+    take?: number,
+    filterOptions?: { grade?: string; preferredTeacherId?: string },
+  ) {
+    const where: Prisma.CourseWhereInput = {};
+    if (filterOptions?.grade) {
+      where.grade = filterOptions.grade;
+    }
+
+    const courses = await this.prisma.course.findMany({
       skip,
       take,
+      where,
       include: { instructors: true },
     });
+
+    if (filterOptions?.preferredTeacherId) {
+      courses.sort((a, b) => {
+        const aHasTeacher = a.instructors.some(
+          (i) => i.teacherId === filterOptions.preferredTeacherId,
+        );
+        const bHasTeacher = b.instructors.some(
+          (i) => i.teacherId === filterOptions.preferredTeacherId,
+        );
+        if (aHasTeacher && !bHasTeacher) return -1;
+        if (!aHasTeacher && bHasTeacher) return 1;
+        return 0;
+      });
+    }
+
+    return courses;
   }
 
   async getCourseById(id: string) {

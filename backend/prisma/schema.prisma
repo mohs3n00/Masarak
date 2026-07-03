@@ -429,6 +429,8 @@ model StudentProfile {
   governorate         String?
   city                String?
   cityId              String?
+  registeredViaCode   String?
+  linkedTeacherId     String?
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   country Country? @relation(fields: [countryId], references: [id])
@@ -459,6 +461,7 @@ model TeacherProfile {
   nationalIdBack  String?
   certificates    String[]
   biography       String?
+  invitationCode  String?  @unique
 
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseInstructors CourseInstructor[]
@@ -474,6 +477,7 @@ model AdminProfile {
   id          String   @id @default(uuid())
   userId      String   @unique
   permissions String[]
+  invitationCode String? @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -541,6 +545,7 @@ model Course {
 
   categoryId String?
   subjectId  String?
+  grade      String?
   difficulty Difficulty?
   type       CourseType       @default(RECORDED)
   status     CourseStatus     @default(DRAFT)

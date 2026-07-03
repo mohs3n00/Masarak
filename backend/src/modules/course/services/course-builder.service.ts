@@ -33,8 +33,12 @@ export class CourseBuilderService {
     return this.repo.addInstructor(courseId, teacherId, isOwner);
   }
 
-  async getCourses(skip?: number, take?: number) {
-    return this.repo.findCourses(skip, take);
+  async getCourses(
+    skip?: number,
+    take?: number,
+    filterOptions?: { grade?: string; preferredTeacherId?: string },
+  ) {
+    return this.repo.findCourses(skip, take, filterOptions);
   }
 
   async getCourseDetails(id: string) {

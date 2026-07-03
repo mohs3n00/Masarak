@@ -4,6 +4,5 @@ export * from './database.config';
 export * from './storage.config';
 export * from './cache.config';
 export * from './firebase.config';
-export * from './mail.config';
 export * from './queue.config';
 export * from './sms.config';

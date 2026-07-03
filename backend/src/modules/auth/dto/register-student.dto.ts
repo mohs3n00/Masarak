@@ -53,9 +53,9 @@ export class RegisterStudentDto {
   @IsString()
   city?: string;
 
-  @IsOptional()
   @IsString()
-  grade?: string;
+  @IsNotEmpty()
+  grade: string;
 
   @IsOptional()
   @IsString()
@@ -71,4 +71,8 @@ export class RegisterStudentDto {
 
   @IsBoolean()
   termsAccepted: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  invitationCode: string;
 }

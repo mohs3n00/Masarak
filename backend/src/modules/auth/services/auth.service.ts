@@ -39,6 +39,18 @@ export class AuthService {
     if (existing)
       throw new ConflictException('User with this phone already exists');
 
+    const teacherProfile = await this.prisma.teacherProfile.findUnique({
+      where: { invitationCode: dto.invitationCode },
+    });
+    const adminProfile = await this.prisma.adminProfile.findUnique({
+      where: { invitationCode: dto.invitationCode },
+    });
+
+    if (!teacherProfile && !adminProfile) {
+      throw new BadRequestException('Invalid invitation code');
+    }
+    const linkedTeacherId = teacherProfile ? teacherProfile.userId : undefined;
+
     const hashedPassword = await argon2.hash(dto.password);
     const user = await this.prisma.user.create({
       data: {
@@ -61,6 +73,8 @@ export class AuthService {
             track: dto.track,
             parentPhone: dto.parentPhone,
             school: dto.school,
+            registeredViaCode: dto.invitationCode,
+            linkedTeacherId,
           },
         },
       },
@@ -72,16 +86,16 @@ export class AuthService {
       ipAddress,
       userAgent,
     );
-    if (user.email) {
+    if (user.phone) {
       await this.otpService.generateAndSendOtp(
         user.id,
-        user.email,
-        OtpType.EMAIL_VERIFICATION,
+        user.phone,
+        OtpType.PHONE_VERIFICATION,
       );
     }
 
     return {
-      message: 'Registration successful. Please verify your email.',
+      message: 'Registration successful. Please verify your phone number.',
       userId: user.id,
     };
   }
@@ -146,6 +160,7 @@ export class AuthService {
             teachingSubjects: dto.subjects || [],
             experience: dto.experience || 0,
             verificationStatus: 'PENDING',
+            invitationCode: 'TCH-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
           },
         },
       },
