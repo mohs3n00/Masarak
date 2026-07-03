@@ -16,15 +16,25 @@ import { CacheService } from './cache.service';
 
         let store;
         try {
-          store = await redisStore({
+          const { createClient } = require('redis');
+          const client = createClient({
             socket: {
               host,
               port,
+              reconnectStrategy: (retries: number) => {
+                if (retries > 3) {
+                  return new Error('Redis connection failed');
+                }
+                return Math.min(retries * 50, 500);
+              }
             },
             password: password || undefined,
           });
-        } catch {
-          // Fallback to memory store if redis fails to init config
+          client.on('error', (err: any) => console.log('Redis Client Error:', err.message));
+          await client.connect();
+          store = await redisStore({ client, ttl: 60000 });
+        } catch (e) {
+          console.log('Falling back to memory cache due to redis error:', e.message);
           store = 'memory';
         }
 

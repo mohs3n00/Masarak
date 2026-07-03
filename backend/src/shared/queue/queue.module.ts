@@ -12,7 +12,11 @@ import { QUEUE_NAMES } from './queue.constants';
         connection: {
           host: configService.get<string>('queue.host'),
           port: configService.get<number>('queue.port'),
-          password: configService.get<string>('queue.password'),
+          password: configService.get<string>('queue.password') || undefined,
+          retryStrategy: (times: number) => {
+            if (times > 3) return null;
+            return Math.min(times * 50, 500);
+          },
         },
       }),
     }),
