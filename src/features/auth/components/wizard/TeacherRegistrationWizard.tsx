@@ -81,7 +81,7 @@ export function TeacherRegistrationWizard() {
   const handleNextStep = async () => {
     // Validate Step 0 fields before proceeding
     const fieldsToValidate: (keyof TeacherRegisterFormData)[] = [
-      'name', 'phone', 'email', 'password', 'confirmPassword'
+      'name', 'phone', 'password', 'confirmPassword'
     ];
     
     const isStepValid = await trigger(fieldsToValidate);
@@ -113,17 +113,10 @@ export function TeacherRegistrationWizard() {
             {errors.name && <p className="text-xs text-error font-medium">{errors.name.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-foreground">رقم الهاتف</label>
-              <Input type="tel" dir="ltr" placeholder="01xxxxxxxxx" error={!!errors.phone} {...register('phone')} />
-              {errors.phone && <p className="text-xs text-error font-medium text-end">{errors.phone.message}</p>}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-foreground">البريد الإلكتروني</label>
-              <Input type="email" dir="ltr" placeholder="example@mail.com" error={!!errors.email} {...register('email')} />
-              {errors.email && <p className="text-xs text-error font-medium text-end">{errors.email.message}</p>}
-            </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-foreground">رقم الهاتف</label>
+            <Input type="tel" dir="ltr" placeholder="01xxxxxxxxx" error={!!errors.phone} {...register('phone')} />
+            {errors.phone && <p className="text-xs text-error font-medium text-end">{errors.phone.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

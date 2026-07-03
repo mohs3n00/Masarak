@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Logo } from '@/shared/components/atoms/Logo';
 import { cn } from '@/lib/utils';
+import signInImage from '@/assets/images/sgin in.png';
 
 /**
  * AuthLayout — Masarak Design System
@@ -16,24 +17,26 @@ import { cn } from '@/lib/utils';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
-  illustration?: string;
+  illustration?: string | any;
   illustrationAlt?: string;
   title?: string;
+  subtitle?: string;
   className?: string;
 }
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
-  illustration,
+  illustration = signInImage,
   illustrationAlt = 'Masarak Platform',
   title,
+  subtitle = 'منصتك التعليمية الأفضل لتحقيق التفوق والنجاح بخطوات واثقة.',
   className,
 }) => {
   return (
     <div className={cn("flex min-h-screen bg-background", className)} dir="rtl">
 
       {/* Form Column (right side in RTL) */}
-      <main className="flex flex-col justify-center flex-1 w-full max-w-[480px] px-6 py-10 mx-auto lg:px-10 lg:mx-0">
+      <main className="flex flex-col justify-center flex-1 w-full max-w-[480px] px-6 py-10 mx-auto lg:px-10 lg:mx-0 z-10 relative">
         <div className="w-full">
           {/* Mobile Logo */}
           <div className="flex items-center justify-center mb-8 lg:hidden">
@@ -58,50 +61,47 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       <aside
         className={cn(
           "hidden lg:flex lg:flex-1 flex-col",
-          "bg-surface border-e border-border",
+          "bg-surface border-e border-border/50",
           "items-center justify-center p-12",
           "relative overflow-hidden"
         )}
         aria-hidden="true"
       >
         {/* Desktop Logo */}
-        <div className="absolute top-8 start-8">
+        <div className="absolute top-8 start-8 z-20">
           <Link href="/" className="focus-ring rounded-md block">
             <Logo width={120} height={32} href={null} />
           </Link>
         </div>
 
-        {/* Illustration */}
-        {illustration ? (
-          <div className="relative w-full max-w-md aspect-[4/3]">
-            <Image
-              src={illustration}
-              alt={illustrationAlt}
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-        ) : (
-          /* Default placeholder when no illustration provided */
-          <div className="flex flex-col items-center gap-6 text-center max-w-xs">
-            <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Logo width={60} height={20} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground mb-2">
-                {title ?? 'مرحباً بك في مسارك'}
-              </h2>
-              <p className="text-text-muted text-sm leading-relaxed">
-                منصة تعليمية لطلاب الثانوية العامة المصرية
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Text Above Illustration */}
+        <div className="z-10 text-center mb-10 mt-16 max-w-lg">
+          <h2 className="text-3xl font-extrabold text-foreground mb-4">
+            {title ?? 'أهلاً بك في منصة مسارك'}
+          </h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            {subtitle}
+          </p>
+        </div>
 
-        {/* Bottom pattern — just a subtle grid, no glows */}
+        {/* Illustration */}
+        <div className="relative w-full max-w-xl aspect-[4/3] z-10 drop-shadow-xl dark:drop-shadow-[0_20px_50px_rgba(255,255,255,0.05)]">
+          <Image
+            src={illustration}
+            alt={illustrationAlt}
+            fill
+            className="object-contain hover:scale-[1.02] transition-transform duration-500"
+            priority
+          />
+        </div>
+
+        {/* Background glow effects for the theme */}
+        <div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-1/4 end-1/4 w-80 h-80 bg-blue-500/10 dark:bg-blue-400/5 rounded-full blur-[100px] pointer-events-none" />
+
+        {/* Bottom pattern */}
         <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
           style={{
             backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
             backgroundSize: '28px 28px',

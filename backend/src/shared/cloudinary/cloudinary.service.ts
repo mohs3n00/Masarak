@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
+import {
+  v2 as cloudinary,
+  UploadApiResponse,
+  UploadApiErrorResponse,
+} from 'cloudinary';
 
 @Injectable()
 export class CloudinaryService {
@@ -24,7 +28,10 @@ export class CloudinaryService {
     try {
       return await cloudinary.uploader.destroy(publicId);
     } catch (error) {
-      this.logger.error(`Failed to delete file from Cloudinary (ID: ${publicId})`, error);
+      this.logger.error(
+        `Failed to delete file from Cloudinary (ID: ${publicId})`,
+        error,
+      );
       throw error;
     }
   }

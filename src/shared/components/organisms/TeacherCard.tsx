@@ -75,7 +75,7 @@ export function TeacherCard({
           )}
         </div>
 
-        <Button render={<Link href={`/teachers/${id}`} />} variant="outline" className="w-full rounded-xl bg-muted/50 border-transparent hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors">
+        <Button render={<Link href={`/teachers/${id}`} />} nativeButton={false} variant="outline" className="w-full rounded-xl bg-muted/50 border-transparent hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors">
           الصفحة الشخصية
         </Button>
       </CardContent>

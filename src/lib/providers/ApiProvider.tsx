@@ -1,13 +1,15 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { useDesignReviewStore, DataState } from '@/features/design-review/store';
+import { createContext, useContext, ReactNode } from 'react';
+
+// Keeping DataState type here since many components depend on it
+export type DataState = 'default' | 'loading' | 'empty' | 'no-results' | 'error' | 'offline' | 'unauthorized' | 'forbidden' | 'slow';
 
 interface ApiContextValue {
   isLoading: boolean;
   isError: boolean;
   errorMsg: string | null;
-  dataState: DataState; // Exposed for components that want to branch logic
+  dataState: DataState; 
 }
 
 const ApiContext = createContext<ApiContextValue>({
@@ -20,30 +22,14 @@ const ApiContext = createContext<ApiContextValue>({
 export const useApi = () => useContext(ApiContext);
 
 export function ApiProvider({ children }: { children: ReactNode }) {
-  // If we are in dev mode, we subscribe to the Design Review store.
-  // In production, this would use a real API client (e.g., SWR, React Query).
+  // Since Design Review is removed, we default to standard application behavior.
+  // In production, this would integrate with real API clients like React Query.
   
-  const [isClient, setIsClient] = useState(false);
-  
-  // Safe extraction of store value that avoids hydration mismatch
-  const storeState = useDesignReviewStore((state) => state.dataState);
-
-  useEffect(() => {
-    const t = setTimeout(() => setIsClient(true), 0);
-    return () => clearTimeout(t);
-  }, []);
-
-  // In production or before hydration, default to normal data
-  const effectiveDataState = (process.env.NODE_ENV === 'development' && isClient) ? storeState : 'default';
-
   const contextValue: ApiContextValue = {
-    isLoading: effectiveDataState === 'loading' || effectiveDataState === 'slow',
-    isError: ['error', 'offline', 'unauthorized', 'forbidden'].includes(effectiveDataState),
-    errorMsg: effectiveDataState === 'offline' ? 'No internet connection' 
-            : effectiveDataState === 'unauthorized' ? 'Please log in again'
-            : effectiveDataState === 'forbidden' ? 'You do not have permission to view this'
-            : effectiveDataState === 'error' ? 'An unexpected error occurred' : null,
-    dataState: effectiveDataState,
+    isLoading: false,
+    isError: false,
+    errorMsg: null,
+    dataState: 'default',
   };
 
   return (

@@ -8,6 +8,7 @@ import { TokenService } from './services/token.service';
 import { SessionService } from './services/session.service';
 import { OtpService } from './services/otp.service';
 import { AuditService } from './services/audit.service';
+import { SuperAdminBootstrapService } from './services/super-admin-bootstrap.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -21,6 +22,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
     SessionService,
     OtpService,
     AuditService,
+    SuperAdminBootstrapService,
     JwtStrategy,
     {
       provide: APP_GUARD,

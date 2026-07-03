@@ -36,12 +36,16 @@ export class FirebaseService implements OnModuleInit {
               privateKey,
             }),
           });
-          this.logger.log('Firebase Admin SDK initialized with full credentials');
+          this.logger.log(
+            'Firebase Admin SDK initialized with full credentials',
+          );
         } else {
           initializeApp({
             projectId,
           });
-          this.logger.log('Firebase Admin SDK initialized with projectId only (Token Verification mode)');
+          this.logger.log(
+            'Firebase Admin SDK initialized with projectId only (Token Verification mode)',
+          );
         }
       }
     } catch (error: any) {

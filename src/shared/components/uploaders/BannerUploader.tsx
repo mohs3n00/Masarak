@@ -1,7 +1,7 @@
 import React from 'react';
 import { ImageUploader, ImageUploaderProps } from '../ui/ImageUploader';
 
-interface BannerUploaderProps extends Omit<ImageUploaderProps, 'folder' | 'aspectRatio'> {}
+type BannerUploaderProps = Omit<ImageUploaderProps, 'folder' | 'aspectRatio'>;
 
 export function BannerUploader({ className, ...props }: BannerUploaderProps) {
   return (

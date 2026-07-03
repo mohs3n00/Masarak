@@ -111,7 +111,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
 SearchInput.displayName = "SearchInput"
 
 // ── Phone Input ──────────────────────────────────────────────
-interface PhoneInputProps extends Omit<InputProps, "type"> {}
+type PhoneInputProps = Omit<InputProps, "type">;
 
 export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   ({ className, ...props }, ref) => {

@@ -3,7 +3,7 @@ import { z } from 'zod';
 const phoneRegex = /^01[0125][0-9]{8}$/;
 
 export const loginSchema = z.object({
-  phone: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
+  identifier: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
   password: z.string().min(8, { message: 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل' }),
   rememberMe: z.boolean().optional(),
 });
@@ -38,7 +38,6 @@ export const teacherRegisterSchema = z
   .object({
     name: z.string().min(2, { message: 'الاسم يجب أن يتكون من حرفين على الأقل' }),
     phone: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
-    email: z.string().email({ message: 'البريد الإلكتروني غير صالح' }).optional().or(z.literal('')),
     password: z.string().min(8, { message: 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل' }),
     confirmPassword: z.string(),
     nationalId: z.string().regex(/^\d{14}$/, { message: 'الرقم القومي يجب أن يتكون من 14 رقماً' }),

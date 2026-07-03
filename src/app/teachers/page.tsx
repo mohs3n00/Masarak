@@ -1,10 +1,32 @@
+import Link from "next/link";
 import { AppContainer, Section } from "@/shared/layouts/Containers";
 import { TeacherPreviewCard } from "@/features/marketing/components/cards/TeacherPreviewCard";
 import { teachers } from "@/mock";
-import { Search, GraduationCap } from "lucide-react";
-import { Button } from "@/shared/components/atoms/Button";
+import { GraduationCap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function TeachersPage() {
+import { TeacherSearchClient } from "@/features/marketing/components/filters/TeacherSearchClient";
+
+const SUBJECTS = ['برمجة', 'تصميم', 'لغات', 'تسويق', 'رياضيات', 'فيزياء'];
+
+export default async function TeachersPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
+
+  const subjectFilter = typeof searchParams.subject === 'string' ? searchParams.subject : null;
+  const query = typeof searchParams.q === 'string' ? searchParams.q.toLowerCase() : '';
+
+  // Filter teachers
+  const filteredTeachers = teachers.filter(teacher => {
+    if (subjectFilter && teacher.specialization !== subjectFilter) return false;
+    
+    if (query) {
+      if (!teacher.name.toLowerCase().includes(query) && !teacher.specialization.toLowerCase().includes(query)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   return (
     <div className="w-full bg-background min-h-screen pb-20">
       {/* Hero Header */}
@@ -27,21 +49,7 @@ export default function TeachersPage() {
             </div>
 
             {/* Search Bar */}
-            <div className="w-full max-w-xl mt-4">
-              <div className="relative">
-                <div className="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none text-muted-foreground">
-                  <Search className="h-5 w-5" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="ابحث عن معلم بالاسم أو التخصص..."
-                  className="w-full bg-background border border-border/60 rounded-xl h-14 ps-11 pe-32 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow shadow-sm"
-                />
-                <div className="absolute inset-y-1 end-1">
-                  <Button className="h-full rounded-lg px-6 font-bold">بحث</Button>
-                </div>
-              </div>
-            </div>
+            <TeacherSearchClient />
           </div>
         </AppContainer>
       </div>
@@ -50,21 +58,49 @@ export default function TeachersPage() {
         <Section className="pt-12">
           {/* Subjects Filter */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
-            <button className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-sm">
+            <Link 
+              href={query ? `/teachers?q=${query}` : '/teachers'}
+              scroll={false}
+              className={cn(
+                "px-5 py-2 rounded-full font-bold text-sm shadow-sm transition-colors",
+                !subjectFilter ? "bg-primary text-primary-foreground" : "bg-muted/50 text-foreground hover:bg-muted"
+              )}
+            >
               الكل
-            </button>
-            {['برمجة', 'تصميم', 'لغات', 'تسويق', 'رياضيات', 'فيزياء'].map((subject, idx) => (
-              <button key={idx} className="px-5 py-2 rounded-full bg-muted/50 text-foreground font-medium text-sm hover:bg-muted transition-colors">
-                {subject}
-              </button>
-            ))}
+            </Link>
+            {SUBJECTS.map((subject, idx) => {
+              const isActive = subjectFilter === subject;
+              const params = new URLSearchParams();
+              if (query) params.set('q', query);
+              params.set('subject', subject);
+              
+              return (
+                <Link 
+                  key={idx} 
+                  href={`/teachers?${params.toString()}`}
+                  scroll={false}
+                  className={cn(
+                    "px-5 py-2 rounded-full font-medium text-sm transition-colors",
+                    isActive ? "bg-primary text-primary-foreground shadow-sm font-bold" : "bg-muted/50 text-foreground hover:bg-muted"
+                  )}
+                >
+                  {subject}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {teachers.map((teacher) => (
-              <TeacherPreviewCard key={teacher.id} teacher={teacher} />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 gap-y-12">
+            {filteredTeachers.length > 0 ? (
+              filteredTeachers.map((teacher) => (
+                <TeacherPreviewCard key={teacher.id} teacher={teacher} />
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-muted-foreground">
+                لا يوجد معلمين يطابقون معايير البحث
+              </div>
+            )}
           </div>
 
         </Section>

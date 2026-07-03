@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { AppContainer, Section } from '@/shared/layouts/Containers';
 import { AnimatedDiv } from '@/shared/components/atoms/Motion';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { FAQAccordion } from '@/features/marketing/components/blocks/FAQAccordion';
 import { SectionHeader } from '@/features/marketing/components/blocks/SectionHeader';
 import { CategoryCard } from '@/features/marketing/components/cards/CategoryCard';
@@ -14,7 +15,8 @@ import { CourseCard } from '@/features/student-experience/components/CourseCard'
 import { TeacherCard } from '@/shared/components/organisms/TeacherCard';
 import homeStartImage from '@/assets/images/home start.png';
 
-import { courses, teachers, categories, faqs, testimonials } from '@/mock';
+import { courses as defaultCourses, teachers as defaultTeachers, categories as defaultCategories, faqs as defaultFaqs, testimonials as defaultTestimonials } from '@/mock';
+import { fetchHomepageSettings } from '@/lib/api/settings';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -22,12 +24,28 @@ export const metadata: Metadata = {
   description: 'منصة مسارك التعليمية، كل ما يحتاجه طالب الثانوية العامة في مكان واحد.',
 };
 
-export default function LandingPage() {
-  const featuredCourses = courses.slice(0, 4);
-  const latestCourses = courses.slice(4, 8);
-  const revisionCourses = courses.slice(2, 6);
-  const featuredTeachers = teachers.slice(0, 4);
-  const featuredCategories = categories.slice(0, 8);
+export default async function LandingPage() {
+  const settings = await fetchHomepageSettings();
+
+  // Simulate fetching from DB - to be replaced with real API calls
+  const dbCourses: any[] = [];
+  const dbTeachers: any[] = [];
+  const dbCategories: any[] = [];
+  const dbFaqs: any[] = [];
+  const dbTestimonials: any[] = [];
+
+  // Defensive Fallbacks: Use DB data if exists, otherwise use built-in defaults
+  const activeCourses = dbCourses.length > 0 ? dbCourses : defaultCourses;
+  const activeTeachers = dbTeachers.length > 0 ? dbTeachers : defaultTeachers;
+  const activeCategories = dbCategories.length > 0 ? dbCategories : defaultCategories;
+  const activeFaqs = dbFaqs.length > 0 ? dbFaqs : defaultFaqs;
+  const activeTestimonials = dbTestimonials.length > 0 ? dbTestimonials : defaultTestimonials;
+
+  const featuredCourses = activeCourses.slice(0, 4);
+  const latestCourses = activeCourses.slice(4, 8);
+  const revisionCourses = activeCourses.slice(2, 6);
+  const featuredTeachers = activeTeachers.slice(0, 4);
+  const featuredCategories = activeCategories.slice(0, 8);
 
   return (
     <div className="relative overflow-hidden w-full">
@@ -44,22 +62,26 @@ export default function LandingPage() {
             <div className="flex flex-col items-start text-start order-2 lg:order-1">
               {/* Headline */}
               <h1 className="text-5xl md:text-6xl lg:text-[4.5rem] font-black tracking-tight leading-[1.2] mb-6 text-foreground">
-                <span className="text-primary">مسارك</span>
+                <span className="text-primary">{settings.hero.title.split('|')[0]}</span>
                 <br />
-                بوابتك للتفوق
+                {settings.hero.title.split('|')[1] || ''}
               </h1>
 
               {/* Subtitle */}
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-lg font-medium">
-                كل ما يحتاجه طالب الثانوية العامة في مكان واحد.
+                {settings.hero.description}
               </p>
 
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-4 mb-8">
-                <Link href="/register/student">
-                  <Button size="lg" className="rounded-2xl px-12 font-bold h-14 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
-                    ابدأ رحلتك مجاناً
-                  </Button>
+                <Link 
+                  href={settings.hero.buttonLink}
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "rounded-2xl px-12 font-bold h-14 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
+                  )}
+                >
+                  {settings.hero.buttonText}
                 </Link>
               </div>
             </div>
@@ -85,8 +107,8 @@ export default function LandingPage() {
             <div className="flex items-end justify-between mb-10">
               <SectionHeader
                 badge="الكورسات"
-                title="كورسات مميزة"
-                subtitle="أفضل الكورسات اللي هتساعدك تقفل المادة"
+                title={settings.featuredCourses.title}
+                subtitle={settings.featuredCourses.subtitle}
                 align="left"
                 className="mb-0 max-w-lg"
               />
@@ -96,7 +118,7 @@ export default function LandingPage() {
             </div>
             <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {featuredCourses.map(course => {
-                const teacher = teachers.find(t => t.id === course.teacherId);
+                const teacher = activeTeachers.find((t: any) => t.id === course.teacherId);
                 return (
                   <CourseCard 
                     key={course.id}
@@ -105,7 +127,7 @@ export default function LandingPage() {
                     teacher={teacher?.name || ''}
                     teacherAvatar={teacher?.avatar}
                     thumbnail={course.thumbnail}
-                    subject={categories.find(c => c.id === course.categoryId)?.name || ''}
+                    subject={activeCategories.find((c: any) => c.id === course.categoryId)?.name || ''}
                     totalLessons={course.lessonsCount}
                     rating={course.rating}
                     studentsCount={course.studentsCount}
@@ -199,7 +221,7 @@ export default function LandingPage() {
           </div>
           <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {latestCourses.map(course => {
-              const teacher = teachers.find(t => t.id === course.teacherId);
+              const teacher = activeTeachers.find((t: any) => t.id === course.teacherId);
               return (
                 <CourseCard 
                   key={course.id}
@@ -208,7 +230,7 @@ export default function LandingPage() {
                   teacher={teacher?.name || ''}
                   teacherAvatar={teacher?.avatar}
                   thumbnail={course.thumbnail}
-                  subject={categories.find(c => c.id === course.categoryId)?.name || ''}
+                  subject={activeCategories.find((c: any) => c.id === course.categoryId)?.name || ''}
                   totalLessons={course.lessonsCount}
                   rating={course.rating}
                   studentsCount={course.studentsCount}
@@ -241,7 +263,7 @@ export default function LandingPage() {
             </div>
             <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {revisionCourses.map(course => {
-                const teacher = teachers.find(t => t.id === course.teacherId);
+                const teacher = activeTeachers.find((t: any) => t.id === course.teacherId);
                 return (
                   <CourseCard 
                     key={course.id}
@@ -250,7 +272,7 @@ export default function LandingPage() {
                     teacher={teacher?.name || ''}
                     teacherAvatar={teacher?.avatar}
                     thumbnail={course.thumbnail}
-                    subject={categories.find(c => c.id === course.categoryId)?.name || ''}
+                    subject={activeCategories.find((c: any) => c.id === course.categoryId)?.name || ''}
                     totalLessons={course.lessonsCount}
                     rating={course.rating}
                     studentsCount={course.studentsCount}
@@ -275,7 +297,7 @@ export default function LandingPage() {
             subtitle="شوف زمايلك بيقولوا إيه عن تجربتهم في مسارك"
           />
           <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {testimonials.slice(0, 3).map(testimonial => (
+            {activeTestimonials.slice(0, 3).map((testimonial: any) => (
               <TestimonialCard key={testimonial.id} testimonial={testimonial} />
             ))}
           </AnimatedDiv>
@@ -294,7 +316,7 @@ export default function LandingPage() {
               subtitle="إجابات واضحة لأكتر الأسئلة اللي بتهمك كطالب"
             />
             <AnimatedDiv variant="fadeUp" className="max-w-2xl mx-auto">
-              <FAQAccordion items={faqs.slice(0, 5)} />
+              <FAQAccordion items={activeFaqs.slice(0, 5)} />
             </AnimatedDiv>
           </Section>
         </AppContainer>

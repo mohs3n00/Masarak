@@ -31,7 +31,7 @@ export class UploadService {
 
     try {
       const result = await this.cloudinaryService.uploadFile(file.path, folder);
-      
+
       // Delete temporary file after successful upload
       if (fs.existsSync(file.path)) {
         fs.unlinkSync(file.path);

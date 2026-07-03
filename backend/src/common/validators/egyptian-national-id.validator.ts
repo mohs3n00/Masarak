@@ -10,9 +10,9 @@ import {
 export class IsEgyptianNationalIdConstraint
   implements ValidatorConstraintInterface
 {
-  validate(nationalId: any, args: ValidationArguments) {
+  validate(nationalId: unknown) {
     if (typeof nationalId !== 'string') return false;
-    
+
     // Must be exactly 14 digits
     if (!/^\d{14}$/.test(nationalId)) return false;
 
@@ -30,7 +30,7 @@ export class IsEgyptianNationalIdConstraint
 
     const fullYear = (century === 2 ? 1900 : 2000) + year;
     const dob = new Date(fullYear, month - 1, day);
-    
+
     // Check if the date is actually valid (e.g., handles Feb 29 leap years correctly)
     if (
       dob.getFullYear() !== fullYear ||
@@ -43,7 +43,8 @@ export class IsEgyptianNationalIdConstraint
     // Validate governorate code (positions 8-9)
     const govCode = parseInt(nationalId.substring(7, 9));
     const validGovCodes = [
-      1, 2, 3, 4, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 88
+      1, 2, 3, 4, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26,
+      27, 28, 29, 31, 32, 33, 34, 35, 88,
     ];
     if (!validGovCodes.includes(govCode)) return false;
 
@@ -52,13 +53,13 @@ export class IsEgyptianNationalIdConstraint
     return true;
   }
 
-  defaultMessage(args: ValidationArguments) {
+  defaultMessage() {
     return 'National ID must be a valid 14-digit Egyptian National ID';
   }
 }
 
 export function IsEgyptianNationalId(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,

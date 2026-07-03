@@ -68,8 +68,8 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         role: state.role,
         isAuthenticated: state.isAuthenticated,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
+        // Tokens are explicitly omitted from localStorage for security against XSS.
+        // They are securely handled via HTTPOnly cookies from the backend.
       }),
     }
   )

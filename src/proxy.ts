@@ -1,41 +1,78 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { AUTH_ROUTES, PROTECTED_ROUTES } from './features/auth/constants/auth.constants';
 
-// This middleware is a first layer of defense.
-// We only check if the accessToken exists in cookies if we decide to store it there.
-// For Zustand with localStorage, the server won't have access to the tokens in middleware easily 
-// unless we sync it to cookies.
-// Since we are using Zustand (localStorage), we rely on Client Guards for protection.
-// However, we set up this middleware as a placeholder for future HttpOnly Cookie implementation.
+const AUTH_ROUTES = {
+  LOGIN: '/login',
+  REGISTER: '/register',
+};
+
+const PROTECTED_ROUTES = {
+  DASHBOARD: '/dashboard',
+  PROFILE: '/profile',
+};
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Create headers object to append security headers
+  const headers = new Headers(request.headers);
+  const response = NextResponse.next({
+    request: {
+      headers,
+    },
+  });
 
-  // Assume token is stored in cookie for server-side auth check
-  // const token = request.cookies.get('accessToken')?.value;
+  // 1. Apply Security Headers
+  // Strict Transport Security (HSTS)
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  
+  // Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  
+  // Prevent MIME type sniffing
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  
+  // Referrer Policy
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Permissions Policy
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
 
-  // Example protection logic (disabled until cookie auth is implemented):
-  /*
-  const isAuthRoute = Object.values(AUTH_ROUTES).includes(pathname as any);
-  const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/profile');
+  // Basic CSP (Relaxed for dev/Next.js inline scripts, but restricts frame-ancestors)
+  // We use frame-ancestors 'none' to block iframe embedding entirely
+  response.headers.set(
+    'Content-Security-Policy',
+    "frame-ancestors 'self';"
+  );
 
+  // 2. Authentication Route Protection
+  const token = request.cookies.get('accessToken')?.value;
+
+  const isAuthRoute = Object.values(AUTH_ROUTES).includes(pathname);
+  const isProtectedRoute = pathname.startsWith(PROTECTED_ROUTES.DASHBOARD) || pathname.startsWith(PROTECTED_ROUTES.PROFILE);
+
+  // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !token) {
     const url = request.nextUrl.clone();
     url.pathname = AUTH_ROUTES.LOGIN;
-    return NextResponse.redirect(url);
+    // Save original url to redirect back after login
+    url.searchParams.set('callbackUrl', encodeURI(request.nextUrl.pathname));
+    return NextResponse.redirect(url, { headers: response.headers });
   }
 
-  if (isAuthRoute && token && pathname !== AUTH_ROUTES.SUCCESS) {
+  // Redirect authenticated users away from auth routes (login/register)
+  if (isAuthRoute && token) {
     const url = request.nextUrl.clone();
     url.pathname = PROTECTED_ROUTES.DASHBOARD;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { headers: response.headers });
   }
-  */
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images|svgs).*)'],
+  // Apply middleware to all routes except API, static assets, and images
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|images|svgs).*)',
+  ],
 };

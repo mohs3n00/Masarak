@@ -29,7 +29,7 @@ export function CoursePreviewCard({ course, teacher, className, isEnrolled, prog
       )}>
         {/* Thumbnail */}
         <div className="relative aspect-[16/9] overflow-hidden bg-muted/20">
-          <Link href={`/course/${course.slug}`} className="block w-full h-full">
+          <Link href={`/course/${course.slug}`} className="block w-full h-full relative">
             <Image
               src={course.thumbnail}
               alt={course.title}

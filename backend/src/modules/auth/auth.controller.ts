@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Req,
+  Res,
   Delete,
   Patch,
   UploadedFile,
@@ -17,16 +18,16 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { AuthService } from './services/auth.service';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { RegisterTeacherDto } from './dto/register-teacher.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyOtpDto, SendOtpDto } from './dto/otp.dto';
 import {
-  ForgotPasswordDto,
   ResetPasswordDto,
   ChangePasswordDto,
+  ForceChangePasswordDto,
 } from './dto/password.dto';
 import { RefreshTokenDto } from './dto/refresh.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -70,22 +71,54 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login and receive access and refresh tokens' })
-  async login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.authService.login(dto, req.ip, req.headers['user-agent']);
-  }
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.login(
+      dto,
+      req.ip,
+      req.headers['user-agent'],
+    );
 
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return { message: 'Logged in successfully' };
+  }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout and revoke the current session' })
-  async logout(@CurrentUser() user: any, @Req() req: Request) {
+  async logout(
+    @CurrentUser() user: any,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     await this.authService.logout(
       user.sessionId,
       user.id,
       req.ip,
       req.headers['user-agent'],
     );
+
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
     return { message: 'Logged out successfully' };
   }
 
@@ -95,8 +128,28 @@ export class AuthController {
   @ApiOperation({
     summary: 'Rotate the refresh token and receive a new access token',
   })
-  async refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshToken(dto.refreshToken);
+  async refresh(
+    @Body() dto: RefreshTokenDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.refreshToken(dto.refreshToken);
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { message: 'Tokens refreshed successfully' };
   }
 
   @Public()
@@ -155,6 +208,15 @@ export class AuthController {
   ) {
     await this.authService.changePassword(userId, dto);
     return { message: 'Password changed successfully' };
+  }
+
+  @Public()
+  @Post('force-change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Force password change for accounts requiring it (like first-login Super Admin)' })
+  async forceChangePassword(@Body() dto: ForceChangePasswordDto) {
+    await this.authService.forceChangePassword(dto);
+    return { message: 'Password updated successfully. You can now login with your new password.' };
   }
 
   @Patch('avatar')

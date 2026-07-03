@@ -8,10 +8,16 @@ import { StudentRegistrationWizard } from '@/features/auth/components/wizard/Stu
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 
+import signUpImage from '@/assets/images/sign up.png';
+
 export default function StudentRegisterPage() {
   return (
     <GuestGuard>
-      <AuthLayout illustration="/images/auth/student-illustration.png">
+      <AuthLayout 
+        title="أهلاً بك في منصة مسارك"
+        subtitle="انضم إلينا الآن وابدأ رحلتك نحو التفوق والنجاح."
+        illustration={signUpImage}
+      >
         <AuthCard>
           <StudentRegistrationWizard />
           <div className="mt-6">

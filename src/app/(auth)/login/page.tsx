@@ -20,6 +20,8 @@ import { RememberMe } from '@/features/auth/components/RememberMe';
 
 import { ApiError } from '@/shared/api/error.models';
 
+import signInImage from '@/assets/images/sgin in.png';
+
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth, setLoading, setError, isLoading, error } = useAuthStore();
@@ -53,7 +55,11 @@ export default function LoginPage() {
 
   return (
     <GuestGuard>
-      <AuthLayout illustration="/images/auth/login-illustration.png">
+      <AuthLayout 
+        title="مرحباً بعودتك إلى مسارك"
+        subtitle="سعداء برؤيتك مجدداً، واصل مسيرتك التعليمية."
+        illustration={signInImage}
+      >
         <AuthCard>
           <AuthHeader
             title="تسجيل الدخول إلى حسابك"
@@ -68,18 +74,18 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-foreground" htmlFor="phone">
+              <label className="text-sm font-bold text-foreground" htmlFor="identifier">
                 رقم الهاتف
               </label>
               <Input
-                id="phone"
-                type="tel"
+                id="identifier"
+                type="text"
                 placeholder="01012345678"
-                error={!!errors.phone}
-                {...register('phone')}
+                error={!!errors.identifier}
+                {...register('identifier')}
               />
-              {errors.phone && (
-                <p className="text-xs text-error font-medium">{errors.phone.message}</p>
+              {errors.identifier && (
+                <p className="text-xs text-error font-medium">{errors.identifier.message}</p>
               )}
             </div>
 

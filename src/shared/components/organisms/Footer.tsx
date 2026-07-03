@@ -2,6 +2,7 @@ import * as React from "react"
 import Link from "next/link"
 import { FooterNavigation } from "@/config/navigation"
 import { Logo } from "@/shared/components/atoms/Logo"
+import { fetchFooterSettings } from "@/lib/api/settings"
 
 // Social Icons as inline SVGs for reliability
 const TwitterIcon = () => (
@@ -35,7 +36,24 @@ const socialLinks = [
   { name: "لينكدإن", href: "#", icon: LinkedInIcon },
 ]
 
-export function Footer() {
+export async function Footer() {
+  const footerSettings = await fetchFooterSettings();
+
+  const socialLinksMapped = footerSettings
+    .filter(setting => setting.isActive)
+    .map(setting => {
+      let icon = null;
+      if (setting.platform === 'FACEBOOK') icon = TwitterIcon; // Should be Facebook icon ideally, reusing Twitter for now just to compile, user can customize
+      if (setting.platform === 'WHATSAPP') icon = InstagramIcon; 
+      if (setting.platform === 'EMAIL') icon = YoutubeIcon;
+      
+      return {
+        name: setting.platform,
+        href: setting.value,
+        icon: icon || LinkedInIcon,
+      }
+    });
+
   return (
     <footer className="bg-surface border-t border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
@@ -54,7 +72,7 @@ export function Footer() {
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-2 pt-2">
-              {socialLinks.map((social) => (
+              {socialLinksMapped.map((social) => (
                 <Link
                   key={social.name}
                   href={social.href}

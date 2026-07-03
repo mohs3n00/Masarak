@@ -115,6 +115,11 @@ export const setupInterceptors = () => {
         case 500:
           apiError = new ServerError(message, data) as unknown as AxiosError;
           break;
+        default:
+          if (error.code === 'ERR_NETWORK') {
+            apiError = new ServerError('لا يمكن الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت أو التأكد من تشغيل الخادم.', data) as unknown as AxiosError;
+          }
+          break;
       }
 
       return Promise.reject(apiError);

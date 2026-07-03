@@ -271,6 +271,14 @@ model User {
   emailVerified Boolean   @default(false)
   phoneVerified Boolean   @default(false)
 
+  // Security & 2FA
+  username               String?   @unique
+  requiresPasswordChange Boolean   @default(false)
+  failedLoginAttempts    Int       @default(0)
+  lockedUntil            DateTime?
+  twoFactorEnabled       Boolean   @default(false)
+  twoFactorSecret        String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1629,6 +1637,7 @@ model HomepageConfig {
   section     String  @unique // e.g. HERO, CTA
   title       String?
   subtitle    String?
+  description String?
   imageUrl    String?
   buttonText  String?
   buttonLink  String?

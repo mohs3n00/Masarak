@@ -9,11 +9,16 @@ import { AuthCard } from '@/features/auth/components/AuthCard';
 import { AuthHeader } from '@/features/auth/components/AuthHeader';
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { BookOpen, GraduationCap } from 'lucide-react';
+import signUpImage from '@/assets/images/sign up.png';
 
 export default function ChooseAccountPage() {
   return (
     <GuestGuard>
-      <AuthLayout>
+      <AuthLayout 
+        title="أهلاً بك في منصة مسارك"
+        subtitle="انضم إلينا الآن وابدأ رحلتك نحو التفوق والنجاح."
+        illustration={signUpImage}
+      >
         <AuthCard>
           <AuthHeader
             title="إنشاء حساب جديد"

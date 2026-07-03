@@ -1,9 +1,14 @@
-import { IsNotEmpty, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
 
 export class LoginDto {
   @IsNotEmpty()
-  @IsPhoneNumber('EG')
-  phone: string;
+  @IsString()
+  identifier: string;
 
   @IsString()
   @IsNotEmpty()
@@ -12,4 +17,9 @@ export class LoginDto {
   @IsOptional()
   @IsString()
   fcmToken?: string;
+
+  // Optional for backward compatibility with older frontend clients
+  @IsOptional()
+  @IsString()
+  phone?: string;
 }

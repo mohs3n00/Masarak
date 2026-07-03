@@ -8,10 +8,16 @@ import { TeacherRegistrationWizard } from '@/features/auth/components/wizard/Tea
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 
+import signUpImage from '@/assets/images/sign up.png';
+
 export default function TeacherRegisterPage() {
   return (
     <GuestGuard>
-      <AuthLayout illustration="/images/auth/teacher-illustration.png">
+      <AuthLayout 
+        title="أهلاً بك معلّمنا القدير"
+        subtitle="انضم إلى نخبة المعلمين وشارك علمك مع آلاف الطلاب."
+        illustration={signUpImage}
+      >
         <AuthCard>
           <TeacherRegistrationWizard />
           <div className="mt-6">

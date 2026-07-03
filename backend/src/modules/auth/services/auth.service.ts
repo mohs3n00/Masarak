@@ -16,7 +16,7 @@ import { extractNationalIdInfo } from '../../../common/validators/egyptian-natio
 import { RegisterStudentDto } from '../dto/register-student.dto';
 import { RegisterTeacherDto } from '../dto/register-teacher.dto';
 import { LoginDto } from '../dto/login.dto';
-import { ResetPasswordDto, ChangePasswordDto } from '../dto/password.dto';
+import { ResetPasswordDto, ChangePasswordDto, ForceChangePasswordDto } from '../dto/password.dto';
 
 @Injectable()
 export class AuthService {
@@ -37,9 +37,7 @@ export class AuthService {
       where: { phone: dto.phone },
     });
     if (existing)
-      throw new ConflictException(
-        'User with this phone already exists',
-      );
+      throw new ConflictException('User with this phone already exists');
 
     const hashedPassword = await argon2.hash(dto.password);
     const user = await this.prisma.user.create({
@@ -63,8 +61,8 @@ export class AuthService {
             track: dto.track,
             parentPhone: dto.parentPhone,
             school: dto.school,
-          }
-        }
+          },
+        },
       },
     });
 
@@ -97,12 +95,10 @@ export class AuthService {
       where: { phone: dto.phone },
     });
     if (existing)
-      throw new ConflictException(
-        'User with this phone already exists',
-      );
+      throw new ConflictException('User with this phone already exists');
 
     const existingNid = await this.prisma.teacherProfile.findUnique({
-      where: { nationalId: dto.nationalId }
+      where: { nationalId: dto.nationalId },
     });
     if (existingNid) {
       throw new ConflictException('National ID already registered');
@@ -175,14 +171,63 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
+    const identifier = dto.identifier || dto.phone;
+    if (!identifier) throw new BadRequestException('Identifier is required');
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { phone: identifier },
+          { email: identifier },
+          { username: identifier },
+        ],
+      },
     });
-    if (!user || !user.isActive)
-      throw new UnauthorizedException('Invalid credentials or account banned');
+
+    if (!user)
+      throw new UnauthorizedException('Invalid credentials');
+
+    if (!user.isActive)
+      throw new UnauthorizedException('Account is banned');
+
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const lockMinutes = Math.ceil((user.lockedUntil.getTime() - new Date().getTime()) / 60000);
+      throw new UnauthorizedException(`Account is temporarily locked. Try again in ${lockMinutes} minutes.`);
+    }
 
     const isMatch = await argon2.verify(user.password, dto.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+    if (!isMatch) {
+      const newAttempts = (user.failedLoginAttempts || 0) + 1;
+      const updateData: any = { failedLoginAttempts: newAttempts };
+      
+      if (newAttempts >= 5) {
+        updateData.lockedUntil = new Date(Date.now() + 15 * 60000); // Lock for 15 minutes
+      }
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Reset failed attempts
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: 0, lockedUntil: null },
+      });
+    }
+
+    if (user.requiresPasswordChange) {
+      // Throw special 403 error for frontend to handle force-change-password
+      throw new ConflictException({
+        errorCode: 'PASSWORD_CHANGE_REQUIRED',
+        message: 'You must change your password on your first login.',
+        userId: user.id, // Return userId to identify which user needs password change
+      });
+    }
 
     const tempRefreshToken = `temp_${Date.now()}`;
     const session = await this.sessionService.createSession(
@@ -303,5 +348,27 @@ export class AuthService {
     });
 
     await this.auditService.logAction(userId, AuditAction.PASSWORD_CHANGE);
+  }
+  async forceChangePassword(dto: ForceChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (!user.requiresPasswordChange) {
+      throw new BadRequestException('User does not require a password change');
+    }
+
+    const isMatch = await argon2.verify(user.password, dto.oldPassword);
+    if (!isMatch) throw new BadRequestException('Incorrect old password');
+
+    const hashedPassword = await argon2.hash(dto.newPassword);
+    await this.prisma.user.update({
+      where: { id: dto.userId },
+      data: { 
+        password: hashedPassword,
+        requiresPasswordChange: false,
+      },
+    });
+
+    await this.auditService.logAction(dto.userId, AuditAction.PASSWORD_CHANGE);
   }
 }

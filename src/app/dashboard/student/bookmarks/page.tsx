@@ -30,7 +30,7 @@ export default function BookmarksPage() {
       <DataStateWrapper emptyType="bookmarks" emptyMessage="لم تقم بحفظ أي شيء بعد. احفظ اللحظات المهمة في مشغل الدورة لتجدها بسهولة لاحقاً.">
         <div className="flex flex-col gap-4">
           {bookmarks.map(bookmark => (
-            <Link href="#" key={bookmark.id} className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 flex items-center justify-between hover:border-primary/50 hover:shadow-md transition-all duration-300 group cursor-pointer relative overflow-hidden">
+            <Link href={`/courses/c1?time=${bookmark.time}`} key={bookmark.id} className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 flex items-center justify-between hover:border-primary/50 hover:shadow-md transition-all duration-300 group cursor-pointer relative overflow-hidden">
               <div className="absolute start-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-center" />
               
               <div className="flex items-start gap-4 sm:gap-5">

@@ -130,8 +130,6 @@ export function Navbar() {
                 </span>
               </button>
 
-              </button>
-
               <div className="w-px h-6 bg-border mx-1" aria-hidden="true" />
             </div>
 

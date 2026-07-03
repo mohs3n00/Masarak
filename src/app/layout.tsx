@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayoutWrapper } from "@/shared/components/AppLayoutWrapper";
+import { Navbar } from "@/shared/components/organisms/Navbar";
+import { Footer } from "@/shared/components/organisms/Footer";
 import "./globals.css";
 import { ApiProvider } from '@/lib/providers/ApiProvider';
 import { AuthProvider } from '@/lib/providers/AuthProvider';
-import { GlobalDevButton } from '@/features/design-review/components/GlobalDevButton';
+import { SupportChatWidget } from '@/features/support/components/SupportChatWidget';
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -34,9 +36,9 @@ export default function RootLayout({
         <ApiProvider>
           <AuthProvider>
             <TooltipProvider>
-              <AppLayoutWrapper>{children}</AppLayoutWrapper>
+              <AppLayoutWrapper navbar={<Navbar />} footer={<Footer />}>{children}</AppLayoutWrapper>
+              <SupportChatWidget />
             </TooltipProvider>
-            <GlobalDevButton />
           </AuthProvider>
         </ApiProvider>
       </body>

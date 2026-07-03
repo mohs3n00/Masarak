@@ -27,7 +27,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const response = exception.getResponse() as any;
       if (typeof response === 'object') {
-        errorCode = response.error || response.code || 'API_ERROR';
+        errorCode = response.errorCode || response.error || response.code || 'API_ERROR';
         errorMessage = response.message || exception.message;
 
         // Handle class-validator validation errors
@@ -54,6 +54,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         code: errorCode,
         message: errorMessage,
         ...(details && { details }),
+        ...(exception instanceof HttpException && typeof exception.getResponse() === 'object' && (exception.getResponse() as any).userId ? { userId: (exception.getResponse() as any).userId } : {})
       },
     };
 

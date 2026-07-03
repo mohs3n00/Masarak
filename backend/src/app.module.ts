@@ -39,6 +39,7 @@ import { SmsModule } from './shared/sms/sms.module';
 import { NotificationModule } from './shared/notifications/notification.module';
 import { QueueModule } from './shared/queue/queue.module';
 import { GlobalCacheModule } from './shared/cache/cache.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -107,6 +108,7 @@ import { GlobalCacheModule } from './shared/cache/cache.module';
     MediaModule,
     MonitoringModule,
     UploadModule,
+    SettingsModule,
   ],
   controllers: [],
   providers: [

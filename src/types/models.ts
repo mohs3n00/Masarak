@@ -67,6 +67,67 @@ export interface Course {
   isPublished: boolean;
 }
 
+export interface Chapter {
+  id: ID;
+  courseId: ID;
+  title: string;
+  order: number;
+  lessonsCount: number;
+  durationMinutes: number;
+}
+
+export interface Lesson {
+  id: ID;
+  chapterId: ID;
+  courseId: ID;
+  title: string;
+  description: string;
+  order: number;
+  isPreview: boolean;
+  estimatedDurationMinutes: number;
+  isLocked: boolean; // For frontend display logic
+}
+
+export type MediaType = 'VIDEO' | 'PDF' | 'IMAGE' | 'DOCUMENT' | 'ZIP' | 'LINK';
+
+export interface LessonMedia {
+  id: ID;
+  lessonId: ID;
+  title: string;
+  type: MediaType;
+  url: string;
+  thumbnailUrl?: string;
+  sizeBytes?: number;
+  durationSeconds?: number;
+  resolution?: string; // e.g. 1080p
+  isRequired: boolean;
+  order: number;
+}
+
+export interface StudentProgress {
+  id: ID;
+  studentId: ID;
+  lessonId: ID;
+  courseId: ID;
+  isCompleted: boolean;
+  progressPercentage: number;
+  lastViewedPositionSeconds: number;
+  lastViewedAt: string;
+}
+
+export interface UploadJob {
+  id: ID;
+  fileName: string;
+  fileSize: number;
+  type: MediaType;
+  status: 'PENDING' | 'UPLOADING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  progress: number;
+  url?: string;
+  error?: string;
+  uploadedBy: ID;
+  createdAt: string;
+}
+
 export interface Testimonial {
   id: ID;
   studentName: string;
