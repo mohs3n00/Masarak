@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
-import { redisStore } from 'cache-manager-redis-yet';
+import { redisStore, redisInsStore } from 'cache-manager-redis-yet';
 import { CacheService } from './cache.service';
 
 @Global()
@@ -32,7 +32,7 @@ import { CacheService } from './cache.service';
           });
           client.on('error', (err: any) => console.log('Redis Client Error:', err.message));
           await client.connect();
-          store = await redisStore({ client, ttl: 60000 });
+          store = redisInsStore(client, { ttl: 60000 });
         } catch (e) {
           console.log('Falling back to memory cache due to redis error:', e.message);
           store = 'memory';
