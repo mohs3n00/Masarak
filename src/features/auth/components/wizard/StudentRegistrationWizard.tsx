@@ -11,6 +11,7 @@ import { PROTECTED_ROUTES } from '@/features/auth/constants/auth.constants';
 import { ApiError } from '@/shared/api/error.models';
 import { AuthWizard } from './AuthWizard';
 import { Input, PasswordInput } from '@/shared/components/atoms/Input';
+import { PasswordStrength } from '@/shared/components/atoms/PasswordStrength';
 import { Button } from '@/shared/components/atoms/Button';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -53,6 +54,7 @@ export function StudentRegistrationWizard() {
     register,
     handleSubmit,
     trigger,
+    watch,
     formState: { errors, isValid },
   } = useForm<StudentRegisterFormData>({
     resolver: zodResolver(studentRegisterSchema),
@@ -61,6 +63,8 @@ export function StudentRegistrationWizard() {
       termsAccepted: true
     }
   });
+
+  const passwordValue = watch('password');
 
   const onSubmit = async (data: StudentRegisterFormData) => {
     try {
@@ -152,6 +156,7 @@ export function StudentRegistrationWizard() {
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-foreground">كلمة المرور</label>
               <PasswordInput placeholder="••••••••" error={!!errors.password} {...register('password')} />
+              <PasswordStrength password={passwordValue} />
               {errors.password && <p className="text-xs text-error font-medium">{errors.password.message}</p>}
             </div>
             <div className="flex flex-col gap-2">

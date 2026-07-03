@@ -17,7 +17,7 @@ export const studentRegisterSchema = z
     familyName: z.string().min(2, { message: 'الاسم الأخير مطلوب' }),
     phone: z.string().regex(phoneRegex, { message: 'رقم هاتف غير صالح' }),
     parentPhone: z.string().regex(phoneRegex, { message: 'رقم ولي الأمر غير صالح' }),
-    password: z.string().min(8, { message: 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل' }),
+    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, { message: 'يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف، وحرف كبير وصغير، ورقم، ورمز خاص.' }),
     confirmPassword: z.string(),
     governorate: z.string().min(2, { message: 'المحافظة مطلوبة' }),
     city: z.string().min(2, { message: 'الإدارة التعليمية مطلوبة' }),
@@ -39,7 +39,7 @@ export const teacherRegisterSchema = z
   .object({
     name: z.string().min(2, { message: 'الاسم يجب أن يتكون من حرفين على الأقل' }),
     phone: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
-    password: z.string().min(8, { message: 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل' }),
+    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, { message: 'يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف، وحرف كبير وصغير، ورقم، ورمز خاص.' }),
     confirmPassword: z.string(),
     nationalId: z.string().regex(/^\d{14}$/, { message: 'الرقم القومي يجب أن يتكون من 14 رقماً' }),
     biography: z.string().optional(),
@@ -85,7 +85,7 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(8, { message: 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل' }),
+    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, { message: 'يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف، وحرف كبير وصغير، ورقم، ورمز خاص.' }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

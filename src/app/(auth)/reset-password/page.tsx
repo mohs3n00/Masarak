@@ -13,6 +13,7 @@ import { AuthCard } from '@/features/auth/components/AuthCard';
 import { AuthHeader } from '@/features/auth/components/AuthHeader';
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { PasswordInput } from '@/shared/components/atoms/Input';
+import { PasswordStrength } from '@/shared/components/atoms/PasswordStrength';
 import { Button } from '@/shared/components/atoms/Button';
 import { ApiError } from '@/shared/api/error.models';
 
@@ -35,10 +36,13 @@ export default function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
   });
+
+  const passwordValue = watch('password');
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) return;
@@ -95,6 +99,7 @@ export default function ResetPasswordPage() {
                   disabled={!token}
                   {...register('password')}
                 />
+                <PasswordStrength password={passwordValue} />
                 {errors.password && (
                   <p className="text-xs text-error font-medium">{errors.password.message}</p>
                 )}
