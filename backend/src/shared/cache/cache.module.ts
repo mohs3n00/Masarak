@@ -21,6 +21,7 @@ import { CacheService } from './cache.service';
             socket: {
               host,
               port,
+              tls: process.env.NODE_ENV === 'production' || host?.includes('upstash'),
               reconnectStrategy: (retries: number) => {
                 if (retries > 3) {
                   return new Error('Redis connection failed');

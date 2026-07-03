@@ -7,6 +7,7 @@ import {
   IsPhoneNumber,
   IsArray,
   IsInt,
+  IsBoolean,
   Min,
   Matches,
 } from 'class-validator';
@@ -53,4 +54,7 @@ export class RegisterTeacherDto {
   @IsInt()
   @Min(0)
   experience?: number;
+
+  @IsBoolean()
+  termsAccepted: boolean;
 }

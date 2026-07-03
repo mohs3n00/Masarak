@@ -13,12 +13,14 @@ class AuthService {
   }
 
   async registerStudent(data: StudentRegisterFormData): Promise<{ message: string, userId: string }> {
-    const { data: response } = await apiClient.post<{ message: string, userId: string }>('/auth/register/student', data);
+    const { confirmPassword, ...payload } = data;
+    const { data: response } = await apiClient.post<{ message: string, userId: string }>('/auth/register/student', payload);
     return response;
   }
 
   async registerTeacher(data: TeacherRegisterFormData): Promise<{ message: string, userId: string }> {
-    const { data: response } = await apiClient.post<{ message: string, userId: string }>('/auth/register/teacher', data);
+    const { confirmPassword, ...payload } = data;
+    const { data: response } = await apiClient.post<{ message: string, userId: string }>('/auth/register/teacher', payload);
     return response;
   }
 
@@ -27,7 +29,8 @@ class AuthService {
   }
 
   async resetPassword(data: any): Promise<void> {
-    await apiClient.post('/auth/password/reset', data);
+    const { confirmPassword, ...payload } = data;
+    await apiClient.post('/auth/password/reset', payload);
   }
 
   async verifyPhone(code: string, userId?: string): Promise<void> {
