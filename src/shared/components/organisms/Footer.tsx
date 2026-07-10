@@ -16,15 +16,32 @@ const iconMap: Record<string, React.ElementType> = {
   Phone: Phone,
 };
 
+const DEFAULT_BRANDING = [
+  { platform: 'Facebook', url: 'https://facebook.com', showInFooter: true },
+  { platform: 'Instagram', url: 'https://instagram.com', showInFooter: true },
+  { platform: 'WhatsApp', url: 'https://whatsapp.com', showInFooter: true },
+  { platform: 'YouTube', url: 'https://youtube.com', showInFooter: true },
+  { platform: 'Telegram', url: 'https://telegram.org', showInFooter: true }
+];
+
 export async function Footer() {
   let brandingConfig: any[] = [];
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/platform-branding`, { next: { revalidate: 60 } });
-    if (res.ok) {
-      brandingConfig = await res.json();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) {
+      console.warn('⚠️ Build Warning: NEXT_PUBLIC_API_URL is undefined. Using DEFAULT_BRANDING.');
+      brandingConfig = DEFAULT_BRANDING;
+    } else {
+      const res = await fetch(`${baseUrl}/public/platform-branding`, { next: { revalidate: 60 } });
+      if (res.ok) {
+        brandingConfig = await res.json();
+      } else {
+        brandingConfig = DEFAULT_BRANDING;
+      }
     }
   } catch (error) {
-    console.error('Failed to fetch platform branding', error);
+    console.error('⚠️ Failed to fetch platform branding, using default fallback.', error);
+    brandingConfig = DEFAULT_BRANDING;
   }
 
   const footerPlatforms = brandingConfig.filter(c => c.showInFooter);
