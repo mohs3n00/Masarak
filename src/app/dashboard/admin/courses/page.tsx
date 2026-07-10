@@ -1,147 +1,254 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Course } from '@/types/models';
-import { adminService } from '@/features/admin/services/admin.service';
-import { CourseListTable } from '@/features/admin/components/courses/CourseListTable';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import React from 'react';
+import { apiClient } from '@/shared/api/api.client';
+import { cn } from '@/lib/utils';
+import {
+  BookOpen, Search, Filter,
+  Ban, ChevronLeft, ChevronRight
+} from 'lucide-react';
+
+
+interface Course {
+  id: string;
+  title: string;
+  status: string;
+  thumbnailUrl?: string;
+  teacherName?: string;
+  createdAt: string;
+  enrollmentCount: number;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'مسودة',
+  UNDER_REVIEW: 'تحت المراجعة',
+  PUBLISHED: 'منشور',
+  ARCHIVED: 'مؤرشف',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  DRAFT: 'bg-muted text-text-muted',
+  UNDER_REVIEW: 'bg-warning/10 text-warning',
+  PUBLISHED: 'bg-success/10 text-success',
+  ARCHIVED: 'bg-error/10 text-error',
+};
 
 export default function AdminCoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [courses, setCourses] = React.useState<Course[]>([]);
+  const [total, setTotal] = React.useState(0);
+  const [loading, setLoading] = React.useState(true);
+  const [search, setSearch] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('');
+  const [page, setPage] = React.useState(0);
+  const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+  const take = 20;
 
-  // Form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    price: 0,
-    thumbnail: '',
-  });
-
-  const loadCourses = async () => {
-    setIsLoading(true);
+  const fetchCourses = React.useCallback(async () => {
+    setLoading(true);
     try {
-      const data = await adminService.getCourses();
-      setCourses(data);
-    } catch (err) {
-      console.error(err);
+      const params = new URLSearchParams({ take: String(take), skip: String(page * take) });
+      if (search) params.append('search', search);
+      if (statusFilter) params.append('status', statusFilter);
+
+      const { data } = await apiClient.get(`/admin/courses?${params}`);
+      setCourses(data.data || []);
+      setTotal(data.total || 0);
+    } catch {
+      setCourses([]);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
+  }, [page, search, statusFilter]);
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
+  React.useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
-  const handleOpenEditModal = (course: Course) => {
-    setEditingCourse(course);
-    setFormData({
-      title: course.title,
-      description: course.description || '',
-      price: course.price,
-      thumbnail: course.thumbnail || '',
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!editingCourse) return;
-    setIsSaving(true);
+  const toggleCourseStatus = async (id: string, currentStatus: string) => {
+    setActionLoading(id);
     try {
-      await adminService.updateCourse(editingCourse.id as string, formData);
-      setIsModalOpen(false);
-      await loadCourses();
-    } catch (err) {
-      console.error(err);
+      const endpoint = currentStatus === 'PUBLISHED' ? `/admin/courses/${id}/unpublish` : `/admin/courses/${id}/publish`;
+      await apiClient.post(endpoint);
+      fetchCourses();
+    } catch {
+      // ignore
     } finally {
-      setIsSaving(false);
+      setActionLoading(null);
     }
   };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الكورس؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
-    try {
-      await adminService.deleteCourse(id);
-      await loadCourses();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <CourseListTable 
-        courses={courses} 
-        onEditCourse={handleOpenEditModal}
-        onDeleteCourse={handleDelete}
-      />
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>تعديل بيانات الكورس</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold">اسم الكورس</label>
-              <Input 
-                value={formData.title} 
-                onChange={e => setFormData({...formData, title: e.target.value})} 
-                placeholder="عنوان الكورس"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold">السعر (ج.م)</label>
-              <Input 
-                value={formData.price} 
-                onChange={e => setFormData({...formData, price: Number(e.target.value) || 0})} 
-                type="number"
-                min={0}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold">صورة الكورس (رابط URL)</label>
-              <Input 
-                value={formData.thumbnail} 
-                onChange={e => setFormData({...formData, thumbnail: e.target.value})} 
-                placeholder="https://example.com/thumbnail.jpg"
-                dir="ltr"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold">الوصف</label>
-              <Textarea 
-                value={formData.description} 
-                onChange={e => setFormData({...formData, description: e.target.value})} 
-                placeholder="وصف الكورس..."
-                rows={4}
-              />
-            </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-primary" />
+            إدارة الكورسات
+          </h1>
+          <p className="text-sm text-text-muted mt-1">إجمالي الكورسات: {total}</p>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              placeholder="البحث في الكورسات..."
+              className="w-full ps-9 pe-4 py-2.5 text-sm bg-card border border-border/60 rounded-xl focus:border-primary outline-none"
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>إلغاء</Button>
-            <Button onClick={handleSave} loading={isSaving}>حفظ التعديلات</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="relative shrink-0">
+            <Filter className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+              className="appearance-none ps-9 pe-8 py-2.5 text-sm bg-card border border-border/60 rounded-xl focus:border-primary outline-none cursor-pointer min-w-32"
+            >
+              <option value="">كل الحالات</option>
+              <option value="DRAFT">مسودة</option>
+              <option value="UNDER_REVIEW">تحت المراجعة</option>
+              <option value="PUBLISHED">منشور</option>
+              <option value="ARCHIVED">مؤرشف</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-card border border-border/60 rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-start">
+            <thead className="bg-muted/50 border-b border-border/60 text-text-muted font-bold">
+              <tr>
+                <th className="px-6 py-4 text-start font-bold">الكورس</th>
+                <th className="px-6 py-4 text-start font-bold">المدرس</th>
+                <th className="px-6 py-4 text-center font-bold">الطلاب</th>
+                <th className="px-6 py-4 text-center font-bold">تاريخ الإنشاء</th>
+                <th className="px-6 py-4 text-center font-bold">الحالة</th>
+                <th className="px-6 py-4 text-end font-bold">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4 flex gap-3">
+                      <div className="w-12 h-8 rounded bg-muted" />
+                      <div className="h-5 w-32 bg-muted rounded" />
+                    </td>
+                    <td className="px-6 py-4"><div className="h-5 w-24 bg-muted rounded" /></td>
+                    <td className="px-6 py-4 text-center"><div className="h-5 w-8 bg-muted rounded mx-auto" /></td>
+                    <td className="px-6 py-4"><div className="h-5 w-24 bg-muted rounded mx-auto" /></td>
+                    <td className="px-6 py-4 text-center"><div className="h-6 w-20 bg-muted rounded-full mx-auto" /></td>
+                    <td className="px-6 py-4"><div className="h-8 w-16 bg-muted rounded-lg ms-auto" /></td>
+                  </tr>
+                ))
+              ) : courses.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-text-muted">
+                    <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                    لا توجد كورسات مطابقة للبحث
+                  </td>
+                </tr>
+              ) : (
+                courses.map((course) => (
+                  <tr key={course.id} className="hover:bg-muted/30 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {course.thumbnailUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={course.thumbnailUrl} alt={course.title} className="w-12 h-8 rounded object-cover" />
+                        ) : (
+                          <div className="w-12 h-8 rounded bg-primary/10 flex items-center justify-center">
+                            <BookOpen className="w-4 h-4 text-primary" />
+                          </div>
+                        )}
+                        <p className="font-bold text-foreground max-w-xs truncate" title={course.title}>
+                          {course.title}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-text-muted">{course.teacherName || '—'}</td>
+                    <td className="px-6 py-4 text-center font-bold">{course.enrollmentCount}</td>
+                    <td className="px-6 py-4 text-center text-xs text-text-muted">
+                      {new Date(course.createdAt).toLocaleDateString('ar-EG')}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={cn(
+                        'inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold',
+                        STATUS_COLORS[course.status] || STATUS_COLORS.DRAFT
+                      )}>
+                        {STATUS_LABELS[course.status] || course.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-end">
+                      <div className="flex items-center justify-end gap-2">
+
+                        {course.status === 'UNDER_REVIEW' && (
+                          <button
+                            onClick={() => toggleCourseStatus(course.id, 'DRAFT')}
+                            disabled={actionLoading === course.id}
+                            className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-success text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+                          >
+                            موافقة ونشر
+                          </button>
+                        )}
+                        {course.status === 'PUBLISHED' && (
+                          <button
+                            onClick={() => toggleCourseStatus(course.id, course.status)}
+                            disabled={actionLoading === course.id}
+                            className="text-[10px] font-bold px-2 py-1.5 rounded-lg border border-border text-text-muted hover:text-warning hover:border-warning hover:bg-warning/5 disabled:opacity-50 transition-colors flex items-center gap-1"
+                          >
+                            <Ban className="w-3 h-3" />
+                            إلغاء النشر
+                          </button>
+                        )}
+                        <button
+                          onClick={async () => {
+                            if (!confirm('هل أنت متأكد من حذف هذا الكورس نهائياً؟')) return;
+                            setActionLoading(course.id);
+                            try {
+                              await apiClient.delete(`/admin/courses/${course.id}`);
+                              fetchCourses();
+                            } finally {
+                              setActionLoading(null);
+                            }
+                          }}
+                          disabled={actionLoading === course.id}
+                          className="p-1.5 rounded-lg border border-border text-text-muted hover:text-error hover:border-error hover:bg-error/5 disabled:opacity-50 transition-colors"
+                          title="حذف الكورس"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {!loading && total > take && (
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-text-muted hover:text-foreground hover:bg-muted disabled:opacity-40 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <span className="text-sm font-bold text-foreground px-3">{page + 1}</span>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={(page + 1) * take >= total}
+            className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-text-muted hover:text-foreground hover:bg-muted disabled:opacity-40 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

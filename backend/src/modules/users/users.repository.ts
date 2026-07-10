@@ -208,4 +208,33 @@ export class UsersRepository {
       },
     });
   }
+
+  async getNotifications(userId: string, take: number = 20, skip: number = 0) {
+    const [data, total, unreadCount] = await Promise.all([
+      this.prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take,
+        skip,
+      }),
+      this.prisma.notification.count({ where: { userId } }),
+      this.prisma.notification.count({ where: { userId, isRead: false } }),
+    ]);
+
+    return { data, total, unreadCount, skip, take };
+  }
+
+  async markNotificationRead(userId: string, notificationId: string) {
+    return this.prisma.notification.updateMany({
+      where: { id: notificationId, userId },
+      data: { isRead: true },
+    });
+  }
+
+  async markAllNotificationsRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+  }
 }

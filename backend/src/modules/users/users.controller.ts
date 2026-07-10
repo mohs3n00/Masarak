@@ -171,4 +171,35 @@ export class UsersController {
       skip ? parseInt(skip, 10) : 0,
     );
   }
+
+  @Get('notifications')
+  @ApiOperation({ summary: 'Get user notifications' })
+  async getNotifications(
+    @CurrentUser('id') userId: string,
+    @Query('take') take?: string,
+    @Query('skip') skip?: string,
+  ) {
+    return this.usersService.getNotifications(
+      userId,
+      take ? parseInt(take, 10) : 20,
+      skip ? parseInt(skip, 10) : 0,
+    );
+  }
+
+  @Patch('notifications/read-all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark all notifications as read' })
+  async markAllNotificationsRead(@CurrentUser('id') userId: string) {
+    return this.usersService.markAllNotificationsRead(userId);
+  }
+
+  @Patch('notifications/:id/read')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark specific notification as read' })
+  async markNotificationRead(
+    @CurrentUser('id') userId: string,
+    @Param('id') notificationId: string,
+  ) {
+    return this.usersService.markNotificationRead(userId, notificationId);
+  }
 }

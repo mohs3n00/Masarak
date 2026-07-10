@@ -30,7 +30,7 @@ export function BundleCard({ course, teacher, className, isBundle = false }: Bun
         <div className="relative aspect-[16/10] overflow-hidden bg-muted/20">
           <Link href={`/course/${course.slug}`} className="block w-full h-full relative">
             <Image
-              src={course.thumbnail}
+              src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80'}
               alt={course.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -126,9 +126,11 @@ export function BundleCard({ course, teacher, className, isBundle = false }: Bun
                </div>
              </div>
              
-             <Button variant="primary" className="w-full font-bold bg-[#DC2626] hover:bg-[#B91C1C] text-white border-[#DC2626]">
-               اشترك الآن
-             </Button>
+             <Link href={`/course/${course.slug}`} className="w-full">
+               <Button variant="primary" className="w-full font-bold bg-[#DC2626] hover:bg-[#B91C1C] text-white border-[#DC2626]">
+                 اشترك الآن
+               </Button>
+             </Link>
           </div>
           
         </div>

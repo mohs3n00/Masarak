@@ -25,17 +25,6 @@ const sidebarSections = [
     items: [
       { name: 'لوحة التحكم', icon: LayoutDashboard, href: '/dashboard/student' },
       { name: 'كورساتي', icon: Library, href: '/dashboard/student/courses' },
-      { name: 'الشهادات', icon: Award, href: '/dashboard/student/certificates' },
-      { name: 'ملاحظاتي', icon: FileText, href: '/dashboard/student/notes' },
-    ]
-  },
-  {
-    title: 'المكتبة',
-    items: [
-      { name: 'المفضلة', icon: Heart, href: '/dashboard/student/wishlist' },
-      { name: 'المحفوظات', icon: Bookmark, href: '/dashboard/student/bookmarks' },
-      { name: 'التحميلات', icon: Download, href: '/dashboard/student/downloads' },
-      { name: 'التقويم', icon: Calendar, href: '/dashboard/student/calendar' },
     ]
   },
   {

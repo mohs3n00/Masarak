@@ -29,7 +29,7 @@ export function TeacherHeroHeader({ teacher }: TeacherHeroHeaderProps) {
                 معلم معتمد
               </Badge>
               <Badge variant="default" className="bg-[#DC2626] hover:bg-[#B91C1C] text-white border-transparent">
-                التقييم {teacher.rating.toFixed(1)}
+                التقييم {(teacher.rating || 0).toFixed(1)}
               </Badge>
             </div>
             

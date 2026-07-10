@@ -24,7 +24,7 @@ const Card = React.forwardRef<
     ref={ref}
     data-slot="card"
     className={cn(
-      "rounded-xl border bg-card text-card-foreground",
+      "rounded-2xl border bg-card text-card-foreground",
       variant === "flat"    && "border-border shadow-none",
       variant === "default" && "border-border shadow-sm",
       variant === "raised"  && "border-border shadow-md",

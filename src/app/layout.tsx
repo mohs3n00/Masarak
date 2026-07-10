@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayoutWrapper } from "@/shared/components/AppLayoutWrapper";

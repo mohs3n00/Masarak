@@ -33,7 +33,7 @@ export function CategoryCard({ category, className }: CategoryCardProps) {
               {category.name}
             </h3>
             <span className="text-xs text-muted-foreground mt-0.5">
-              {category.courseCount} كورس
+              {(category as any).coursesCount || category.courseCount || 0} كورس
             </span>
           </div>
         </div>

@@ -10,6 +10,11 @@ generator client {
 // ENUMS
 // ------------------------------------------------------
 
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
 enum Role {
   STUDENT
   TEACHER
@@ -187,11 +192,6 @@ enum OrderStatus {
   REFUNDED
 }
 
-enum CouponType {
-  PERCENTAGE
-  FIXED
-}
-
 enum AccessGrantedBy {
   PURCHASE
   FREE
@@ -249,7 +249,7 @@ enum LogLevel {
 
 model User {
   id            String    @id @default(uuid())
-  email         String?   @unique
+  email         String    @unique
   phone         String    @unique
   password      String
   
@@ -338,6 +338,9 @@ model User {
   communityReactions CommunityReaction[]
   uploadedMedia      MediaAsset[]
   requestedReports   ExportReport[]
+  examSessions       ExamSession[]
+  grantedRetakes     ExamRetakePermission[] @relation("RetakeGranter")
+  receivedRetakes    ExamRetakePermission[] @relation("RetakeStudent")
 }
 
 model Session {
@@ -360,6 +363,7 @@ model Otp {
   type      OtpType
   expiresAt DateTime
   used      Boolean  @default(false)
+  attempts  Int      @default(0)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -429,8 +433,8 @@ model StudentProfile {
   governorate         String?
   city                String?
   cityId              String?
-  registeredViaCode   String?
-  linkedTeacherId     String?
+
+
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   country Country? @relation(fields: [countryId], references: [id])
@@ -447,10 +451,9 @@ model TeacherProfile {
   rating         Float   @default(0.0)
   totalStudents  Int     @default(0)
 
-  specializations    Specialization[]
+  levels             Level[]
+  subjects           Subject[]
   experience         Int? // years of experience
-  teachingSubjects   String[]
-  academicLevels     String[]
   socialLinks        String? // JSON string
   verificationStatus String           @default("PENDING")
   countryId          String?
@@ -461,7 +464,7 @@ model TeacherProfile {
   nationalIdBack  String?
   certificates    String[]
   biography       String?
-  invitationCode  String?  @unique
+
 
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseInstructors CourseInstructor[]
@@ -477,7 +480,6 @@ model AdminProfile {
   id          String   @id @default(uuid())
   userId      String   @unique
   permissions String[]
-  invitationCode String? @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -532,6 +534,7 @@ model Course {
   description  String
   thumbnailUrl String?
   price        Float              @default(0.0)
+  originalPrice Float?
   isPublished  Boolean            @default(false)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
@@ -603,7 +606,7 @@ model Lesson {
   attachments LessonAttachment[]
   videos      LessonVideo[]
   resources   LessonResource[]
-  exam        Exam?
+  examTemplate ExamTemplate?
   assignment  Assignment?
   comments    Comment[]
   progress    LessonProgress[]
@@ -612,36 +615,100 @@ model Lesson {
 }
 
 // ------------------------------------------------------
-// EXAMS & ASSIGNMENTS
+// EXAM ENGINE
 // ------------------------------------------------------
 
-model Exam {
-  id           String @id @default(uuid())
-  lessonId     String @unique
-  passingScore Int    @default(50)
-  timeLimit    Int? // Minutes
-
-  lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  questions Question[]
+model QuestionBankCategory {
+  id       String                 @id @default(uuid())
+  name     String
+  parentId String?
+  parent   QuestionBankCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children QuestionBankCategory[] @relation("CategoryHierarchy")
+  questions QuestionBankItem[]
 }
 
-model Question {
-  id     String @id @default(uuid())
-  examId String
-  text   String
-  points Int    @default(1)
+model QuestionBankItem {
+  id          String               @id @default(uuid())
+  categoryId  String
+  text        String
+  type        String               @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, MULTIPLE_RESPONSE, TRUE_FALSE, SHORT_TEXT
+  difficulty  String               @default("MEDIUM") // EASY, MEDIUM, HARD
+  points      Int                  @default(1)
+  order       Int                  @default(0)
+  imageUrl    String?
+  explanation String?
+  isArchived  Boolean              @default(false)
+  
+  category    QuestionBankCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  choices     QuestionChoice[]
 
-  exam    Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
-  choices Choice[]
+  @@index([categoryId, isArchived, order])
 }
 
-model Choice {
-  id         String  @id @default(uuid())
+model QuestionChoice {
+  id         String           @id @default(uuid())
   questionId String
   text       String
-  isCorrect  Boolean @default(false)
+  isCorrect  Boolean          @default(false)
+  order      Int              @default(0)
+  imageUrl   String?
+  isArchived Boolean          @default(false)
+  
+  question   QuestionBankItem @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  @@index([questionId, isArchived, order])
+}
+
+model ExamTemplate {
+  id            String   @id @default(uuid())
+  lessonId      String   @unique
+  title         String
+  description   String?
+  instructions  String?
+  durationMin   Int      @default(30)
+  passingScore  Int      @default(50)
+  passingScoreType String @default("PERCENTAGE") // PERCENTAGE, MARKS
+  attemptsLimit Int      @default(1) // 0 = unlimited
+  availableFrom DateTime?
+  availableUntil DateTime?
+  status        String   @default("PUBLISHED") // DRAFT, PUBLISHED, HIDDEN
+  rules         Json     // Settings for randomization, questions count, review logic etc.
+  
+  lesson        Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  sessions      ExamSession[]
+  retakePermissions ExamRetakePermission[]
+}
+
+model ExamSession {
+  id           String    @id @default(uuid())
+  examId       String
+  studentId    String
+  startTime    DateTime  @default(now())
+  endTime      DateTime?
+  status       String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+  questionsIds Json      // Array of QuestionBankItem IDs selected for this student
+  score        Int?
+  passingScore Int?      // Snapshot of passing score at the time the exam was taken
+  
+  exam         ExamTemplate @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student      User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers      ExamAnswer[]
+
+  @@index([examId, studentId])
+}
+
+model ExamAnswer {
+  id         String      @id @default(uuid())
+  sessionId  String
+  questionId String
+  choiceId   String?     // For MCQ
+  selectedChoiceIds Json? // For MULTIPLE_RESPONSE
+  textAnswer String?     // For Essay
+  
+  session    ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionId])
+  @@index([sessionId, questionId])
 }
 
 model Assignment {
@@ -765,6 +832,7 @@ model Level {
 
   stage    EducationalStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
   subjects Subject[]
+  teachers TeacherProfile[]
 }
 
 model AcademicYear {
@@ -867,8 +935,6 @@ model Specialization {
   slug        String   @unique
   description String?
   createdAt   DateTime @default(now())
-
-  teachers TeacherProfile[]
 }
 
 model SubjectGroup {
@@ -904,6 +970,7 @@ model Subject {
   levels  Level[]
   skills  Skill[]
   courses Course[]
+  teachers TeacherProfile[]
 
   // Prerequisite relationships
   prerequisitesPrereq Prerequisite[] @relation("PrerequisiteSubject")
@@ -1114,6 +1181,21 @@ model CourseProgress {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+}
+
+
+
+model ExamRetakePermission {
+  id        String   @id @default(uuid())
+  examId    String
+  studentId String
+  grantedBy String
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  exam      ExamTemplate @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student   User         @relation("RetakeStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher   User         @relation("RetakeGranter", fields: [grantedBy], references: [id], onDelete: Cascade)
 }
 
 model LessonProgress {
@@ -1605,13 +1687,6 @@ model MediaAsset {
 // FINAL MEGA EPIC - LOGGING & REPORTS
 // ------------------------------------------------------
 
-model PlatformSetting {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  value       String
-  description String?
-  updatedAt   DateTime @updatedAt
-}
 
 model SystemLog {
   id        String   @id @default(uuid())
@@ -1634,29 +1709,16 @@ model ExportReport {
 }
 
 // ------------------------------------------------------
-// CMS & SETTINGS
+// PLATFORM BRANDING & CONFIGURATION
 // ------------------------------------------------------
 
-model HomepageConfig {
-  id          String  @id @default(uuid())
-  section     String  @unique // e.g. HERO, CTA
-  title       String?
-  subtitle    String?
-  description String?
-  imageUrl    String?
-  buttonText  String?
-  buttonLink  String?
-  isActive    Boolean @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model PlatformBranding {
+  id               String   @id @default(uuid())
+  platform         String   @unique // e.g., "Facebook", "Instagram", "Website", "WhatsApp"
+  url              String
+  isEnabled        Boolean  @default(true)
+  showInFooter     Boolean  @default(true)
+  showInExport     Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
 }
 
-model FooterConfig {
-  id          String  @id @default(uuid())
-  platform    String  @unique // e.g. FACEBOOK, WHATSAPP, EMAIL, ADDRESS, LOGO
-  value       String
-  icon        String?
-  isActive    Boolean @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}

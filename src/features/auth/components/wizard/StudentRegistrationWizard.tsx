@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { studentRegisterSchema, StudentRegisterFormData } from '@/features/auth/schemas/auth.schemas';
 import { authService } from '@/features/auth/services/auth.service';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { PROTECTED_ROUTES } from '@/features/auth/constants/auth.constants';
+import { PROTECTED_ROUTES, AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 import { ApiError } from '@/shared/api/error.models';
 import { AuthWizard } from './AuthWizard';
 import { Input, PasswordInput } from '@/shared/components/atoms/Input';
@@ -41,21 +42,25 @@ const NativeSelect = React.forwardRef<
 });
 NativeSelect.displayName = "NativeSelect";
 
-const GOVERNORATES = ["القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "الشرقية"];
+import { GOVERNORATES, EGYPT_REGIONS, Governorate } from '@/lib/constants/egypt-regions';
+
 const GRADES = ["الصف الأول الثانوي", "الصف الثاني الثانوي", "الصف الثالث الثانوي"];
 
 export function StudentRegistrationWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setLoading, setError, isLoading, error } = useAuthStore();
   
-  const [step, setStep] = useState<number>(0); // 0: Personal, 1: Academic
+  const [step, setStep] = useState<number>(0);
 
   const {
     register,
     handleSubmit,
     trigger,
     watch,
-    formState: { errors, isValid },
+    setValue,
+    setError: setFormError,
+    formState: { errors },
   } = useForm<StudentRegisterFormData>({
     resolver: zodResolver(studentRegisterSchema),
     mode: 'onTouched',
@@ -65,13 +70,21 @@ export function StudentRegistrationWizard() {
   });
 
   const passwordValue = watch('password');
+  const selectedGovernorate = watch('governorate') as Governorate | undefined;
+
+  const centers = selectedGovernorate && EGYPT_REGIONS[selectedGovernorate] 
+    ? EGYPT_REGIONS[selectedGovernorate] 
+    : [];
 
   const onSubmit = async (data: StudentRegisterFormData) => {
     try {
       setLoading(true);
       setError(null);
-      await authService.registerStudent(data);
-      router.push(PROTECTED_ROUTES.DASHBOARD);
+      const res = await authService.registerStudent(data);
+      const redirectParam = searchParams.get('redirect');
+      const loginUrl = redirectParam ? `${AUTH_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectParam)}` : AUTH_ROUTES.LOGIN;
+      toast.success('تم إنشاء حسابك بنجاح! يمكنك الآن تسجيل الدخول.');
+      router.push(loginUrl);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -84,14 +97,20 @@ export function StudentRegistrationWizard() {
   };
 
   const handleNextStep = async () => {
-    // Validate Step 0 fields before proceeding
     const fieldsToValidate: (keyof StudentRegisterFormData)[] = [
-      'firstName', 'middleName', 'lastName', 'familyName',
+      'email', 'firstName', 'middleName', 'lastName', 'familyName',
       'phone', 'parentPhone', 'password', 'confirmPassword'
     ];
     
     const isStepValid = await trigger(fieldsToValidate);
+    const pwd = watch('password');
+    const cpwd = watch('confirmPassword');
+    
     if (isStepValid) {
+      if (pwd !== cpwd) {
+        setFormError('confirmPassword', { type: 'manual', message: 'كلمات المرور غير متطابقة' });
+        return;
+      }
       setStep(1);
     }
   };
@@ -139,6 +158,12 @@ export function StudentRegistrationWizard() {
             </div>
           </div>
 
+          <div className="flex flex-col gap-2 mb-4">
+            <label className="text-sm font-bold text-foreground">البريد الإلكتروني</label>
+            <Input type="email" dir="ltr" placeholder="student@example.com" error={!!errors.email} {...register('email')} />
+            {errors.email && <p className="text-xs text-error font-medium text-end">{errors.email.message}</p>}
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-foreground">رقم الهاتف</label>
@@ -175,7 +200,14 @@ export function StudentRegistrationWizard() {
         <div className={cn("flex-col gap-5", step === 1 ? "flex" : "hidden")}>
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-foreground">المحافظة</label>
-            <NativeSelect error={!!errors.governorate} {...register('governorate')}>
+            <NativeSelect 
+              error={!!errors.governorate} 
+              {...register('governorate')}
+              onChange={(e) => {
+                register('governorate').onChange(e);
+                setValue('city', ''); // reset city when governorate changes
+              }}
+            >
               <option value="">اختر المحافظة</option>
               {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
             </NativeSelect>
@@ -183,8 +215,11 @@ export function StudentRegistrationWizard() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-foreground">الإدارة التعليمية</label>
-            <Input placeholder="مثال: إدارة الدقي التعليمية" error={!!errors.city} {...register('city')} />
+            <label className="text-sm font-bold text-foreground">المركز / الإدارة التعليمية</label>
+            <NativeSelect error={!!errors.city} {...register('city')} disabled={!selectedGovernorate || centers.length === 0}>
+              <option value="">اختر المركز</option>
+              {centers.map((c: string) => <option key={c} value={c}>{c}</option>)}
+            </NativeSelect>
             {errors.city && <p className="text-xs text-error font-medium">{errors.city.message}</p>}
           </div>
 
@@ -197,11 +232,7 @@ export function StudentRegistrationWizard() {
             {errors.grade && <p className="text-xs text-error font-medium">{errors.grade.message}</p>}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-foreground">كود الدعوة</label>
-            <Input placeholder="أدخل كود الدعوة (مدرس أو إدارة)" error={!!errors.invitationCode} {...register('invitationCode')} />
-            {errors.invitationCode && <p className="text-xs text-error font-medium">{errors.invitationCode.message}</p>}
-          </div>
+
 
           <div className="flex items-center gap-3 mt-4">
             <Button type="button" variant="outline" size="lg" className="w-1/3" onClick={() => setStep(0)}>

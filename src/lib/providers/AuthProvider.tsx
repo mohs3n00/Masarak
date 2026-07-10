@@ -1,90 +1,45 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  GoogleAuthProvider, 
-  signInWithPopup 
-} from 'firebase/auth';
-import { auth } from '../firebase/firebase';
+import React, { createContext, useContext, useEffect } from 'react';
 import { apiClient } from '@/shared/api/api.client';
-
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { AuthResponse } from '@/features/auth/types/auth.types';
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
-  register: (email: string, pass: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
+  isReady: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType>({ isReady: false });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-
-  // Sync Firebase token with backend session
-  const syncWithBackend = async (firebaseUser: User | null) => {
-    if (firebaseUser) {
-      try {
-        const token = await firebaseUser.getIdToken(true);
-        // We call the nestjs backend to verify the token and establish session
-        const { data } = await apiClient.post<AuthResponse>('/auth/firebase/sync', { token });
-        
-        // Save to Zustand store
-        setAuth(data.user, data.tokens);
-      } catch (error) {
-        console.error("Failed to sync with backend", error);
-        clearAuth();
-        await signOut(auth); // Sign out if backend sync fails
-      }
-    } else {
-      clearAuth();
-    }
-  };
+  const { setAuth, clearAuth, setLoading, isAuthenticated } = useAuthStore();
+  const [isReady, setIsReady] = React.useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      await syncWithBackend(currentUser);
-      setLoading(false);
-    });
+    const checkSession = async () => {
+      setLoading(true);
+      try {
+        const { data: user } = await apiClient.get('/users/me');
+        // Tokens live in HTTPOnly cookies — we don't store them in state
+        setAuth(user, { accessToken: '', refreshToken: '' });
+      } catch {
+        // 401 means no valid session — clear any stale state
+        clearAuth();
+      } finally {
+        setLoading(false);
+        setIsReady(true);
+      }
+    };
 
-    return () => unsubscribe();
+    // Only fetch if we don't already have a verified session
+    // (Zustand persists user across page refreshes — still verify on mount)
+    checkSession();
   }, []);
 
-  const login = async (email: string, pass: string) => {
-    await signInWithEmailAndPassword(auth, email, pass);
-  };
-
-  const register = async (email: string, pass: string) => {
-    await createUserWithEmailAndPassword(auth, email, pass);
-  };
-
-  const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
-
-  const logout = async () => {
-    await signOut(auth);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ isReady }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuthContext = () => useContext(AuthContext);

@@ -1,21 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Category, Level, Course } from '@/types/models';
 
 interface CourseSidebarFiltersProps {
-  categories: Category[];
-  courses: Course[];
+  categories: any[];
+  totalCourses?: number;
   levels: Level[];
 }
 
-export function CourseSidebarFilters({ categories, courses, levels }: CourseSidebarFiltersProps) {
+export function CourseSidebarFilters({ categories, totalCourses = 0, levels }: CourseSidebarFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const currentCategory = searchParams.get('category');
   const currentLevels = searchParams.getAll('level');
@@ -46,7 +47,9 @@ export function CourseSidebarFilters({ categories, courses, levels }: CourseSide
     }
     
     params.delete('page');
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
   };
 
   return (
@@ -64,11 +67,13 @@ export function CourseSidebarFilters({ categories, courses, levels }: CourseSide
           >
             الكل
             <span className={cn("px-2 py-0.5 rounded-md text-xs", !currentCategory ? "bg-primary/20" : "bg-background/60 text-foreground")}>
-              {courses.length}
+              {totalCourses}
             </span>
           </Link>
           
-          {categories.slice(0, 8).map((cat, idx) => {
+          {categories
+            .filter((cat: any) => (cat.coursesCount || cat.courseCount || 0) > 0)
+            .map((cat, idx) => {
             const isActive = currentCategory === cat.slug;
             return (
               <Link 
@@ -85,7 +90,7 @@ export function CourseSidebarFilters({ categories, courses, levels }: CourseSide
                   "px-2 py-0.5 rounded-md text-xs transition-colors", 
                   isActive ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground group-hover:bg-background"
                 )}>
-                  {(idx * 7) % 20 + 5} {/* Mock count */}
+                  {cat.coursesCount || cat.courseCount || 0}
                 </span>
               </Link>
             );

@@ -10,6 +10,10 @@ import {
 } from 'class-validator';
 
 export class RegisterStudentDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
   @IsString()
   @IsNotEmpty()
   firstName: string;
@@ -26,9 +30,6 @@ export class RegisterStudentDto {
   @IsNotEmpty()
   familyName: string;
 
-  @IsOptional()
-  @IsEmail()
-  email?: string;
 
   @IsNotEmpty()
   @IsPhoneNumber('EG')
@@ -76,7 +77,4 @@ export class RegisterStudentDto {
   @IsBoolean()
   termsAccepted: boolean;
 
-  @IsString()
-  @IsNotEmpty()
-  invitationCode: string;
 }

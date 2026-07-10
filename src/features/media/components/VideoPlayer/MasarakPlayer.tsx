@@ -11,6 +11,7 @@ import { mediaSecurity, PlaybackSession } from '../../services/mediaSecurityServ
 import { cn } from '@/lib/utils';
 import { AlertCircle } from 'lucide-react';
 import type { OnProgressProps } from 'react-player/base';
+import { apiClient } from '@/shared/api/api.client';
 
 // Dynamic import for SSR safety (react-player needs browser APIs)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,7 +31,10 @@ interface MasarakPlayerProps {
   onEnded?: () => void;
   className?: string;
   lessonId?: string;
+  videoId?: string;
+  initialDuration?: number;
   studentAuth?: StudentAuthContext;
+  onDurationReady?: (duration: number) => void;
 }
 
 export function MasarakPlayer({
@@ -41,7 +45,10 @@ export function MasarakPlayer({
   onEnded,
   className,
   lessonId,
-  studentAuth
+  videoId,
+  initialDuration = 0,
+  studentAuth,
+  onDurationReady
 }: MasarakPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -290,7 +297,15 @@ export function MasarakPlayer({
               if (session) mediaSecurity.sendHeartbeat(session.sessionId, duration, 'ended');
             }}
             onProgress={handleProgress}
-            onDuration={(dur: number) => setDuration(dur)}
+            onDuration={(dur: number) => {
+              setDuration(dur);
+              onDurationReady?.(dur);
+              // Smart Fallback: If the database duration is 0, send the real duration back to save it permanently
+              if (initialDuration === 0 && dur > 0 && videoId) {
+                apiClient.patch(`/student/video/${videoId}/duration`, { duration: dur })
+                  .catch(console.error);
+              }
+            }}
             config={{
               youtube: {
                 playerVars: {

@@ -7,8 +7,14 @@ import {
 } from '../schemas/auth.schemas';
 
 class AuthService {
-  async login(credentials: LoginFormData): Promise<AuthResponse> {
-    const { data } = await apiClient.post<AuthResponse>('/auth/login', credentials);
+  async login(credentials: LoginFormData): Promise<{ user: any }> {
+    await apiClient.post('/auth/login', credentials);
+    const { data: user } = await apiClient.get('/users/me');
+    return { user };
+  }
+
+  async getProfile(): Promise<any> {
+    const { data } = await apiClient.get('/users/me');
     return data;
   }
 
@@ -24,8 +30,12 @@ class AuthService {
     return response;
   }
 
-  async forgotPassword(phone: string): Promise<void> {
-    await apiClient.post('/auth/forgot-password', { phone });
+  async forgotPassword(email: string): Promise<void> {
+    await apiClient.post('/auth/forgot-password', { email });
+  }
+
+  async verifyResetCode(email: string, code: string): Promise<void> {
+    await apiClient.post('/auth/verify-reset-code', { email, code });
   }
 
   async resetPassword(data: any): Promise<void> {
@@ -33,14 +43,6 @@ class AuthService {
     await apiClient.post('/auth/password/reset', payload);
   }
 
-  async verifyPhone(code: string, userId?: string): Promise<void> {
-    // Requires userId from context or local storage. For now we pass it dynamically or get it from cookies.
-    await apiClient.post('/auth/otp/verify', {
-      code,
-      type: 'PHONE_VERIFICATION',
-      userId
-    });
-  }
 
   async resendVerificationEmail(): Promise<void> {
     throw new Error('Not implemented.');

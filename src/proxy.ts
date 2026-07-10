@@ -1,78 +1,121 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const AUTH_ROUTES = {
-  LOGIN: '/login',
-  REGISTER: '/register',
-};
+// Decode JWT payload without verifying signature (verification happens on backend)
+function decodeJwtPayload(token: string): { sub: string; role: string; exp: number } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
-const PROTECTED_ROUTES = {
-  DASHBOARD: '/dashboard',
-  PROFILE: '/profile',
-};
+const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
+const TEACHER_ROLES = ['TEACHER'];
+const STUDENT_ROLES = ['STUDENT'];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Create headers object to append security headers
-  const headers = new Headers(request.headers);
-  const response = NextResponse.next({
-    request: {
-      headers,
-    },
-  });
-
-  // 1. Apply Security Headers
-  // Strict Transport Security (HSTS)
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  
-  // Prevent clickjacking
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  
-  // Prevent MIME type sniffing
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  
-  // Referrer Policy
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
-  // Permissions Policy
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
-
-  // Basic CSP (Relaxed for dev/Next.js inline scripts, but restricts frame-ancestors)
-  // We use frame-ancestors 'none' to block iframe embedding entirely
-  response.headers.set(
-    'Content-Security-Policy',
-    "frame-ancestors 'self';"
-  );
-
-  // 2. Authentication Route Protection
   const token = request.cookies.get('accessToken')?.value;
 
-  const isAuthRoute = Object.values(AUTH_ROUTES).includes(pathname);
-  const isProtectedRoute = pathname.startsWith(PROTECTED_ROUTES.DASHBOARD) || pathname.startsWith(PROTECTED_ROUTES.PROFILE);
+  const headers = new Headers(request.headers);
+  const response = NextResponse.next({
+    request: { headers },
+  });
 
-  // Redirect unauthenticated users from protected routes to login
-  if (isProtectedRoute && !token) {
-    const url = request.nextUrl.clone();
-    url.pathname = AUTH_ROUTES.LOGIN;
-    // Save original url to redirect back after login
-    url.searchParams.set('callbackUrl', encodeURI(request.nextUrl.pathname));
-    return NextResponse.redirect(url, { headers: response.headers });
+  // Security Headers
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
+  response.headers.set('Content-Security-Policy', "frame-ancestors 'self';");
+
+  // Decode role from JWT (no signature verification needed — just routing)
+  let role: string | null = null;
+  let isExpired = false;
+
+  if (token) {
+    const payload = decodeJwtPayload(token);
+    if (payload) {
+      role = payload.role;
+      isExpired = payload.exp * 1000 < Date.now();
+    }
   }
 
-  // Redirect authenticated users away from auth routes (login/register)
-  if (isAuthRoute && token) {
-    const url = request.nextUrl.clone();
-    url.pathname = PROTECTED_ROUTES.DASHBOARD;
-    return NextResponse.redirect(url, { headers: response.headers });
+  const isAuthenticated = !!role && !isExpired;
+
+  // ── /dashboard root → redirect to role-specific dashboard ──────────────
+  if (pathname === '/dashboard') {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL('/login', request.url), { headers: response.headers });
+    }
+    if (ADMIN_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/dashboard/admin', request.url), { headers: response.headers });
+    }
+    if (TEACHER_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/dashboard/teacher', request.url), { headers: response.headers });
+    }
+    if (STUDENT_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/dashboard/student', request.url), { headers: response.headers });
+    }
+  }
+
+  // ── /dashboard/admin/* → requires ADMIN / SUPER_ADMIN ──────────────────
+  if (pathname.startsWith('/dashboard/admin')) {
+    if (!isAuthenticated) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(url, { headers: response.headers });
+    }
+    if (!ADMIN_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url), { headers: response.headers });
+    }
+  }
+
+  // ── /dashboard/teacher/* → requires TEACHER (or ADMIN) ─────────────────
+  if (pathname.startsWith('/dashboard/teacher')) {
+    if (!isAuthenticated) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(url, { headers: response.headers });
+    }
+    if (!TEACHER_ROLES.includes(role!) && !ADMIN_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url), { headers: response.headers });
+    }
+  }
+
+  // ── /dashboard/student/* → requires STUDENT (or ADMIN) ─────────────────
+  if (pathname.startsWith('/dashboard/student')) {
+    if (!isAuthenticated) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(url, { headers: response.headers });
+    }
+    if (!STUDENT_ROLES.includes(role!) && !ADMIN_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url), { headers: response.headers });
+    }
+  }
+
+  // ── Auth pages → redirect authenticated users to home ────────
+  if (
+    isAuthenticated &&
+    (pathname === '/login' || pathname === '/choose-account' || pathname.startsWith('/register'))
+  ) {
+    return NextResponse.redirect(new URL('/', request.url), { headers: response.headers });
   }
 
   return response;
 }
 
 export const config = {
-  // Apply middleware to all routes except API, static assets, and images
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|images|svgs).*)',
+    '/dashboard',
+    '/dashboard/:path*',
+    '/login',
+    '/choose-account',
+    '/register/:path*',
   ],
 };

@@ -6,10 +6,20 @@ export class ForgotPasswordDto {
   email: string;
 }
 
-export class ResetPasswordDto {
+export class VerifyResetCodeDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  code: string;
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
   @IsString()
   @IsNotEmpty()

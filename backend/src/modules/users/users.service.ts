@@ -70,11 +70,16 @@ export class UsersService {
   }
 
   async updateTeacherProfile(userId: string, dto: UpdateTeacherProfileDto) {
-    const { specializations, ...rest } = dto;
+    const { subjectIds, levelIds, ...rest } = dto;
     const updateData: any = { ...rest };
-    if (specializations) {
-      updateData.specializations = {
-        set: specializations.map((id) => ({ id })),
+    if (subjectIds) {
+      updateData.subjects = {
+        set: subjectIds.map((id: string) => ({ id })),
+      };
+    }
+    if (levelIds) {
+      updateData.levels = {
+        set: levelIds.map((id: string) => ({ id })),
       };
     }
 
@@ -151,7 +156,7 @@ export class UsersService {
     );
     await this.repository.logActivity(userId, ActivityAction.AVATAR_UPDATE);
 
-    return { url: result.url };
+    return { avatar: result.url };
   }
 
   async removeAvatar(userId: string) {
@@ -207,5 +212,19 @@ export class UsersService {
       // ignore
     }
     return { message: 'Account deleted' };
+  }
+
+  async getNotifications(userId: string, take?: number, skip?: number) {
+    return this.repository.getNotifications(userId, take, skip);
+  }
+
+  async markNotificationRead(userId: string, notificationId: string) {
+    await this.repository.markNotificationRead(userId, notificationId);
+    return { success: true };
+  }
+
+  async markAllNotificationsRead(userId: string) {
+    await this.repository.markAllNotificationsRead(userId);
+    return { success: true };
   }
 }

@@ -11,13 +11,15 @@ interface EscalationCardProps {
 export function EscalationCard({ onClose }: EscalationCardProps) {
   return (
     <div
-      className="mx-1 rounded-2xl border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 p-3"
+      className="mx-1 rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-950/20 p-4 shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-500"
       dir="rtl"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-base">🙋</span>
-          <p className="text-xs font-bold text-foreground">محتاج مساعدة بشرية؟</p>
+          <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <span className="text-[12px]">🙋</span>
+          </div>
+          <p className="text-[13px] font-bold text-foreground">تحتاج لمساعدة بشرية؟</p>
         </div>
         {onClose && (
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
@@ -30,8 +32,8 @@ export function EscalationCard({ onClose }: EscalationCardProps) {
         <a
           href="/support/ticket"
           className={cn(
-            'flex items-center gap-2 p-2 rounded-xl text-xs font-medium',
-            'bg-primary/10 text-primary hover:bg-primary/20 transition-colors'
+            'flex items-center gap-2.5 p-2.5 rounded-xl text-[13px] font-medium border border-transparent',
+            'bg-surface hover:bg-primary/5 hover:border-primary/20 hover:text-primary transition-all shadow-sm'
           )}
         >
           <Ticket className="w-4 h-4 shrink-0" />
@@ -43,8 +45,8 @@ export function EscalationCard({ onClose }: EscalationCardProps) {
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            'flex items-center gap-2 p-2 rounded-xl text-xs font-medium',
-            'bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/20 transition-colors'
+            'flex items-center gap-2.5 p-2.5 rounded-xl text-[13px] font-medium border border-transparent',
+            'bg-surface hover:bg-green-500/5 hover:border-green-500/20 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-all shadow-sm'
           )}
         >
           <Phone className="w-4 h-4 shrink-0" />
@@ -54,8 +56,8 @@ export function EscalationCard({ onClose }: EscalationCardProps) {
         <a
           href="/support/live-chat"
           className={cn(
-            'flex items-center gap-2 p-2 rounded-xl text-xs font-medium',
-            'bg-blue-500/10 text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 transition-colors'
+            'flex items-center gap-2.5 p-2.5 rounded-xl text-[13px] font-medium border border-transparent',
+            'bg-surface hover:bg-blue-500/5 hover:border-blue-500/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all shadow-sm'
           )}
         >
           <MessageCircle className="w-4 h-4 shrink-0" />

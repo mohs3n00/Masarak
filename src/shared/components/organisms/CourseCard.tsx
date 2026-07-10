@@ -36,7 +36,7 @@ export function CourseCard({ title, image, instructor, price, rating, studentsCo
         <div className="flex items-center justify-between mt-auto pt-2 border-t">
           <div className="flex items-center gap-1 text-sm font-medium">
             <Star className="h-4 w-4 fill-warning text-warning" />
-            <span>{rating.toFixed(1)}</span>
+            <span>{(rating || 0).toFixed(1)}</span>
             <span className="text-muted-foreground font-normal">({studentsCount})</span>
           </div>
           <span className="font-bold text-primary">{price}</span>

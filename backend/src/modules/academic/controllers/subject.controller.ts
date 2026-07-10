@@ -10,6 +10,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SubjectService } from '../services/subject.service';
 import { CreateSubjectDto, CreateSubjectGroupDto } from '../dto/academic.dto';
+import { Public } from '../../../common/decorators/public.decorator';
 
 @ApiTags('Academic Subjects')
 @ApiBearerAuth()
@@ -23,6 +24,7 @@ export class SubjectController {
     return this.service.createSubjectGroup(dto.name, dto.slug, dto.description);
   }
 
+  @Public()
   @Get('groups')
   @ApiOperation({ summary: 'Get all subject groups' })
   async getSubjectGroups() {
@@ -35,6 +37,7 @@ export class SubjectController {
     return this.service.createSubject(dto);
   }
 
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Get subjects with pagination' })
   async getSubjects(

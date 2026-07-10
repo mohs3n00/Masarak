@@ -20,18 +20,19 @@ import { ApiError } from '@/shared/api/error.models';
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const email = searchParams.get('email');
+  const code = searchParams.get('code');
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!token) {
+    if (!email || !code) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('رابط إعادة تعيين كلمة المرور غير صالح أو مفقود.');
     }
-  }, [token]);
+  }, [email, code]);
 
   const {
     register,
@@ -45,11 +46,11 @@ export default function ResetPasswordPage() {
   const passwordValue = watch('password');
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    if (!token) return;
+    if (!email || !code) return;
     try {
       setIsLoading(true);
       setError(null);
-      await authService.resetPassword({ token, password: data.password });
+      await authService.resetPassword({ email, code, newPassword: data.password });
       setSuccess(true);
       setTimeout(() => {
         router.push(AUTH_ROUTES.LOGIN);
@@ -96,7 +97,7 @@ export default function ResetPasswordPage() {
                   id="password"
                   placeholder="••••••••"
                   error={!!errors.password}
-                  disabled={!token}
+                  disabled={!email || !code}
                   {...register('password')}
                 />
                 <PasswordStrength password={passwordValue} />
@@ -113,7 +114,7 @@ export default function ResetPasswordPage() {
                   id="confirmPassword"
                   placeholder="••••••••"
                   error={!!errors.confirmPassword}
-                  disabled={!token}
+                  disabled={!email || !code}
                   {...register('confirmPassword')}
                 />
                 {errors.confirmPassword && (
@@ -121,7 +122,7 @@ export default function ResetPasswordPage() {
                 )}
               </div>
 
-              <Button type="submit" size="lg" className="w-full mt-2" loading={isLoading} disabled={!token}>
+              <Button type="submit" size="lg" className="w-full mt-2" loading={isLoading} disabled={!email || !code}>
                 حفظ كلمة المرور الجديدة
               </Button>
             </form>

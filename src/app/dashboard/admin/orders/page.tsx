@@ -1,17 +1,6 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ComingSoonPage } from '@/shared/components/atoms/ComingSoonPage';
+import { ShoppingBag } from 'lucide-react';
 
-export default function DashboardAdminOrdersPage() {
-  return (
-    <div className="p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">الطلبات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">طلبات الشراء</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export default function AdminOrdersPage() {
+  return <ComingSoonPage title="الطلبات" description="إدارة طلبات الاشتراك وتتبع حالتها. هذه الميزة قيد التطوير." icon={ShoppingBag} />;
 }

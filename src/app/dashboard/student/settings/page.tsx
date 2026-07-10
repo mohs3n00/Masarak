@@ -1,20 +1,85 @@
 'use client';
 
-import React, { useState } from 'react';
-import { User, Bell, Lock, CreditCard, Palette, Settings } from 'lucide-react';
-import { studentMockData } from '@/lib/mock-data/student-dashboard';
+import React, { useEffect, useState } from 'react';
+import { User, Bell, Lock, CreditCard, Palette, Settings, Loader2 } from 'lucide-react';
+import { apiClient } from '@/shared/api/api.client';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
-  const profile = studentMockData.profile;
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  
+  const [form, setForm] = useState({
+    name: '',
+    bio: '',
+    academicYear: '',
+    learningPreferences: '',
+  });
+  const [avatar, setAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiClient.get('/users/me')
+      .then(({ data }) => {
+        setForm({
+          name: data.name || '',
+          bio: data.bio || '',
+          academicYear: data.studentProfile?.academicYear || '',
+          learningPreferences: data.studentProfile?.learningPreferences || '',
+        });
+        setAvatar(data.avatar);
+      })
+      .catch(() => toast.error('فشل تحميل الإعدادات'))
+      .finally(() => setFetching(false));
+  }, []);
+
+  const update = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      await apiClient.patch('/users/me', { name: form.name, bio: form.bio });
+      await apiClient.patch('/users/profile/student', {
+        academicYear: form.academicYear,
+        learningPreferences: form.learningPreferences,
+      });
+      toast.success('تم حفظ التغييرات بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء الحفظ');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const { data } = await apiClient.post('/users/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setAvatar(data.avatar);
+      toast.success('تم تحديث الصورة الشخصية');
+    } catch {
+      toast.error('فشل رفع الصورة');
+    }
+  };
 
   const tabs = [
     { id: 'profile', label: 'الملف الشخصي', icon: User },
-    { id: 'account', label: 'أمان الحساب', icon: Lock },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell },
-    { id: 'billing', label: 'الفواتير', icon: CreditCard },
-    { id: 'appearance', label: 'المظهر', icon: Palette },
   ];
+
+  if (fetching) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full pb-12" dir="rtl">
@@ -56,52 +121,60 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-md shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-md shrink-0 bg-muted">
+                  {avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl font-black text-primary/40 bg-primary/5">
+                      {form.name?.[0]?.toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <button className="px-5 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl text-xs hover:bg-primary/90 transition-colors shadow-sm">
+                  <label className="px-5 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl text-xs hover:bg-primary/90 transition-colors shadow-sm cursor-pointer">
                     تغيير الصورة
-                  </button>
-                  <button className="px-5 py-2.5 bg-muted/60 text-foreground font-bold rounded-xl text-xs hover:bg-muted transition-colors border border-border/50 shadow-sm">
-                    إزالة
-                  </button>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                  </label>
+                  {avatar && (
+                    <button 
+                      onClick={() => {
+                        apiClient.delete('/users/avatar').then(() => setAvatar(null));
+                      }}
+                      className="px-5 py-2.5 bg-error/10 text-error font-bold rounded-xl text-xs hover:bg-error hover:text-white transition-colors shadow-sm"
+                    >
+                      إزالة
+                    </button>
+                  )}
                 </div>
               </div>
 
               <div className="grid gap-6">
                 <div className="grid gap-2">
                   <label className="text-xs font-bold text-foreground">الاسم الكامل</label>
-                  <input type="text" defaultValue={profile.name} className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-foreground focus:bg-background" />
+                  <input type="text" value={form.name} onChange={e => update('name', e.target.value)} className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-foreground focus:bg-background" />
                 </div>
                 
                 <div className="grid gap-2">
-                  <label className="text-xs font-bold text-foreground">الدور / العنوان</label>
-                  <input type="text" defaultValue={profile.role} className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-foreground focus:bg-background" />
+                  <label className="text-xs font-bold text-foreground">الصف الدراسي</label>
+                  <input type="text" value={form.academicYear} onChange={e => update('academicYear', e.target.value)} placeholder="مثال: الصف الأول الثانوي" className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-foreground focus:bg-background" />
                 </div>
 
                 <div className="grid gap-2">
-                  <label className="text-xs font-bold text-foreground">نبذة شخصية</label>
-                  <textarea rows={4} className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none text-foreground focus:bg-background" placeholder="اكتب نبذة قصيرة عن نفسك..." />
+                  <label className="text-xs font-bold text-foreground">نبذة شخصية (Bio)</label>
+                  <textarea rows={4} value={form.bio} onChange={e => update('bio', e.target.value)} className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none text-foreground focus:bg-background" placeholder="اكتب نبذة قصيرة عن نفسك..." />
                 </div>
               </div>
 
               <div className="pt-6 border-t border-border/60">
-                <button className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl text-sm hover:bg-primary/90 transition-colors shadow-sm w-full sm:w-auto">
-                  حفظ التغييرات
+                <button onClick={handleSubmit} disabled={loading} className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl text-sm hover:bg-primary/90 transition-colors shadow-sm w-full sm:w-auto disabled:opacity-50">
+                  {loading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
                 </button>
               </div>
             </div>
           )}
 
-          {activeTab !== 'profile' && (
-            <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
-              <Settings className="w-16 h-16 text-muted-foreground mb-4" />
-              <h2 className="text-xl font-bold mb-2">قريباً</h2>
-              <p className="text-muted-foreground text-sm">قسم الإعدادات هذا قيد التطوير حالياً.</p>
-            </div>
-          )}
+
 
         </div>
       </div>

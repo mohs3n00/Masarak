@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { ThumbsUp, ThumbsDown, Copy, Check, BotMessageSquare } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ChatMessage as ChatMessageType } from '../types';
 import { cn } from '@/lib/utils';
 
@@ -22,10 +24,10 @@ export function ChatMessageBubble({ message, onFeedback }: ChatMessageProps) {
   };
 
   return (
-    <div className={cn('flex gap-2 items-end', isUser ? 'flex-row-reverse' : 'flex-row')}>
+    <div className={cn('flex gap-3 items-end animate-in fade-in slide-in-from-bottom-2 duration-300', isUser ? 'flex-row-reverse' : 'flex-row')}>
       {/* Avatar */}
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white shrink-0 mb-1 shadow-sm ring-1 ring-primary/20">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-primary/80 flex items-center justify-center text-white shrink-0 mb-1 shadow-sm">
           <BotMessageSquare className="w-4 h-4" />
         </div>
       )}
@@ -34,18 +36,22 @@ export function ChatMessageBubble({ message, onFeedback }: ChatMessageProps) {
         {/* Bubble */}
         <div
           className={cn(
-            'px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm',
+            'px-4 py-3 rounded-2xl text-[14px] leading-relaxed shadow-sm transition-opacity duration-300',
             isUser
-              ? 'bg-primary text-primary-foreground rounded-br-sm'
-              : 'bg-card border border-border rounded-bl-sm',
-            isSending && 'opacity-70'
+              ? 'bg-gradient-to-r from-primary to-primary/90 text-white rounded-br-sm shadow-md'
+              : 'bg-surface border border-border-subtle rounded-bl-sm text-foreground',
+            isSending && 'opacity-60'
           )}
           dir="rtl"
         >
           {isSending ? (
             <TypingDots />
           ) : (
-            <span className="whitespace-pre-wrap">{message.content}</span>
+            <div className={cn('prose prose-sm max-w-none', isUser ? 'prose-invert' : 'dark:prose-invert')}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
 
@@ -99,11 +105,11 @@ export function ChatMessageBubble({ message, onFeedback }: ChatMessageProps) {
 
 function TypingDots() {
   return (
-    <div className="flex items-center gap-1 py-1">
+    <div className="flex items-center gap-1.5 py-2 px-1">
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce"
+          className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"
           style={{ animationDelay: `${i * 150}ms`, animationDuration: '800ms' }}
         />
       ))}

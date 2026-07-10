@@ -1,20 +1,35 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { teachers, courses } from '@/mock';
 import { AppContainer, Section } from '@/shared/layouts/Containers';
 import { TeacherHeroHeader } from '@/features/marketing/components/hero/TeacherHeroHeader';
 import { BundleCard } from '@/features/marketing/components/cards/BundleCard';
+import { fetchPublicTeacher } from '@/lib/api/public';
+import { cookies } from 'next/headers';
 
 export default async function TeachersIdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const teacher = teachers.find(t => t.id === id);
+  const cookieStore = await cookies();
+  const token = cookieStore.get('accessToken')?.value;
   
-  if (!teacher) {
+  const teacherData = await fetchPublicTeacher(id, token);
+  if (!teacherData) {
     notFound();
   }
 
-  // Get courses for this teacher
-  const teacherCourses = courses.filter(c => c.teacherId === teacher.id);
+  // Map API data to component props
+  const teacher = {
+    id: teacherData.id,
+    name: teacherData.name,
+    specialization: teacherData.specializations[0] || 'معلم',
+    avatar: teacherData.avatar,
+    bio: teacherData.bio,
+    rating: 0,
+    reviewsCount: 0,
+    studentsCount: 0,
+    coursesCount: teacherData.courses?.length || 0,
+  } as any;
+
+  const teacherCourses = teacherData.courses || [];
   
   // Split into mock bundles and individual courses
   const bundles = teacherCourses.slice(0, 2);
@@ -37,8 +52,21 @@ export default async function TeachersIdPage({ params }: { params: Promise<{ id:
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {bundles.map(course => (
-                <BundleCard key={course.id} course={course} teacher={teacher} isBundle={true} />
+              {bundles.map((course: any) => (
+                <BundleCard 
+                  key={course.id} 
+                  course={{
+                    ...course,
+                    thumbnail: course.thumbnailUrl || course.thumbnail,
+                    teacherId: teacher.id,
+                    categoryId: '',
+                    lessonsCount: 0,
+                    studentsCount: course.enrollmentCount,
+                    rating: course.averageRating
+                  }} 
+                  teacher={teacher} 
+                  isBundle={true} 
+                />
               ))}
             </div>
           </Section>
@@ -55,12 +83,26 @@ export default async function TeachersIdPage({ params }: { params: Promise<{ id:
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {individualCourses.map(course => (
-                <BundleCard key={course.id} course={course} teacher={teacher} isBundle={false} />
+              {individualCourses.map((course: any) => (
+                <BundleCard 
+                  key={course.id} 
+                  course={{
+                    ...course,
+                    thumbnail: course.thumbnailUrl || course.thumbnail,
+                    teacherId: teacher.id,
+                    categoryId: '',
+                    lessonsCount: 0,
+                    studentsCount: course.enrollmentCount,
+                    rating: course.averageRating
+                  }} 
+                  teacher={teacher} 
+                  isBundle={false} 
+                />
               ))}
             </div>
           </Section>
         )}
+        
         {/* Empty State */}
         {bundles.length === 0 && individualCourses.length === 0 && (
           <Section className="pt-16">

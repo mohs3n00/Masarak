@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { MainNavigation } from "@/config/navigation"
 import { Button } from "@/shared/components/atoms/Button"
 import { Logo } from "@/shared/components/atoms/Logo"
@@ -15,24 +15,20 @@ import {
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerClose } from "@/shared/components/organisms/Drawer"
 import {
   Menu, Moon, Sun, X,
-  LogIn, UserPlus, ChevronRight
+  LogIn, UserPlus, ChevronRight,
+  LayoutDashboard, LogOut, User, ChevronDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-/**
- * Navbar — Masarak Design System
- *
- * - Solid background (no backdrop-blur)
- * - Modern icon-only toggles for Theme
- * - Clean educational styling (no AI/SaaS effects)
- * - RTL-first, mobile-first
- * - All links point to valid routes
- */
+import { useAuthStore } from "@/features/auth/store/auth.store"
+import { apiClient } from "@/shared/api/api.client"
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isDark, setIsDark] = React.useState(false)
   const [isScrolled, setIsScrolled] = React.useState(false)
+
+  const { user, isAuthenticated, clearAuth } = useAuthStore()
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10)
@@ -45,18 +41,36 @@ export function Navbar() {
     else document.documentElement.classList.remove("dark")
   }, [isDark])
 
-  React.useEffect(() => {
-    if (isDark) document.documentElement.classList.add("dark")
-    else document.documentElement.classList.remove("dark")
-  }, [isDark])
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/auth/logout')
+    } catch {
+      // ignore — cookie will expire
+    } finally {
+      clearAuth()
+      router.push('/login')
+    }
+  }
+
+  const dashboardHref = React.useMemo(() => {
+    if (!user) return '/dashboard'
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return '/dashboard/admin'
+    if (user.role === 'TEACHER') return '/dashboard/teacher'
+    return '/dashboard/student'
+  }, [user])
+
+  const userInitials = React.useMemo(() => {
+    if (!user?.name) return '?'
+    return user.name.split(' ').slice(0, 2).map((n: string) => n[0]).join('')
+  }, [user])
 
   return (
     <header
       className={cn(
         "sticky top-0 inset-x-0 z-[100] w-full h-[68px] shrink-0",
-        "transition-shadow duration-200",
+        "transition-all duration-300",
         isScrolled
-          ? "bg-background border-b border-border shadow-sm"
+          ? "bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm"
           : "bg-background border-b border-transparent"
       )}
     >
@@ -99,9 +113,8 @@ export function Navbar() {
           {/* Right Actions */}
           <div className="flex items-center gap-2 shrink-0">
 
-            {/* Theme & Language Toggles (Desktop) */}
+            {/* Theme Toggle */}
             <div className="hidden lg:flex items-center gap-1">
-              {/* Theme Toggle */}
               <button
                 onClick={() => setIsDark(!isDark)}
                 className={cn(
@@ -129,22 +142,94 @@ export function Navbar() {
                   />
                 </span>
               </button>
-
               <div className="w-px h-6 bg-border mx-1" aria-hidden="true" />
             </div>
 
             {/* Auth Buttons — Desktop */}
             <div className="hidden sm:flex items-center gap-2">
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="font-semibold text-text-secondary">
-                  تسجيل الدخول
-                </Button>
-              </Link>
-              <Link href="/choose-account">
-                <Button size="sm" className="font-semibold">
-                  إنشاء حساب
-                </Button>
-              </Link>
+              {isAuthenticated && user ? (
+                /* Authenticated User Menu */
+                <Dropdown>
+                  <DropdownTrigger render={
+                    <button
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 rounded-xl",
+                        "border border-border hover:border-primary/40",
+                        "bg-background hover:bg-muted transition-all duration-200",
+                        "outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      )}
+                    >
+                      {/* Avatar */}
+                      {user.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={user.avatar}
+                          alt={user.name}
+                          className="w-8 h-8 rounded-full object-cover border border-border"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
+                          {userInitials}
+                        </div>
+                      )}
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-semibold text-foreground leading-tight max-w-[120px] truncate">
+                          {user.name}
+                        </span>
+                        <span className="text-[10px] text-text-muted capitalize">
+                          {user.role === 'SUPER_ADMIN' ? 'مدير عام' : user.role === 'ADMIN' ? 'مسؤول' : user.role === 'TEACHER' ? 'مدرس' : 'طالب'}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-text-muted" />
+                    </button>
+                  } />
+                  <DropdownContent align="end" className="w-56 mt-2 p-1">
+                    {user.role !== 'STUDENT' && (
+                      <Link href={dashboardHref} onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))}>
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-colors text-foreground group">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            <LayoutDashboard className="w-4 h-4" />
+                          </div>
+                          <span className="font-semibold text-sm">لوحة التحكم</span>
+                        </div>
+                      </Link>
+                    )}
+                    {user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
+                      <DropdownMenuItem>
+                        <Link href={user.role === 'STUDENT' ? '/dashboard/student' : '/dashboard/teacher/profile'} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors">
+                          <User className="w-4 h-4 text-text-muted" />
+                          <span className="font-semibold text-sm">الملف الشخصي</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <div className="border-t border-border my-1" />
+                    <DropdownMenuItem>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-error/10 text-error transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="font-semibold text-sm">تسجيل الخروج</span>
+                      </button>
+                    </DropdownMenuItem>
+                  </DropdownContent>
+                </Dropdown>
+              ) : (
+                /* Guest Buttons */
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm" className="font-semibold text-text-secondary">
+                      <LogIn className="w-4 h-4 ml-1" />
+                      تسجيل الدخول
+                    </Button>
+                  </Link>
+                  <Link href="/choose-account">
+                    <Button size="sm" className="font-semibold">
+                      إنشاء حساب
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu */}
@@ -180,6 +265,26 @@ export function Navbar() {
                   } />
                 </DrawerHeader>
 
+                {/* User Info (Mobile — if authenticated) */}
+                {isAuthenticated && user && (
+                  <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                    {user.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                        {userInitials}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{user.name}</p>
+                      <p className="text-xs text-text-muted">
+                        {user.role === 'SUPER_ADMIN' ? 'مدير عام' : user.role === 'ADMIN' ? 'مسؤول' : user.role === 'TEACHER' ? 'مدرس' : 'طالب'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Navigation Links */}
                 <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="قائمة الهاتف">
                   {MainNavigation.map((route) => (
@@ -207,40 +312,72 @@ export function Navbar() {
                     } />
                   ))}
                 </nav>
-
                 {/* Drawer Footer */}
                 <div className="p-4 border-t border-border space-y-3 bg-surface">
-                  <DrawerClose render={
-                    <Link href="/login" className="w-full block">
-                      <Button variant="outline" className="w-full gap-2">
-                        <LogIn className="size-4" aria-hidden="true" />
-                        تسجيل الدخول
+                  {isAuthenticated && user ? (
+                    <>
+                      {user.role !== 'STUDENT' && (
+                        <DrawerClose render={
+                          <Link href={dashboardHref} className="w-full block">
+                            <Button variant="outline" className="w-full gap-2">
+                              <LayoutDashboard className="size-4" aria-hidden="true" />
+                              لوحة التحكم
+                            </Button>
+                          </Link>
+                        } />
+                      )}
+                      {user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
+                        <DrawerClose render={
+                          <Link href={user.role === 'STUDENT' ? '/dashboard/student' : '/dashboard/teacher/profile'} className="w-full block">
+                            <Button variant="outline" className="w-full gap-2">
+                              <User className="size-4" aria-hidden="true" />
+                              الملف الشخصي
+                            </Button>
+                          </Link>
+                        } />
+                      )}
+                      <Button
+                        variant="ghost"
+                        className="w-full gap-2 text-error hover:bg-error/10"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="size-4" aria-hidden="true" />
+                        تسجيل الخروج
                       </Button>
-                    </Link>
-                  } />
-                  <DrawerClose render={
-                    <Link href="/choose-account" className="w-full block">
-                      <Button className="w-full gap-2">
-                        <UserPlus className="size-4" aria-hidden="true" />
-                        إنشاء حساب
-                      </Button>
-                    </Link>
-                  } />
+                    </>
+                  ) : (
+                    <>
+                      <DrawerClose render={
+                        <Link href="/login" className="w-full block">
+                          <Button variant="outline" className="w-full gap-2">
+                            <LogIn className="size-4" aria-hidden="true" />
+                            تسجيل الدخول
+                          </Button>
+                        </Link>
+                      } />
+                      <DrawerClose render={
+                        <Link href="/choose-account" className="w-full block">
+                          <Button className="w-full gap-2">
+                            <UserPlus className="size-4" aria-hidden="true" />
+                            إنشاء حساب
+                          </Button>
+                        </Link>
+                      } />
+                    </>
+                  )}
 
                   {/* Quick Settings Row */}
                   <div className="flex items-center justify-between pt-3 border-t border-border">
                     <span className="text-sm text-text-muted font-semibold">
-                      الإعدادات
+                      المظهر
                     </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setIsDark(!isDark)}
-                        className="w-9 h-9 rounded-lg flex items-center justify-center bg-background border border-border text-text-muted hover:text-foreground transition-colors"
-                        aria-label={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
-                      >
-                        {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setIsDark(!isDark)}
+                      className="w-9 h-9 rounded-lg flex items-center justify-center bg-background border border-border text-text-muted hover:text-foreground transition-colors"
+                      aria-label={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
+                    >
+                      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                    </button>
                   </div>
                 </div>
               </DrawerContent>

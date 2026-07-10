@@ -1,7 +1,10 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/atoms/Button';
 import Link from 'next/link';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 
 interface CTASectionProps {
   title: string;
@@ -9,6 +12,7 @@ interface CTASectionProps {
   primaryAction: { label: string; href: string };
   secondaryAction?: { label: string; href: string };
   className?: string;
+  hideWhenAuth?: boolean;
 }
 
 /**
@@ -16,7 +20,18 @@ interface CTASectionProps {
  * No blur, no glows, no AI effects.
  * Solid color, readable text, clear actions.
  */
-export function CTASection({ title, description, primaryAction, secondaryAction, className }: CTASectionProps) {
+export function CTASection({ title, description, primaryAction, secondaryAction, className, hideWhenAuth = true }: CTASectionProps) {
+  const { isAuthenticated } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (hideWhenAuth && mounted && isAuthenticated) {
+    return null;
+  }
+
   return (
     <section className={cn(
       "bg-primary rounded-2xl p-10 md:p-16 text-center",

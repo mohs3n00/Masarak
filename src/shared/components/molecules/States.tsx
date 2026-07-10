@@ -1,6 +1,5 @@
 import * as React from "react"
 import { AlertCircle, CheckCircle2, Loader2, Inbox } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 export function EmptyState({ title, description, icon: Icon = Inbox, action }: { title: string, description?: string, icon?: React.ElementType, action?: React.ReactNode }) {
   return (

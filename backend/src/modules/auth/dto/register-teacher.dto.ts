@@ -14,13 +14,14 @@ import {
 import { Transform } from 'class-transformer';
 import { IsEgyptianNationalId } from '../../../common/validators/egyptian-national-id.validator';
 export class RegisterTeacherDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsOptional()
-  @IsEmail()
-  email?: string;
 
   @IsNotEmpty()
   @IsPhoneNumber('EG')
@@ -47,7 +48,12 @@ export class RegisterTeacherDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  subjects?: string[];
+  subjectIds?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  levelIds?: string[];
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value))

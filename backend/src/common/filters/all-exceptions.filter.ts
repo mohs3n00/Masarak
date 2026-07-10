@@ -52,16 +52,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorMessage = exception.message;
     }
 
-    // Log the error
+    // ✅ تنقية البيانات الحساسة قبل الـ logging
+    const sanitizedBody = this.sanitizeBody(request.body);
+
+    // Log the error (sanitized)
     const errorLog = {
       method: request.method,
       url: request.url,
-      body: request.body, // In a real app, sanitize sensitive data like passwords before logging
+      body: sanitizedBody,
       statusCode: httpStatus,
       errorCode,
       errorMessage,
       details,
-      stack: exception instanceof Error ? exception.stack : undefined,
+      // لا نطبع stack trace في production
+      ...(process.env.NODE_ENV !== 'production' && {
+        stack: exception instanceof Error ? exception.stack : undefined,
+      }),
     };
 
     if (httpStatus >= 500) {
@@ -74,12 +80,36 @@ export class AllExceptionsFilter implements ExceptionFilter {
       success: false,
       error: {
         code: errorCode,
-        message: errorMessage,
+        // في production: لا نكشف رسائل الخطأ الداخلية للـ 500
+        message: httpStatus >= 500 && process.env.NODE_ENV === 'production'
+          ? 'An internal error occurred'
+          : errorMessage,
         ...(details && { details }),
         ...(exception instanceof HttpException && typeof exception.getResponse() === 'object' && (exception.getResponse() as any).userId ? { userId: (exception.getResponse() as any).userId } : {})
       },
     };
 
     httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
+  }
+
+  /**
+   * إزالة البيانات الحساسة من body قبل الـ logging
+   */
+  private sanitizeBody(body: any): any {
+    if (!body || typeof body !== 'object') return body;
+
+    const SENSITIVE_FIELDS = [
+      'password', 'oldPassword', 'newPassword', 'confirmPassword',
+      'token', 'accessToken', 'refreshToken', 'secret', 'apiKey',
+      'authorization', 'creditCard', 'cvv', 'pin',
+    ];
+
+    const sanitized = { ...body };
+    for (const field of SENSITIVE_FIELDS) {
+      if (sanitized[field] !== undefined) {
+        sanitized[field] = '[REDACTED]';
+      }
+    }
+    return sanitized;
   }
 }

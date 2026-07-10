@@ -18,6 +18,13 @@ export class CommerceRepository {
     return this.prisma.enrollment.create({ data });
   }
 
+  async updateEnrollment(userId: string, courseId: string, data: any) {
+    return this.prisma.enrollment.update({
+      where: { userId_courseId: { userId, courseId } },
+      data,
+    });
+  }
+
   // ------------------------------------------------------
   // CART
   // ------------------------------------------------------

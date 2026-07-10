@@ -11,19 +11,20 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 
 export const studentRegisterSchema = z
   .object({
+    email: z.string().email({ message: 'بريد إلكتروني غير صالح' }),
     firstName: z.string().min(2, { message: 'الاسم الأول مطلوب' }),
     middleName: z.string().min(2, { message: 'الاسم الثاني مطلوب' }),
     lastName: z.string().min(2, { message: 'الاسم الثالث مطلوب' }),
     familyName: z.string().min(2, { message: 'الاسم الأخير مطلوب' }),
     phone: z.string().regex(phoneRegex, { message: 'رقم هاتف غير صالح' }),
     parentPhone: z.string().regex(phoneRegex, { message: 'رقم ولي الأمر غير صالح' }),
-    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, { message: 'يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف، وحرف كبير وصغير، ورقم، ورمز خاص.' }),
+    password: z.string().regex(/^(?=.*[A-Za-z])(?=.*\d)[\x21-\x7E]{8,}$/, { message: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل، وتحتوي على حرف إنجليزي ورقم، ولا يُسمح بالحروف العربية.' }),
     confirmPassword: z.string(),
     governorate: z.string().min(2, { message: 'المحافظة مطلوبة' }),
     city: z.string().min(2, { message: 'الإدارة التعليمية مطلوبة' }),
     grade: z.string().min(1, { message: 'السنة الدراسية مطلوبة' }),
     avatar: z.string().optional(),
-    invitationCode: z.string().min(1, { message: 'كود الدعوة مطلوب' }),
+
     termsAccepted: z.literal(true, {
       message: 'يجب الموافقة على الشروط والأحكام'
     }),
@@ -31,6 +32,10 @@ export const studentRegisterSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: 'كلمات المرور غير متطابقة',
     path: ['confirmPassword'],
+  })
+  .refine((data) => data.phone !== data.parentPhone, {
+    message: 'رقم الهاتف ورقم ولي الأمر لا يمكن أن يكونا متطابقين',
+    path: ['parentPhone'],
   });
 
 export type StudentRegisterFormData = z.infer<typeof studentRegisterSchema>;
@@ -38,12 +43,14 @@ export type StudentRegisterFormData = z.infer<typeof studentRegisterSchema>;
 export const teacherRegisterSchema = z
   .object({
     name: z.string().min(2, { message: 'الاسم يجب أن يتكون من حرفين على الأقل' }),
+    email: z.string().email({ message: 'بريد إلكتروني غير صالح' }),
     phone: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
-    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, { message: 'يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف، وحرف كبير وصغير، ورقم، ورمز خاص.' }),
+    password: z.string().regex(/^(?=.*[A-Za-z])(?=.*\d)[\x21-\x7E]{8,}$/, { message: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل، وتحتوي على حرف إنجليزي ورقم، ولا يُسمح بالحروف العربية.' }),
     confirmPassword: z.string(),
     nationalId: z.string().regex(/^\d{14}$/, { message: 'الرقم القومي يجب أن يتكون من 14 رقماً' }),
     biography: z.string().optional(),
-    subjects: z.array(z.string()).optional(),
+    subjectIds: z.array(z.string()).optional(),
+    levelIds: z.array(z.string()).optional(),
     experience: z.number().min(0).optional(),
     avatar: z.string().optional(),
     termsAccepted: z.literal(true, {
@@ -79,13 +86,13 @@ export const teacherRegisterSchema = z
 export type TeacherRegisterFormData = z.infer<typeof teacherRegisterSchema>;
 
 export const forgotPasswordSchema = z.object({
-  phone: z.string().regex(phoneRegex, { message: 'رقم هاتف مصري غير صالح' }),
+  email: z.string().email({ message: 'بريد إلكتروني غير صالح' }),
 });
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, { message: 'يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف، وحرف كبير وصغير، ورقم، ورمز خاص.' }),
+    password: z.string().regex(/^(?=.*[A-Za-z])(?=.*\d)[\x21-\x7E]{8,}$/, { message: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل، وتحتوي على حرف إنجليزي ورقم، ولا يُسمح بالحروف العربية.' }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

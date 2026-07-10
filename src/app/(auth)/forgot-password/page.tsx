@@ -32,8 +32,13 @@ export default function ForgotPasswordPage() {
     try {
       setIsLoading(true);
       setError(null);
-      await authService.forgotPassword(data.phone);
+      await authService.forgotPassword(data.email);
       setSuccess(true);
+      // Wait a bit before redirecting
+      setTimeout(() => {
+        const url = `/verify-reset-code?email=${encodeURIComponent(data.email)}`;
+        window.location.href = url;
+      }, 2000);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -51,7 +56,7 @@ export default function ForgotPasswordPage() {
         <AuthCard>
           <AuthHeader
             title="نسيت كلمة المرور؟"
-            description="أدخل رقم هاتفك وسنرسل لك رمزاً لإعادة تعيين كلمة المرور الخاصة بك."
+            description="أدخل بريدك الإلكتروني وسنرسل لك رمزاً لإعادة تعيين كلمة المرور الخاصة بك."
           />
 
           {error && (
@@ -63,29 +68,30 @@ export default function ForgotPasswordPage() {
           {success ? (
             <div className="text-center">
               <div className="mb-6 p-4 bg-success/8 text-success text-sm rounded-xl border border-success/20">
-                تم إرسال رمز إعادة تعيين كلمة المرور إلى هاتفك بنجاح.
+                تم إرسال رمز إعادة تعيين كلمة المرور إلى بريدك الإلكتروني بنجاح.
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-foreground" htmlFor="phone">
-                  رقم الهاتف
+                <label className="text-sm font-bold text-foreground" htmlFor="email">
+                  البريد الإلكتروني
                 </label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="01012345678"
-                  error={!!errors.phone}
-                  {...register('phone')}
+                  id="email"
+                  type="email"
+                  dir="ltr"
+                  placeholder="student@example.com"
+                  error={!!errors.email}
+                  {...register('email')}
                 />
-                {errors.phone && (
-                  <p className="text-xs text-error font-medium">{errors.phone.message}</p>
+                {errors.email && (
+                  <p className="text-xs text-error font-medium text-end">{errors.email.message}</p>
                 )}
               </div>
 
               <Button type="submit" size="lg" className="w-full mt-2" loading={isLoading}>
-                إرسال رابط إعادة التعيين
+                إرسال الرمز
               </Button>
             </form>
           )}

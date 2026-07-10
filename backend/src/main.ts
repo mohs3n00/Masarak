@@ -62,9 +62,10 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  app.get(Logger).log(`Application is running on port ${port}`, 'Bootstrap');
 }
 bootstrap().catch((err) => {
-  console.error('Failed to bootstrap application:', err);
+  // eslint-disable-next-line no-console
+  console.error('Failed to bootstrap application:', err?.message || err);
   process.exit(1);
 });

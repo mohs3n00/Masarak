@@ -30,6 +30,8 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { MediaModule } from './modules/media/media.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { ExamModule } from './modules/exam/exam.module';
+import { FirebaseModule } from './modules/firebase/firebase.module';
 
 // Shared Infrastructure Modules
 import { StorageModule } from './shared/storage/storage.module';
@@ -37,7 +39,9 @@ import { SmsModule } from './shared/sms/sms.module';
 import { NotificationModule } from './shared/notifications/notification.module';
 import { QueueModule } from './shared/queue/queue.module';
 import { GlobalCacheModule } from './shared/cache/cache.module';
-import { SettingsModule } from './modules/settings/settings.module';
+import { EmailModule } from './modules/email/email.module';
+import { VerificationModule } from './modules/verification/verification.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -90,6 +94,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     EventEmitterModule.forRoot(),
 
     // Business Modules
+    FirebaseModule,
     AuthModule,
     UsersModule,
     AcademicModule,
@@ -104,7 +109,10 @@ import { SettingsModule } from './modules/settings/settings.module';
     MediaModule,
     MonitoringModule,
     UploadModule,
-    SettingsModule,
+    ExamModule,
+    EmailModule,
+    VerificationModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [

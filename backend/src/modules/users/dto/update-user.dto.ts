@@ -58,7 +58,7 @@ export class UpdateTeacherProfileDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  specializations?: string[];
+  subjectIds?: string[];
 
   @ApiPropertyOptional()
   @IsInt()
@@ -69,13 +69,7 @@ export class UpdateTeacherProfileDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  teachingSubjects?: string[];
-
-  @ApiPropertyOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  academicLevels?: string[];
+  levelIds?: string[];
 
   @ApiPropertyOptional()
   @IsString()

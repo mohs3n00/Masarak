@@ -24,3 +24,13 @@ export class SendOtpDto {
   @IsNotEmpty()
   type: OtpType;
 }
+
+export class VerifyFirebaseTokenDto {
+  @IsString()
+  @IsNotEmpty()
+  idToken: string;
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+}

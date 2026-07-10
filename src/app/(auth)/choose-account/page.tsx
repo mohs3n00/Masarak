@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { AUTH_ROUTES, AUTH_ROLES } from '@/features/auth/constants/auth.constants';
+import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
 import { AuthLayout } from '@/features/auth/components/AuthLayout';
 import { AuthCard } from '@/features/auth/components/AuthCard';

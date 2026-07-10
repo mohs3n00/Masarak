@@ -1,32 +1,219 @@
 'use client';
 
 import React, { useState } from 'react';
+import { apiClient } from '@/shared/api/api.client';
 import { useApi } from '@/lib/providers/ApiProvider';
 import { DataStateWrapper } from '@/features/student-experience/components/DataStateWrapper';
-import { workspaceMockChapters, workspaceMockResources, WorkspaceLesson } from '@/lib/mock-data/workspace';
+import { WorkspaceLesson, WorkspaceChapter } from '@/features/learning/types';
 import { CourseAccordion } from '@/features/learning/components/CourseAccordion';
 import { LessonTabs } from '@/features/learning/components/LessonTabs';
 import { MasarakPlayer } from '@/features/media/components/VideoPlayer/MasarakPlayer';
+import { ExamPlayer } from '@/features/learning/components/ExamPlayer';
 import { ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 
-export function LearningWorkspace() {
+const formatDuration = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) {
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
+export function LearningWorkspace({ slug }: { slug?: string }) {
   const router = useRouter();
-  const { dataState } = useApi();
-  const [activeLesson, setActiveLesson] = useState<WorkspaceLesson>(
-    workspaceMockChapters[1].lessons[1] // Defaulting to the current lesson 'less_1_2'
-  );
-
-  // Get resources for the active lesson (fallback to empty if none mock found)
-  const resources = workspaceMockResources[activeLesson.id] || [];
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Find the video resource if one exists
-  const videoResource = resources.find(r => r.type === 'VIDEO');
+  const [courseTitle, setCourseTitle] = useState('');
+  const [chapters, setChapters] = useState<WorkspaceChapter[]>([]);
+  const [resourcesMap, setResourcesMap] = useState<Record<string, any[]>>({});
+  
+  const [activeLesson, setActiveLesson] = useState<WorkspaceLesson | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
 
-  // Find course title
-  const courseTitle = "كورس الليالي الأخيرة: مرحلة الإنجاز"; // Hardcoded for this view
+  const handleLessonComplete = (lessonId: string) => {
+    setChapters(prev => prev.map(ch => ({
+      ...ch,
+      lessons: ch.lessons.map(les => 
+        les.id === lessonId ? { ...les, completed: true } : les
+      )
+    })));
+    apiClient.post(`/student/lessons/${lessonId}/complete`).catch(console.error);
+  };
 
-  if (dataState === 'empty') return <DataStateWrapper emptyMessage="Course not found" />;
+  // ✅ Auto-complete logic when viewing a lesson
+  React.useEffect(() => {
+    if (!activeLesson || activeLesson.completed || activeLesson.type === 'exam') return;
+    
+    // For PDFs and Videos, mark as complete upon opening/viewing
+    handleLessonComplete(String(activeLesson.id));
+    setActiveLesson(prev => prev ? { ...prev, completed: true } : null);
+  }, [activeLesson?.id]);
+
+  // ✅ جلب الـ video URL بشكل آمن من الـ stream endpoint عند تغيير المحاضرة
+  React.useEffect(() => {
+    if (!activeLesson) return;
+    const resources = resourcesMap[activeLesson.id] || [];
+    const videoResource = resources.find((r: any) => r.type === 'VIDEO');
+    if (!videoResource) { setVideoUrl(null); return; }
+    
+    setVideoLoading(true);
+    setVideoUrl(null);
+    apiClient.get(`/student/video/${videoResource.videoId}/stream`)
+      .then((res) => setVideoUrl(res.data.videoUrl))
+      .catch(() => setVideoUrl(null))
+      .finally(() => setVideoLoading(false));
+  }, [activeLesson?.id]);
+
+  const handleDurationReady = React.useCallback((durationSeconds: number) => {
+    if (!activeLesson || activeLesson.type !== 'video') return;
+
+    const formattedDuration = formatDuration(durationSeconds);
+    
+    // Update activeLesson duration
+    setActiveLesson(prev => prev ? { ...prev, duration: formattedDuration } : null);
+
+    // Update chapters list duration
+    setChapters(prev => prev.map(ch => ({
+      ...ch,
+      lessons: ch.lessons.map(les => 
+        les.id === activeLesson.id ? { ...les, duration: formattedDuration } : les
+      )
+    })));
+
+    // Update resourcesMap duration
+    setResourcesMap(prev => {
+      const currentResources = prev[activeLesson.id] || [];
+      return {
+        ...prev,
+        [activeLesson.id]: currentResources.map(r => 
+          r.type === 'VIDEO' ? { ...r, durationSeconds } : r
+        )
+      };
+    });
+  }, [activeLesson?.id]);
+
+  React.useEffect(() => {
+    if (!slug) return;
+    
+    apiClient.get(`/student/courses/${slug}/workspace`)
+      .then((res) => {
+        const data = res.data;
+        setCourseTitle(data.course.title);
+        
+        const mappedChapters: WorkspaceChapter[] = data.sections.map((sec: any) => ({
+          id: sec.id,
+          title: sec.title,
+          order: sec.order,
+          lessons: sec.lessons.map((les: any) => ({
+            id: les.id,
+            chapterId: sec.id,
+            courseId: data.course.id,
+            title: les.title,
+            type: les.type === 'VIDEO' ? 'video' : les.type === 'EXAM' ? 'exam' : 'pdf',
+            duration: les.videos?.[0]?.duration ? formatDuration(les.videos[0].duration) : undefined,
+            completed: les.progress?.length > 0 ? les.progress[0].isCompleted : false,
+            order: les.order,
+            isPreview: les.isFreePreview
+          }))
+        }));
+        
+        setChapters(mappedChapters);
+        
+        // ✅ بناء خريطة الموارد مع الفيديوهات كـ IDs فقط (الـ URL يُجلب بشكل آمن لاحقاً)
+        const resMap: Record<string, any[]> = {};
+        data.sections.forEach((sec: any) => {
+          sec.lessons.forEach((les: any) => {
+            const media: any[] = [];
+            if (les.videos?.length > 0) {
+              les.videos.forEach((v: any, idx: number) => {
+                media.push({
+                  id: v.id,
+                  lessonId: les.id,
+                  title: 'فيديو الشرح',
+                  type: 'VIDEO',
+                  // ✅ الـ URL لا يأتي مع workspace - يُطلب بشكل منفصل عند التشغيل
+                  videoId: v.id,
+                  thumbnailUrl: v.thumbnailUrl,
+                  durationSeconds: v.duration,
+                  provider: v.provider,
+                  order: idx
+                });
+              });
+            }
+            if (les.attachments?.length > 0) {
+              les.attachments.forEach((a: any, idx: number) => {
+                media.push({
+                  id: a.id,
+                  lessonId: les.id,
+                  title: a.fileName,
+                  type: a.fileType?.toUpperCase().includes('PDF') ? 'PDF' : 'LINK',
+                  url: a.fileUrl,
+                  sizeBytes: a.sizeBytes,
+                  order: 10 + idx
+                });
+              });
+            }
+            resMap[les.id] = media;
+          });
+        });
+        
+        setResourcesMap(resMap);
+        
+        if (mappedChapters.length > 0 && mappedChapters[0].lessons.length > 0) {
+          setActiveLesson(mappedChapters[0].lessons[0]);
+        }
+      })
+
+      .catch((err) => {
+        if (err?.response?.status === 401) {
+          const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+          router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+          return;
+        }
+        if (err?.response?.status === 403) {
+          toast.error('يجب الاشتراك في الكورس أولاً للوصول إلى محتواه');
+          router.push(`/course/${slug}`);
+          return;
+        }
+        setError(err?.response?.data?.message || 'Course not found or access denied');
+      })
+      .finally(() => setLoading(false));
+  }, [slug, router, pathname, searchParams]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-background">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error || !chapters.length || !activeLesson) {
+    return (
+      <div className="w-full h-[calc(100vh-80px)] flex flex-col items-center justify-center p-8 bg-background">
+        <div className="text-center p-8 max-w-md bg-surface border border-border rounded-3xl shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 text-3xl">⚠️</div>
+          <h2 className="text-xl font-bold font-heading mb-2">{error ? 'خطأ في جلب البيانات' : 'محتوى الكورس غير متاح'}</h2>
+          <p className="text-muted-foreground mb-6">{error || "عذراً، لم يتم العثور على محتوى لهذا الكورس. قد يكون غير متوفر حالياً أو لم تقم بالاشتراك فيه."}</p>
+          <button onClick={() => router.back()} className="px-6 py-2 bg-primary text-white rounded-full font-bold hover:bg-primary/90 transition-colors">
+            العودة للصفحة السابقة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Get resources for the active lesson
+  const resources = resourcesMap[activeLesson.id] || [];
+  const videoResource = resources.find((r: any) => r.type === 'VIDEO');
 
   return (
     <div className="w-full min-h-[calc(100vh-80px)] bg-background">
@@ -48,26 +235,58 @@ export function LearningWorkspace() {
         {/* Main Content Area (Player + Tabs) */}
         <div className="flex-1 flex flex-col gap-6 min-w-0">
           
-          {/* Video Player Area */}
-          <div className="w-full rounded-2xl overflow-hidden bg-black aspect-video shadow-lg relative border border-border">
-            {videoResource ? (
-              <MasarakPlayer 
-                src={videoResource.url} 
-                poster={videoResource.thumbnailUrl}
-                lessonId={String(activeLesson.id)}
-                onProgress={(progress) => {
-                  // E.g. mark lesson completed if > 90%
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-card">
-                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                   <span className="text-2xl">👀</span>
-                 </div>
-                 <h2 className="text-xl font-bold mb-2">لا يوجد فيديو لهذه المحاضرة</h2>
-                 <p>يرجى تصفح المرفقات أو الاختبار أسفل هذه الشاشة.</p>
+          {/* Main Content Area */}
+          <div className={`w-full rounded-2xl overflow-hidden shadow-lg relative border border-border ${activeLesson.type === 'video' ? 'bg-black aspect-video' : 'bg-card min-h-[500px]'}`}>
+            {activeLesson.type === 'video' ? (
+              videoLoading ? (
+                <div className="w-full h-full flex items-center justify-center bg-black absolute inset-0">
+                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : videoUrl ? (
+                <MasarakPlayer 
+                  src={videoUrl} 
+                  poster={videoResource?.thumbnailUrl}
+                  lessonId={String(activeLesson.id)}
+                  videoId={String(videoResource?.videoId)}
+                  initialDuration={videoResource?.durationSeconds || 0}
+                  onProgress={(progress) => {}}
+                  onDurationReady={handleDurationReady}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-card absolute inset-0">
+                   <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                     <span className="text-2xl">👀</span>
+                   </div>
+                   <h2 className="text-xl font-bold mb-2">لا يوجد فيديو لهذه المحاضرة</h2>
+                   <p>يرجى تصفح المرفقات أو الاختبار أسفل هذه الشاشة.</p>
+                </div>
+              )
+            ) : activeLesson.type === 'pdf' ? (
+              <div className="w-full h-full min-h-[600px] flex flex-col items-center justify-center bg-muted/20">
+                {resources.find(r => r.type === 'PDF')?.url ? (
+                  <iframe 
+                    src={`${resources.find(r => r.type === 'PDF')?.url}#toolbar=0`} 
+                    className="w-full h-full min-h-[600px] border-0"
+                    title={activeLesson.title}
+                  />
+                ) : (
+                  <div className="text-center p-8">
+                    <span className="text-4xl mb-4 block">📄</span>
+                    <h2 className="text-xl font-bold mb-2">لا يوجد ملف مرفق</h2>
+                    <p className="text-muted-foreground">الملف غير متاح حالياً أو لم يقم المعلم برفعه بعد.</p>
+                  </div>
+                )}
               </div>
-            )}
+            ) : activeLesson.type === 'exam' ? (
+              <div className="w-full h-full min-h-[500px] flex items-center justify-center bg-background p-4">
+                <ExamPlayer 
+                  key={String(activeLesson.id)} 
+                  lessonId={String(activeLesson.id)} 
+                  courseId={String(activeLesson.courseId)} 
+                  onExamCompleted={() => handleLessonComplete(String(activeLesson.id))}
+                />
+              </div>
+            ) : null}
           </div>
 
           {/* Lesson Title and Info */}
@@ -91,9 +310,10 @@ export function LearningWorkspace() {
 
           {/* Lesson Tabs */}
           <LessonTabs 
+             lessonId={String(activeLesson.id)}
              resources={resources} 
-             onSelectResource={(res) => {
-               if (res.type === 'LINK') window.open(res.url, '_blank');
+             onSelectResource={(res: any) => {
+               if (res.type === 'LINK' || res.type === 'PDF') window.open(res.url, '_blank');
              }} 
           />
           
@@ -102,10 +322,10 @@ export function LearningWorkspace() {
         {/* Sidebar Accordion Area */}
         <div className="w-full lg:w-[400px] shrink-0 flex flex-col gap-6">
            <CourseAccordion 
-             chapters={workspaceMockChapters} 
+             chapters={chapters} 
              activeLessonId={String(activeLesson.id)}
              onLessonSelect={setActiveLesson}
-             className="sticky top-[90px] max-h-[calc(100vh-120px)]"
+             className="sticky top-[90px] max-h-[calc(100vh-120px)] overflow-y-auto"
            />
         </div>
 

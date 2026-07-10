@@ -5,7 +5,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
-  role: 'STUDENT' | 'TEACHER' | 'ADMIN';
+  role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN';
   joinedAt: string;
 }
 

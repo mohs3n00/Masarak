@@ -12,6 +12,14 @@ export interface ChatMessage {
   status: MessageStatus;
   feedback?: 'helpful' | 'not_helpful';
   isEscalation?: boolean;
+  debugInfo?: {
+    provider?: string;
+    model?: string;
+    responseTime?: number;
+    tokens?: number;
+    status?: 'Connected' | 'API Error' | 'Using Fallback';
+    error?: string;
+  };
 }
 
 export interface KnowledgeItem {
@@ -67,6 +75,14 @@ export interface ChatResponse {
   shouldEscalate: boolean;
   retrievedDocs: KnowledgeItem[];
   confidence: number;
+  debugInfo?: {
+    provider: string;
+    model: string;
+    responseTime: number;
+    tokens?: number;
+    status: 'Connected' | 'API Error' | 'Using Fallback';
+    error?: string;
+  };
 }
 
 export interface SupportAnalytics {

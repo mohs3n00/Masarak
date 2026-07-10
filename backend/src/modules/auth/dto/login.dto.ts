@@ -22,4 +22,7 @@ export class LoginDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  rememberMe?: boolean;
 }

@@ -7,12 +7,6 @@ import {
 } from 'lucide-react';
 import { formatTime } from '@/features/media/utils/formatTime';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface PlayerControlsProps {
   isPlaying: boolean;
@@ -59,8 +53,21 @@ export function PlayerControls({
 }: PlayerControlsProps) {
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const timelineRef = useRef<HTMLDivElement>(null);
+  const speedMenuRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hoverPercent, setHoverPercent] = useState<number | null>(null);
+  const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
+
+  // Close speed menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (speedMenuRef.current && !speedMenuRef.current.contains(event.target as Node)) {
+        setIsSpeedMenuOpen(false);
+      }
+    };
+    if (isSpeedMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSpeedMenuOpen]);
 
   // Compute seek position from a clientX value, always LTR
   const getSeekPercent = useCallback((clientX: number): number => {
@@ -123,9 +130,9 @@ export function PlayerControls({
   return (
     <div 
       className={cn(
-        "absolute inset-0 flex flex-col justify-end transition-opacity duration-300",
+        "absolute inset-0 flex flex-col justify-end transition-opacity duration-300 z-40",
         // Background gradient only at the bottom
-        "bg-gradient-to-t from-black/80 via-black/10 to-transparent",
+        "bg-gradient-to-t from-black/90 via-black/50 to-transparent",
         showControls || isBuffering ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
       dir="ltr"
@@ -138,12 +145,12 @@ export function PlayerControls({
       </div>
 
       {/* Controls Container */}
-      <div className="px-3 pb-3 pt-8 w-full pointer-events-auto select-none">
+      <div className="px-4 pb-4 pt-12 w-full pointer-events-auto select-none">
         
         {/* Timeline */}
         <div 
           ref={timelineRef}
-          className="w-full h-1 sm:h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group relative touch-none"
+          className="w-full h-1.5 sm:h-2 bg-white/30 rounded-full mb-4 cursor-pointer group relative touch-none shadow-sm"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -171,7 +178,7 @@ export function PlayerControls({
             {/* Scrubber dot - always visible on mobile, hover on desktop */}
             <div 
               className={cn(
-                "absolute right-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full shadow-lg transition-transform",
+                "absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full shadow-lg transition-transform",
                 isDragging ? "scale-125" : "scale-100 sm:scale-0 group-hover:scale-100"
               )}
             />
@@ -238,42 +245,49 @@ export function PlayerControls({
             </div>
 
             {/* Time display */}
-            <div className="text-xs sm:text-sm font-mono tabular-nums ml-1 whitespace-nowrap text-white/90">
+            <div className="text-xs sm:text-sm font-mono tabular-nums ml-2 whitespace-nowrap text-white/90 drop-shadow-sm">
               <span>{formatTime(currentTime)}</span>
               <span className="text-white/40 mx-1">/</span>
-              <span className="text-white/60">{formatTime(duration)}</span>
+              <span className="text-white/80 font-medium">{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Right controls */}
           <div className="flex items-center gap-0.5 sm:gap-1">
-            {/* Playback Rate */}
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className="px-2 py-1.5 hover:text-primary transition-colors text-xs sm:text-sm font-bold tabular-nums rounded hover:bg-white/10 touch-manipulation"
+            {/* Playback Rate (Custom Dropdown for Fullscreen Compatibility) */}
+            <div className="relative" ref={speedMenuRef}>
+              <button 
+                onClick={() => setIsSpeedMenuOpen(!isSpeedMenuOpen)}
+                className={cn(
+                  "px-2 py-1.5 transition-colors text-xs sm:text-sm font-bold tabular-nums rounded hover:bg-white/10 touch-manipulation",
+                  isSpeedMenuOpen ? "bg-white/20 text-white" : "text-white/90 hover:text-primary"
+                )}
                 aria-label="سرعة التشغيل"
               >
                 {playbackRate}x
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="end" 
-                className="w-24 bg-black/95 border-white/10 text-white backdrop-blur-md"
-              >
-                {PLAYBACK_RATES.map((rate) => (
-                  <DropdownMenuItem 
-                    key={rate} 
-                    onClick={() => onRateChange(rate)}
-                    className={cn(
-                      "cursor-pointer hover:bg-white/10 focus:bg-white/10 text-sm justify-between",
-                      playbackRate === rate && "text-primary font-bold"
-                    )}
-                  >
-                    <span>{rate}x</span>
-                    {playbackRate === rate && <span>✓</span>}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </button>
+
+              {isSpeedMenuOpen && (
+                <div className="absolute bottom-full mb-2 right-0 w-24 py-1 bg-black/95 border border-white/10 rounded-lg text-white backdrop-blur-md shadow-xl flex flex-col z-50">
+                  {PLAYBACK_RATES.map((rate) => (
+                    <button 
+                      key={rate} 
+                      onClick={() => {
+                        onRateChange(rate);
+                        setIsSpeedMenuOpen(false);
+                      }}
+                      className={cn(
+                        "flex items-center justify-between w-full px-3 py-2 text-sm text-right cursor-pointer hover:bg-white/10 transition-colors",
+                        playbackRate === rate ? "text-primary font-bold bg-white/5" : "text-white/90"
+                      )}
+                    >
+                      <span dir="ltr">{rate}x</span>
+                      {playbackRate === rate && <span className="text-primary text-xs">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* PiP - hidden on small phones */}
             <button 

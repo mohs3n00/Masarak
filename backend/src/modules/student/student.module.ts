@@ -2,15 +2,19 @@ import { Module } from '@nestjs/common';
 import { StudentRepository } from './student.repository';
 import { StudentDashboardService } from './services/student-dashboard.service';
 import { StudentAnalyticsService } from './services/student-analytics.service';
-// import { StudentLearningService } from './services/student-learning.service';
-// import { StudentGamificationService } from './services/student-gamification.service';
+import { StudentController } from './controllers/student.controller';
+import { CheckoutController } from './controllers/checkout.controller';
+import { PrismaService } from '../../database/prisma/prisma.service';
+import { CourseModule } from '../course/course.module';
 
 @Module({
-  controllers: [],
+  imports: [CourseModule],
+  controllers: [StudentController, CheckoutController],
   providers: [
     StudentRepository,
     StudentDashboardService,
     StudentAnalyticsService,
+    PrismaService,
   ],
   exports: [
     StudentRepository,

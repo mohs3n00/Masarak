@@ -10,6 +10,7 @@ import {
   Patch,
   UploadedFile,
   UseInterceptors,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,16 +19,19 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthService } from './services/auth.service';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { RegisterTeacherDto } from './dto/register-teacher.dto';
 import { LoginDto } from './dto/login.dto';
-import { VerifyOtpDto, SendOtpDto } from './dto/otp.dto';
+import { VerifyOtpDto, SendOtpDto, VerifyFirebaseTokenDto } from './dto/otp.dto';
 import {
   ResetPasswordDto,
+  ForgotPasswordDto,
   ChangePasswordDto,
   ForceChangePasswordDto,
+  VerifyResetCodeDto,
 } from './dto/password.dto';
 import { RefreshTokenDto } from './dto/refresh.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -47,6 +51,7 @@ export class AuthController {
 
   @Public()
   @Post('register/student')
+  @Throttle({ default: { ttl: 60000, limit: 50 } })
   @ApiOperation({ summary: 'Register a new student account' })
   async registerStudent(@Body() dto: RegisterStudentDto, @Req() req: Request) {
     return this.authService.registerStudent(
@@ -70,6 +75,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { ttl: 60000, limit: 50 } })
   @ApiOperation({ summary: 'Login and receive access and refresh tokens' })
   async login(
     @Body() dto: LoginDto,
@@ -83,18 +89,25 @@ export class AuthController {
     );
 
     const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Default maxAge is 15 minutes for access token
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'strict',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 15 * 60 * 1000, 
     });
+
+    // Refresh token lives for 30 days if rememberMe, else 1 day (or could be session-only)
+    const refreshTokenMaxAge = dto.rememberMe 
+      ? 30 * 24 * 60 * 60 * 1000 // 30 days
+      : undefined; // undefined = Session cookie (expires on browser close)
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      ...(refreshTokenMaxAge ? { maxAge: refreshTokenMaxAge } : {}),
     });
 
     return { message: 'Logged in successfully' };
@@ -129,10 +142,14 @@ export class AuthController {
     summary: 'Rotate the refresh token and receive a new access token',
   })
   async refresh(
-    @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.refreshToken(dto.refreshToken);
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
+    }
+    const tokens = await this.authService.refreshToken(refreshToken);
 
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', tokens.accessToken, {
@@ -146,47 +163,31 @@ export class AuthController {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     return { message: 'Tokens refreshed successfully' };
   }
 
-  @Public()
-  @Post('otp/send')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send an OTP for verification' })
-  async sendOtp(@Body() dto: SendOtpDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: dto.userId },
-    });
-    if (user) {
-      // In a real app we'd target email or phone based on the enum
-      await this.authService['otpService'].generateAndSendOtp(
-        user.id,
-        user.phone,
-        dto.type,
-      );
-    }
-    return { message: 'OTP sent if user exists' };
-  }
-
-  @Public()
-  @Post('otp/verify')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verify an OTP' })
-  async verifyOtp(@Body() dto: VerifyOtpDto) {
-    await this.authService.verifyOtp(dto.userId, dto.code, dto.type);
-    return { message: 'Verified successfully' };
-  }
 
   @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Request password reset' })
-  async forgotPassword(@Body('phone') phone: string) {
-    await this.authService.forgotPassword(phone);
-    return { message: 'If user exists, a reset code was sent' };
+  @Throttle({ default: { ttl: 60000, limit: 3 } }) // 3 requests per minute
+  @ApiOperation({ summary: 'Request password reset via Email' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(dto.email);
+    return { message: 'If user exists, a reset code was sent to the email.' };
+  }
+
+  @Public()
+  @Post('verify-reset-code')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @ApiOperation({ summary: 'Verify the reset code sent to email' })
+  async verifyResetCode(@Body() dto: VerifyResetCodeDto) {
+    await this.authService.verifyResetCode(dto.email, dto.code);
+    return { message: 'Code is valid' };
   }
 
   @Public()

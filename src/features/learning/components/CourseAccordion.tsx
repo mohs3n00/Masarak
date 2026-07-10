@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { WorkspaceChapter, WorkspaceLesson } from '@/lib/mock-data/workspace';
+import { WorkspaceChapter, WorkspaceLesson } from '@/features/learning/types';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { CheckCircle2, PlayCircle, Lock, Eye, PlaySquare, FileText, FileQuestion, PenTool } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,10 +31,17 @@ export function CourseAccordion({ chapters, activeLessonId, onLessonSelect, clas
     }
   };
 
-  // Open the chapter that contains the active lesson by default
-  const defaultOpen = chapters
-    .filter(c => c.lessons.some(l => l.id === activeLessonId))
-    .map(c => c.id);
+  const [openItems, setOpenItems] = React.useState<string[]>([]);
+  
+  React.useEffect(() => {
+    // Only set initial state once to avoid overriding user interactions
+    if (openItems.length === 0 && chapters.length > 0) {
+      const defaultOpen = chapters
+        .filter(c => c.lessons.some(l => l.id === activeLessonId))
+        .map(c => c.id);
+      setOpenItems(defaultOpen.length > 0 ? defaultOpen : [chapters[0]?.id]);
+    }
+  }, [chapters, activeLessonId, openItems.length]);
 
   return (
     <div className={cn("bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full", className)}>
@@ -43,7 +50,11 @@ export function CourseAccordion({ chapters, activeLessonId, onLessonSelect, clas
       </div>
       
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <Accordion defaultValue={defaultOpen.length > 0 ? defaultOpen : [chapters[0]?.id]} className="w-full">
+        <Accordion 
+          value={openItems} 
+          onValueChange={(v: string[]) => setOpenItems(v)} 
+          className="w-full"
+        >
           {chapters.map((chapter) => {
             const completedLessons = chapter.lessons.filter(l => l.completed).length;
             const totalLessons = chapter.lessons.length;

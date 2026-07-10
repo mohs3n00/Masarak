@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize, Download } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -84,6 +84,19 @@ export function MasarakPdfViewer({ url, className, onLoadSuccess }: MasarakPdfVi
           <Button variant="ghost" size="icon-sm" onClick={() => changeScale(0.2)} title="تكبير">
             <ZoomIn className="w-4 h-4" />
           </Button>
+          
+          <div className="w-px h-6 bg-border mx-1" />
+          
+          <a 
+            href={url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            download 
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            title="تنزيل الملف"
+          >
+            <Download className="w-4 h-4" />
+          </a>
         </div>
       </div>
 

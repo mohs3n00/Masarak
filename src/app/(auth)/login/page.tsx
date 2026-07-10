@@ -3,12 +3,12 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { loginSchema, LoginFormData } from '@/features/auth/schemas/auth.schemas';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { authService } from '@/features/auth/services/auth.service';
-import { AUTH_ROUTES, PROTECTED_ROUTES } from '@/features/auth/constants/auth.constants';
+import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
 import { AuthLayout } from '@/features/auth/components/AuthLayout';
 import { AuthCard } from '@/features/auth/components/AuthCard';
@@ -23,7 +23,7 @@ import { ApiError } from '@/shared/api/error.models';
 import signInImage from '@/assets/images/sgin in.png';
 
 export default function LoginPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth, setLoading, setError, isLoading, error } = useAuthStore();
 
   const {
@@ -39,9 +39,10 @@ export default function LoginPage() {
     try {
       setLoading(true);
       setError(null);
-      await authService.login(data);
-      // setAuth is now handled automatically by AuthProvider via onAuthStateChanged
-      router.push(PROTECTED_ROUTES.DASHBOARD);
+      const { user } = await authService.login(data);
+      setAuth(user, { accessToken: '', refreshToken: '' });
+      const redirectPath = searchParams.get('redirect') || '/';
+      window.location.href = redirectPath;
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -79,7 +80,9 @@ export default function LoginPage() {
               </label>
               <Input
                 id="identifier"
-                type="text"
+                type="tel"
+                dir="ltr"
+                autoComplete="tel username"
                 placeholder="01012345678"
                 error={!!errors.identifier}
                 {...register('identifier')}

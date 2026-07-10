@@ -82,7 +82,13 @@ export default function CoursePlayerPage() {
               
               <div className="flex items-center gap-4 p-4 rounded-2xl border border-border/50 bg-muted/20">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={data.teacher.avatar} alt={data.teacher.name} className="w-12 h-12 rounded-full border border-border" />
+                {data.teacher.avatar ? (
+                  <img src={data.teacher.avatar} alt={data.teacher.name} className="w-12 h-12 rounded-full border border-border object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-muted text-muted-foreground">
+                    <span className="font-bold text-xs">{data.teacher.name.substring(0, 2)}</span>
+                  </div>
+                )}
                 <div>
                   <div className="font-bold">{data.teacher.name}</div>
                   <div className="text-xs text-muted-foreground">{data.teacher.role}</div>

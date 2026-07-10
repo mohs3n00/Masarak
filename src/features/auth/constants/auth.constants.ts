@@ -9,6 +9,7 @@ export const AUTH_ROLES = {
   STUDENT: 'STUDENT',
   TEACHER: 'TEACHER',
   ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN',
 } as const;
 
 export const AUTH_ROUTES = {

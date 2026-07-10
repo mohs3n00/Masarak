@@ -10,6 +10,9 @@ import { TokenService } from './token.service';
 import { SessionService } from './session.service';
 import { OtpService } from './otp.service';
 import { AuditService } from './audit.service';
+import { FirebaseService } from '../../firebase/firebase.service';
+import { EmailService } from '../../email/email.service';
+import { VerificationService } from '../../verification/verification.service';
 import * as argon2 from 'argon2';
 import { Role, AuditAction, OtpType } from '@prisma/client';
 import { extractNationalIdInfo } from '../../../common/validators/egyptian-national-id.validator';
@@ -17,6 +20,14 @@ import { RegisterStudentDto } from '../dto/register-student.dto';
 import { RegisterTeacherDto } from '../dto/register-teacher.dto';
 import { LoginDto } from '../dto/login.dto';
 import { ResetPasswordDto, ChangePasswordDto, ForceChangePasswordDto } from '../dto/password.dto';
+
+// Balanced argon2 options: secure enough for production, manageable on low-resource servers
+const ARGON2_OPTIONS: argon2.Options = {
+  type: argon2.argon2id,
+  memoryCost: 32768, // 32 MB (reduced from default 65536 = 64 MB)
+  timeCost: 2,       // 2 iterations (reduced from default 3)
+  parallelism: 1,
+};
 
 @Injectable()
 export class AuthService {
@@ -26,6 +37,9 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly otpService: OtpService,
     private readonly auditService: AuditService,
+    private readonly firebaseService: FirebaseService,
+    private readonly emailService: EmailService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async registerStudent(
@@ -33,25 +47,24 @@ export class AuthService {
     ipAddress?: string,
     userAgent?: string,
   ) {
-    const existing = await this.prisma.user.findFirst({
-      where: { phone: dto.phone },
-    });
-    if (existing)
-      throw new ConflictException('User with this phone already exists');
-
-    const teacherProfile = await this.prisma.teacherProfile.findUnique({
-      where: { invitationCode: dto.invitationCode },
-    });
-    const adminProfile = await this.prisma.adminProfile.findUnique({
-      where: { invitationCode: dto.invitationCode },
-    });
-
-    if (!teacherProfile && !adminProfile) {
-      throw new BadRequestException('Invalid invitation code');
+    if (dto.parentPhone && dto.phone === dto.parentPhone) {
+      throw new BadRequestException('رقم الهاتف ورقم ولي الأمر لا يمكن أن يكونا متطابقين');
     }
-    const linkedTeacherId = teacherProfile ? teacherProfile.userId : undefined;
 
-    const hashedPassword = await argon2.hash(dto.password);
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { phone: dto.phone },
+          { email: { equals: dto.email, mode: 'insensitive' } },
+        ]
+      }
+    });
+    if (existing) {
+      if (existing.phone === dto.phone) throw new ConflictException('رقم الهاتف مسجل بالفعل، يرجى تسجيل الدخول');
+      if (existing.email === dto.email) throw new ConflictException('البريد الإلكتروني مسجل بالفعل، يرجى تسجيل الدخول');
+    }
+
+    const hashedPassword = await argon2.hash(dto.password, ARGON2_OPTIONS);
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -61,8 +74,9 @@ export class AuthService {
         middleName: dto.middleName || '',
         lastName: dto.lastName || '',
         familyName: dto.familyName || '',
-        name: `${dto.firstName} ${dto.familyName}`,
+        name: [dto.firstName, dto.middleName, dto.lastName, dto.familyName].filter(Boolean).join(' '),
         role: Role.STUDENT,
+        phoneVerified: true,
         avatar: dto.avatar,
         studentProfile: {
           create: {
@@ -73,8 +87,6 @@ export class AuthService {
             track: dto.track,
             parentPhone: dto.parentPhone,
             school: dto.school,
-            registeredViaCode: dto.invitationCode,
-            linkedTeacherId,
           },
         },
       },
@@ -86,16 +98,8 @@ export class AuthService {
       ipAddress,
       userAgent,
     );
-    if (user.phone) {
-      await this.otpService.generateAndSendOtp(
-        user.id,
-        user.phone,
-        OtpType.PHONE_VERIFICATION,
-      );
-    }
-
     return {
-      message: 'Registration successful. Please verify your phone number.',
+      message: 'Registration successful',
       userId: user.id,
     };
   }
@@ -106,16 +110,23 @@ export class AuthService {
     userAgent?: string,
   ) {
     const existing = await this.prisma.user.findFirst({
-      where: { phone: dto.phone },
+      where: {
+        OR: [
+          { phone: dto.phone },
+          { email: { equals: dto.email, mode: 'insensitive' } },
+        ]
+      }
     });
-    if (existing)
-      throw new ConflictException('User with this phone already exists');
+    if (existing) {
+      if (existing.phone === dto.phone) throw new ConflictException('رقم الهاتف مسجل بالفعل، يرجى تسجيل الدخول');
+      if (existing.email === dto.email) throw new ConflictException('البريد الإلكتروني مسجل بالفعل، يرجى تسجيل الدخول');
+    }
 
     const existingNid = await this.prisma.teacherProfile.findUnique({
       where: { nationalId: dto.nationalId },
     });
     if (existingNid) {
-      throw new ConflictException('National ID already registered');
+      throw new ConflictException('الرقم القومي مسجل بالفعل');
     }
 
     let dateOfBirth: Date;
@@ -125,7 +136,7 @@ export class AuthService {
       dateOfBirth = info.dateOfBirth;
       gender = info.gender as 'MALE' | 'FEMALE';
     } catch (e) {
-      throw new BadRequestException('Invalid National ID');
+      throw new BadRequestException('الرقم القومي غير صحيح');
     }
 
     const today = new Date();
@@ -136,13 +147,13 @@ export class AuthService {
     }
 
     if (age < 21) {
-      throw new BadRequestException('Teacher must be at least 21 years old.');
+      throw new BadRequestException('يجب أن يكون عمر المعلم 21 عاماً على الأقل');
     }
 
-    const hashedPassword = await argon2.hash(dto.password);
+    const hashedPassword = await argon2.hash(dto.password, ARGON2_OPTIONS);
     const user = await this.prisma.user.create({
       data: {
-        email: dto.email || null,
+        email: dto.email,
         phone: dto.phone,
         password: hashedPassword,
         firstName: dto.name.split(' ')[0] || '',
@@ -151,16 +162,21 @@ export class AuthService {
         familyName: dto.name.split(' ').slice(1).join(' ') || '',
         name: dto.name,
         role: Role.TEACHER,
+        phoneVerified: true,
         dateOfBirth,
         gender,
         avatar: dto.avatar,
         teacherProfile: {
           create: {
             nationalId: dto.nationalId,
-            teachingSubjects: dto.subjects || [],
             experience: dto.experience || 0,
             verificationStatus: 'PENDING',
-            invitationCode: 'TCH-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+            subjects: {
+              connect: dto.subjectIds?.map(id => ({ id })) || []
+            },
+            levels: {
+              connect: dto.levelIds?.map(id => ({ id })) || []
+            }
           },
         },
       },
@@ -173,41 +189,35 @@ export class AuthService {
       userAgent,
     );
 
-    await this.otpService.generateAndSendOtp(
-      user.id,
-      user.phone,
-      OtpType.PHONE_VERIFICATION,
-    );
-
     return {
-      message: 'Registration successful. Please verify your phone number.',
+      message: 'Registration successful',
       userId: user.id,
     };
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const identifier = dto.identifier || dto.phone;
-    if (!identifier) throw new BadRequestException('Identifier is required');
+    if (!identifier) throw new BadRequestException('رقم الهاتف مطلوب');
 
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
           { phone: identifier },
-          { email: identifier },
+          { email: { equals: identifier, mode: 'insensitive' } },
           { username: identifier },
         ],
       },
     });
 
     if (!user)
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('بيانات الدخول غير صحيحة');
 
     if (!user.isActive)
-      throw new UnauthorizedException('Account is banned');
+      throw new UnauthorizedException('تم إيقاف هذا الحساب');
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const lockMinutes = Math.ceil((user.lockedUntil.getTime() - new Date().getTime()) / 60000);
-      throw new UnauthorizedException(`Account is temporarily locked. Try again in ${lockMinutes} minutes.`);
+      throw new UnauthorizedException(`الحساب مقفول مؤقتاً. يرجى المحاولة بعد ${lockMinutes} دقيقة.`);
     }
 
     const isMatch = await argon2.verify(user.password, dto.password);
@@ -224,7 +234,7 @@ export class AuthService {
         data: updateData,
       });
 
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('بيانات الدخول غير صحيحة');
     }
 
     // Reset failed attempts
@@ -255,7 +265,7 @@ export class AuthService {
 
     const tokens = await this.tokenService.generateTokens(user, session.id);
 
-    const hashedRefresh = await argon2.hash(tokens.refreshToken);
+    const hashedRefresh = await argon2.hash(tokens.refreshToken, ARGON2_OPTIONS);
     await this.prisma.session.update({
       where: { id: session.id },
       data: { hashedRefreshToken: hashedRefresh },
@@ -306,47 +316,47 @@ export class AuthService {
     return tokens;
   }
 
-  async verifyOtp(userId: string, code: string, type: OtpType) {
-    await this.otpService.verifyOtp(userId, code, type);
-
-    if (type === OtpType.EMAIL_VERIFICATION) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { emailVerified: true },
-      });
-    } else if (type === OtpType.PHONE_VERIFICATION) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { phoneVerified: true },
-      });
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
+    if (!user) {
+      throw new BadRequestException('البريد الإلكتروني غير مسجل لدينا.');
     }
+
+    const code = await this.verificationService.generateResetCode(user.id);
+    await this.emailService.sendPasswordResetEmail(user.email, code);
   }
 
-  async forgotPassword(phone: string) {
-    const user = await this.prisma.user.findUnique({ where: { phone } });
-    if (!user) return; // Silent fail for security
-    await this.otpService.generateAndSendOtp(
-      user.id,
-      user.phone,
-      OtpType.PASSWORD_RESET,
-    );
+  async verifyResetCode(email: string, code: string) {
+    const user = await this.prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
+    if (!user) {
+      // Throw generic error even if user not found, but we can't verify code without user.
+      // We should use a generic message anyway.
+      throw new BadRequestException('الرمز غير صالح أو منتهي الصلاحية.');
+    }
+
+    await this.verificationService.verifyResetCode(user.id, code);
+    return { message: 'Code is valid' };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    await this.otpService.verifyOtp(
-      dto.userId,
-      dto.code,
-      OtpType.PASSWORD_RESET,
-    );
-    const hashedPassword = await argon2.hash(dto.newPassword);
+    const user = await this.prisma.user.findFirst({ where: { email: { equals: dto.email, mode: 'insensitive' } } });
+    if (!user) {
+      throw new BadRequestException('طلب غير صالح.');
+    }
+
+    // Verify code again to ensure it's still valid at the moment of password reset
+    await this.verificationService.verifyResetCode(user.id, dto.code);
+
+    const hashedPassword = await argon2.hash(dto.newPassword, ARGON2_OPTIONS);
 
     await this.prisma.user.update({
-      where: { id: dto.userId },
+      where: { id: user.id },
       data: { password: hashedPassword },
     });
 
-    await this.sessionService.revokeAllUserSessions(dto.userId);
-    await this.auditService.logAction(dto.userId, AuditAction.PASSWORD_CHANGE);
+    await this.verificationService.markAsUsed(user.id);
+    await this.sessionService.revokeAllUserSessions(user.id);
+    await this.auditService.logAction(user.id, AuditAction.PASSWORD_CHANGE);
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
@@ -356,7 +366,7 @@ export class AuthService {
     const isMatch = await argon2.verify(user.password, dto.oldPassword);
     if (!isMatch) throw new BadRequestException('Incorrect old password');
 
-    const hashedPassword = await argon2.hash(dto.newPassword);
+    const hashedPassword = await argon2.hash(dto.newPassword, ARGON2_OPTIONS);
     await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
@@ -375,7 +385,7 @@ export class AuthService {
     const isMatch = await argon2.verify(user.password, dto.oldPassword);
     if (!isMatch) throw new BadRequestException('Incorrect old password');
 
-    const hashedPassword = await argon2.hash(dto.newPassword);
+    const hashedPassword = await argon2.hash(dto.newPassword, ARGON2_OPTIONS);
     await this.prisma.user.update({
       where: { id: dto.userId },
       data: { 

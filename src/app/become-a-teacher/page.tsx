@@ -1,7 +1,7 @@
 import { AppContainer, Section } from "@/shared/layouts/Containers";
 import { Button } from "@/shared/components/atoms/Button";
 import { AnimatedDiv } from "@/shared/components/atoms/Motion";
-import { CheckCircle, DollarSign, Users, Video, Globe, GraduationCap, ChevronDown } from "lucide-react";
+import { CheckCircle, DollarSign, Video, Globe, GraduationCap } from "lucide-react";
 import Image from "next/image";
 
 export default function BecomeTeacherPage() {

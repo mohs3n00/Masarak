@@ -38,11 +38,11 @@ const buttonVariants = cva(
       variant: {
         /** Primary — main actions */
         primary:
-          "bg-primary text-primary-foreground hover:bg-primary/95 active:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 border border-primary hover:border-primary-hover",
+          "bg-gradient-to-b from-primary to-primary-hover text-primary-foreground hover:from-primary/95 hover:to-primary/95 active:from-primary/90 active:to-primary/90 shadow-sm shadow-primary/20 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-[1px] border border-primary/20 ring-1 ring-inset ring-white/10",
 
         /** Secondary — supporting actions */
         secondary:
-          "bg-secondary text-secondary-foreground border-border hover:bg-muted hover:border-border-strong hover:shadow-sm",
+          "bg-secondary text-secondary-foreground border-border hover:bg-muted hover:border-border-strong hover:shadow-sm ring-1 ring-inset ring-white/50 dark:ring-white/5",
 
         /** Outline — less emphasis */
         outline:

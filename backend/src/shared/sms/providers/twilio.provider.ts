@@ -15,7 +15,7 @@ export class TwilioProvider implements SmsProvider {
     const from = this.configService.get<string>('sms.twilio.phoneNumber');
 
     if (!accountSid || !authToken || !from) {
-      throw new SmsException('Twilio configuration is missing');
+      this.logger.warn('Twilio configuration is missing. Mocking SMS sending.');
     }
 
     try {

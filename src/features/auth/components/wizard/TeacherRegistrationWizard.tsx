@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { teacherRegisterSchema, TeacherRegisterFormData } from '@/features/auth/schemas/auth.schemas';
 import { authService } from '@/features/auth/services/auth.service';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { PROTECTED_ROUTES } from '@/features/auth/constants/auth.constants';
+import { PROTECTED_ROUTES, AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 import { ApiError } from '@/shared/api/error.models';
 import { AuthWizard } from './AuthWizard';
 import { Input, PasswordInput } from '@/shared/components/atoms/Input';
@@ -16,7 +17,7 @@ import { Button } from '@/shared/components/atoms/Button';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/shared/components/atoms/Textarea';
 
-const SUBJECTS = ["اللغة العربية", "اللغة الإنجليزية", "الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "التاريخ", "الجغرافيا"];
+import { apiClient } from '@/shared/api/api.client';
 
 // Common Select Component (Native) for simple usage
 const NativeSelect = React.forwardRef<
@@ -45,15 +46,24 @@ NativeSelect.displayName = "NativeSelect";
 
 export function TeacherRegistrationWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setLoading, setError, isLoading, error } = useAuthStore();
   
   const [step, setStep] = useState<number>(0); // 0: Personal, 1: Professional
+  const [dbSubjects, setDbSubjects] = useState<{id: string, name: string}[]>([]);
+
+  React.useEffect(() => {
+    apiClient.get('/academic/subjects').then((res) => {
+      setDbSubjects(res.data.items || res.data || []);
+    }).catch(console.error);
+  }, []);
 
   const {
     register,
     handleSubmit,
     trigger,
     watch,
+    setError: setFormError,
     formState: { errors },
   } = useForm<TeacherRegisterFormData>({
     resolver: zodResolver(teacherRegisterSchema),
@@ -64,13 +74,16 @@ export function TeacherRegistrationWizard() {
   });
 
   const passwordValue = watch('password');
+  const formData = watch();
 
   const onSubmit = async (data: TeacherRegisterFormData) => {
     try {
       setLoading(true);
       setError(null);
-      await authService.registerTeacher(data);
-      router.push(PROTECTED_ROUTES.DASHBOARD);
+      const res = await authService.registerTeacher(data);
+      const redirectParam = searchParams.get('redirect');
+      const loginUrl = redirectParam ? `${AUTH_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectParam)}` : AUTH_ROUTES.LOGIN;
+      router.push(loginUrl);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -85,11 +98,18 @@ export function TeacherRegistrationWizard() {
   const handleNextStep = async () => {
     // Validate Step 0 fields before proceeding
     const fieldsToValidate: (keyof TeacherRegisterFormData)[] = [
-      'name', 'phone', 'password', 'confirmPassword'
+      'name', 'email', 'phone', 'password', 'confirmPassword'
     ];
     
     const isStepValid = await trigger(fieldsToValidate);
+    const pwd = watch('password');
+    const cpwd = watch('confirmPassword');
+    
     if (isStepValid) {
+      if (pwd !== cpwd) {
+        setFormError('confirmPassword', { type: 'manual', message: 'كلمات المرور غير متطابقة' });
+        return;
+      }
       setStep(1);
     }
   };
@@ -115,6 +135,12 @@ export function TeacherRegistrationWizard() {
             <label className="text-sm font-bold text-foreground">الاسم الرباعي</label>
             <Input placeholder="أحمد محمد محمود علي" error={!!errors.name} {...register('name')} />
             {errors.name && <p className="text-xs text-error font-medium">{errors.name.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-foreground">البريد الإلكتروني</label>
+            <Input type="email" dir="ltr" placeholder="teacher@example.com" error={!!errors.email} {...register('email')} />
+            {errors.email && <p className="text-xs text-error font-medium text-end">{errors.email.message}</p>}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -155,17 +181,17 @@ export function TeacherRegistrationWizard() {
               <label className="text-sm font-bold text-foreground">المادة الأساسية</label>
               {/* Using native select for simplicity, mapped to first subject array item */}
               <NativeSelect 
-                error={!!errors.subjects} 
+                error={!!errors.subjectIds} 
                 onChange={(e) => {
                   const val = e.target.value;
-                  const subjects = val ? [val] : [];
-                  register('subjects').onChange({ target: { name: 'subjects', value: subjects } });
+                  const subjectIds = val ? [val] : [];
+                  register('subjectIds').onChange({ target: { name: 'subjectIds', value: subjectIds } });
                 }}
               >
                 <option value="">اختر المادة</option>
-                {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                {dbSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </NativeSelect>
-              {errors.subjects && <p className="text-xs text-error font-medium">{errors.subjects.message}</p>}
+              {errors.subjectIds && <p className="text-xs text-error font-medium">{errors.subjectIds.message}</p>}
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-foreground">سنوات الخبرة</label>

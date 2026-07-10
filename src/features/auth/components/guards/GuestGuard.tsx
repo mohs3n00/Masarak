@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '../../store/auth.store';
 import { PROTECTED_ROUTES } from '../../constants/auth.constants';
 
 export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -17,9 +18,10 @@ export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }
 
   useEffect(() => {
     if (mounted && isAuthenticated) {
-      router.replace(PROTECTED_ROUTES.DASHBOARD);
+      const redirectPath = searchParams.get('redirect') || '/';
+      router.replace(redirectPath);
     }
-  }, [mounted, isAuthenticated, router]);
+  }, [mounted, isAuthenticated, router, searchParams]);
 
   if (!mounted || isAuthenticated) return null;
 

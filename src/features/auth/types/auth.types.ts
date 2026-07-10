@@ -1,6 +1,6 @@
 import { User } from '@/types/models';
 
-export type AuthRole = 'VISITOR' | 'STUDENT' | 'TEACHER' | 'ADMIN';
+export type AuthRole = 'VISITOR' | 'STUDENT' | 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN';
 
 export interface AuthTokens {
   accessToken: string;

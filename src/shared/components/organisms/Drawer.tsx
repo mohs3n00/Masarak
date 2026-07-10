@@ -1,4 +1,3 @@
-import * as React from "react"
 import { Sheet as ShadcnSheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 
 export { ShadcnSheet as Drawer, SheetContent as DrawerContent, SheetHeader as DrawerHeader, SheetTitle as DrawerTitle, SheetDescription as DrawerDescription, SheetFooter as DrawerFooter, SheetTrigger as DrawerTrigger, SheetClose as DrawerClose }

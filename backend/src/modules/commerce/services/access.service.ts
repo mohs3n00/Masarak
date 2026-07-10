@@ -23,4 +23,25 @@ export class AccessService {
 
     return true;
   }
+
+  async grantCourseAccess(userId: string, courseId: string, accessGrantedBy: 'PURCHASE' | 'FREE' | 'GIFT' | 'INVITATION' | 'ADMIN_GRANT' | 'SUBSCRIPTION' = 'PURCHASE') {
+    const existing = await this.repo.getEnrollment(userId, courseId);
+    if (existing) {
+      if (existing.status !== 'ACTIVE') {
+        // Reactivate
+        await this.repo.updateEnrollment(userId, courseId, {
+          status: 'ACTIVE',
+          accessGrantedBy,
+        });
+      }
+      return existing;
+    }
+
+    return this.repo.createEnrollment({
+      userId,
+      courseId,
+      status: 'ACTIVE',
+      accessGrantedBy,
+    });
+  }
 }

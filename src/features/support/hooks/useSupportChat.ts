@@ -90,7 +90,7 @@ export function useSupportChat(userContext?: UserContext) {
         message: content.trim(),
         conversationHistory: messages
           .filter(m => m.status === 'done')
-          .slice(-6)
+          .slice(-4)
           .map(m => ({ role: m.role, content: m.content })),
         userContext,
       };
@@ -104,11 +104,27 @@ export function useSupportChat(userContext?: UserContext) {
 
       const data: ChatResponse = await res.json();
 
+      // Simulate typing effect instead of instant display
+      const fullAnswer = data.answer || '';
+      let currentLength = 0;
+      
+      // Mark as done so typing dots disappear and text starts showing
       updateMessage(assistantId, {
-        content: data.answer,
+        content: '',
         status: 'done',
         isEscalation: data.shouldEscalate,
+        debugInfo: data.debugInfo,
       });
+
+      const typeInterval = setInterval(() => {
+        // Type 1-4 chars at a time for a natural speed
+        currentLength += Math.floor(Math.random() * 4) + 1;
+        if (currentLength >= fullAnswer.length) {
+          currentLength = fullAnswer.length;
+          clearInterval(typeInterval);
+        }
+        updateMessage(assistantId, { content: fullAnswer.substring(0, currentLength) });
+      }, 20); // 20ms per tick is a moderate, natural speed
 
       if (data.shouldEscalate) {
         setEscalationCount(prev => {
