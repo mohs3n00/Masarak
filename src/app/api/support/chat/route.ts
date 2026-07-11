@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   let debugInfo: ChatResponse['debugInfo'] = {
     provider: 'Hugging Face',
-    model: 'meta-llama/Meta-Llama-3-8B-Instruct',
+    model: 'Qwen/Qwen2.5-72B-Instruct',
     responseTime: 0,
     status: 'Connected',
   };
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
         ];
 
         const response = await hf.chatCompletion({
-          model: 'meta-llama/Meta-Llama-3-8B-Instruct',
+          model: 'Qwen/Qwen2.5-72B-Instruct',
           messages: finalMessages,
           temperature: 0.7, 
           max_tokens: 500,
@@ -148,6 +148,9 @@ export async function POST(req: NextRequest) {
           answer = retrievedDocs[0].answer;
           fallbackUsed = true;
           console.log(`[AI_${reqId}] ⚠️ FALLBACK TRIGGERED`);
+        } else if (intent === 'CONVERSATIONAL') {
+          answer = 'أهلاً بك يا بطل! أنا مساعد مسارك الذكي، إزاي أقدر أساعدك النهاردة؟';
+          fallbackUsed = true;
         } else {
           answer = 'حصل خطأ تقني مؤقت ومقدرتش أوصل للذكاء الاصطناعي. هحولك للدعم أو تقدر تستنى شوية وتجرب تاني.';
           shouldEscalate = true;
