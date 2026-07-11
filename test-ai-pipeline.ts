@@ -1,4 +1,4 @@
-import { detectIntent, retrieveRelevantDocs } from './src/features/support/services/ragService.ts';
+import { detectIntent, retrieveRelevantDocs } from './src/features/support/services/ragService';
 
 const tests = [
   { msg: "مين انت", expectedIntent: "CONVERSATIONAL", expectedRagDocs: 0 },
