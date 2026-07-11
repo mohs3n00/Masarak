@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   let debugInfo: ChatResponse['debugInfo'] = {
     provider: 'Hugging Face',
-    model: 'Qwen/Qwen2.5-72B-Instruct',
+    model: 'Qwen/Qwen2.5-7B-Instruct',
     responseTime: 0,
     status: 'Connected',
   };
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
         ];
 
         const response = await hf.chatCompletion({
-          model: 'Qwen/Qwen2.5-72B-Instruct',
+          model: 'Qwen/Qwen2.5-7B-Instruct',
           messages: finalMessages,
           temperature: 0.7, 
           max_tokens: 500,
