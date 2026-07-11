@@ -34,10 +34,10 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
     if (!isAuthenticated) {
       const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
       console.warn('[RoleGuard] NOT authenticated → redirecting to /login, redirect:', currentUrl);
-      router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
     } else if (role && !allowedRoles.includes(role)) {
       console.warn('[RoleGuard] WRONG role → redirecting to /unauthorized. role:', role, 'allowed:', allowedRoles);
-      router.replace('/unauthorized');
+      window.location.href = '/unauthorized';
     } else {
       console.log('[RoleGuard] ✅ ACCESS GRANTED — role:', role);
     }

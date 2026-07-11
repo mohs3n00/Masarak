@@ -28,7 +28,7 @@ export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }
     if (isAuthenticated) {
       const redirectPath = searchParams.get('redirect') || PROTECTED_ROUTES.DASHBOARD;
       console.log('[GuestGuard] User IS authenticated → redirecting to:', redirectPath);
-      router.replace(redirectPath);
+      window.location.href = redirectPath;
     }
   }, [mounted, isReady, isAuthenticated, router, searchParams]);
 
