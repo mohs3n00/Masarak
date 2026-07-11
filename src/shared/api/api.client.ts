@@ -2,8 +2,8 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ApiError } from './error.models';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
-
+const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const baseURL = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
   withCredentials: true,

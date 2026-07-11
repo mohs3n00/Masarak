@@ -27,7 +27,11 @@ const DEFAULT_BRANDING = [
 export async function Footer() {
   let brandingConfig: any[] = [];
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    let baseUrl: string | undefined;
+    if (envUrl) {
+      baseUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+    }
     if (!baseUrl) {
       console.warn('⚠️ Build Warning: NEXT_PUBLIC_API_URL is undefined. Using DEFAULT_BRANDING.');
       brandingConfig = DEFAULT_BRANDING;

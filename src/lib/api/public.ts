@@ -1,5 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
+const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 export interface PublicCourse {
   id: string;
   title: string;

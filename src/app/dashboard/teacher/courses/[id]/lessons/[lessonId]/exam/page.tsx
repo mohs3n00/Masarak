@@ -12,7 +12,8 @@ async function getExamData(courseId: string, lessonId: string) {
     
     if (!token) return null;
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const apiBase = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
     const res = await fetch(`${apiBase}/teacher/courses/${courseId}/lessons/${lessonId}/exam`, {
       headers: {
         Authorization: `Bearer ${token}`
