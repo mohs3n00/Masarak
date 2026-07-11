@@ -24,25 +24,32 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
   }, []);
 
   useEffect(() => {
-    console.log(`[RoleGuard] state → mounted:${mounted} isReady:${isReady} isAuthenticated:${isAuthenticated} role:${role} allowedRoles:${allowedRoles}`);
+    console.log(
+      `[RoleGuard] state → mounted:${mounted} isReady:${isReady} isAuthenticated:${isAuthenticated} role:${role} allowedRoles:${JSON.stringify(allowedRoles)} pathname:${pathname}`
+    );
 
+    // Wait until mounted AND AuthProvider has finished checking session
     if (!mounted || !isReady) {
       console.log('[RoleGuard] waiting — not mounted or not ready');
       return;
     }
 
     if (!isAuthenticated) {
+      // Only redirect after isReady=true to avoid racing with AuthProvider
       const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-      console.warn('[RoleGuard] NOT authenticated → redirecting to /login, redirect:', currentUrl);
-      window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+      console.warn('[RoleGuard] NOT authenticated after isReady → redirecting to /login. pathname:', pathname);
+      router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
     } else if (role && !allowedRoles.includes(role)) {
       console.warn('[RoleGuard] WRONG role → redirecting to /unauthorized. role:', role, 'allowed:', allowedRoles);
-      window.location.href = '/unauthorized';
+      router.replace('/unauthorized');
     } else {
       console.log('[RoleGuard] ✅ ACCESS GRANTED — role:', role);
     }
-  }, [mounted, isReady, isAuthenticated, role, allowedRoles, router, pathname, searchParams]);
+  // DO NOT include allowedRoles in deps — it's a static prop and causes re-runs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, isReady, isAuthenticated, role, pathname, router, searchParams]);
 
+  // Show spinner while AuthProvider is still checking session
   if (!mounted || !isReady) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
@@ -51,6 +58,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
     );
   }
 
+  // After isReady, if not authenticated or wrong role — render nothing (redirect is in progress)
   if (!isAuthenticated || (role && !allowedRoles.includes(role))) {
     return null;
   }

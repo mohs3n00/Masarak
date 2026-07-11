@@ -6,8 +6,16 @@ import { useAuthStore } from '../../store/auth.store';
 import { useAuthContext } from '@/lib/providers/AuthProvider';
 import { PROTECTED_ROUTES } from '../../constants/auth.constants';
 
+/** Returns the role-specific dashboard path to avoid re-entering proxy /dashboard redirect */
+function getDashboardPath(role: string | null | undefined): string {
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return '/dashboard/admin';
+  if (role === 'TEACHER') return '/dashboard/teacher';
+  if (role === 'STUDENT') return '/dashboard/student';
+  return PROTECTED_ROUTES.DASHBOARD;
+}
+
 export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, role } = useAuthStore();
   const { isReady } = useAuthContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,9 +34,13 @@ export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }
     }
 
     if (isAuthenticated) {
-      const redirectPath = searchParams.get('redirect') || PROTECTED_ROUTES.DASHBOARD;
-      console.log('[GuestGuard] User IS authenticated → redirecting to:', redirectPath);
-      window.location.href = redirectPath;
+      // proxy.ts uses ?callbackUrl=, login page uses ?redirect= — read both
+      const redirectPath =
+        searchParams.get('redirect') ||
+        searchParams.get('callbackUrl') ||
+        getDashboardPath(role);
+      console.log('[GuestGuard] User IS authenticated → redirecting to:', redirectPath, '| role:', role);
+      router.replace(redirectPath);
     }
   }, [mounted, isReady, isAuthenticated, router, searchParams]);
 
@@ -40,7 +52,7 @@ export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }
     );
   }
 
-  if (isAuthenticated) return null;
+  if (isAuthenticated) return null; // rendering blocked until router.replace triggers
 
   return <>{children}</>;
 };

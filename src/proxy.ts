@@ -50,7 +50,9 @@ export function proxy(request: NextRequest) {
   // ── /dashboard root → redirect to role-specific dashboard ──────────────
   if (pathname === '/dashboard') {
     if (!isAuthenticated) {
-      return NextResponse.redirect(new URL('/login', request.url), { headers: response.headers });
+      const url = new URL('/login', request.url);
+      url.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(url, { headers: response.headers });
     }
     if (ADMIN_ROLES.includes(role!)) {
       return NextResponse.redirect(new URL('/dashboard/admin', request.url), { headers: response.headers });
@@ -67,7 +69,8 @@ export function proxy(request: NextRequest) {
   if (pathname.startsWith('/dashboard/admin')) {
     if (!isAuthenticated) {
       const url = new URL('/login', request.url);
-      url.searchParams.set('callbackUrl', pathname);
+      // Use 'redirect' (not 'callbackUrl') so GuestGuard can read it consistently
+      url.searchParams.set('redirect', pathname);
       return NextResponse.redirect(url, { headers: response.headers });
     }
     if (!ADMIN_ROLES.includes(role!)) {
@@ -79,7 +82,7 @@ export function proxy(request: NextRequest) {
   if (pathname.startsWith('/dashboard/teacher')) {
     if (!isAuthenticated) {
       const url = new URL('/login', request.url);
-      url.searchParams.set('callbackUrl', pathname);
+      url.searchParams.set('redirect', pathname);
       return NextResponse.redirect(url, { headers: response.headers });
     }
     if (!TEACHER_ROLES.includes(role!) && !ADMIN_ROLES.includes(role!)) {
@@ -91,7 +94,7 @@ export function proxy(request: NextRequest) {
   if (pathname.startsWith('/dashboard/student')) {
     if (!isAuthenticated) {
       const url = new URL('/login', request.url);
-      url.searchParams.set('callbackUrl', pathname);
+      url.searchParams.set('redirect', pathname);
       return NextResponse.redirect(url, { headers: response.headers });
     }
     if (!STUDENT_ROLES.includes(role!) && !ADMIN_ROLES.includes(role!)) {
@@ -99,11 +102,21 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // ── Auth pages → redirect authenticated users to home ────────
+  // ── Auth pages → redirect authenticated users to role-specific dashboard ─
   if (
     isAuthenticated &&
     (pathname === '/login' || pathname === '/choose-account' || pathname.startsWith('/register'))
   ) {
+    // Redirect to role-specific dashboard instead of '/' to avoid re-entering the /dashboard proxy chain
+    if (ADMIN_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/dashboard/admin', request.url), { headers: response.headers });
+    }
+    if (TEACHER_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/dashboard/teacher', request.url), { headers: response.headers });
+    }
+    if (STUDENT_ROLES.includes(role!)) {
+      return NextResponse.redirect(new URL('/dashboard/student', request.url), { headers: response.headers });
+    }
     return NextResponse.redirect(new URL('/', request.url), { headers: response.headers });
   }
 
