@@ -18,6 +18,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -35,17 +36,17 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
     }
 
     if (!isAuthenticated) {
-      // Only redirect after isReady=true to avoid racing with AuthProvider
       const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
       console.warn('[RoleGuard] NOT authenticated after isReady → redirecting to /login. pathname:', pathname);
+      setRedirecting(true);
       router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
     } else if (role && !allowedRoles.includes(role)) {
       console.warn('[RoleGuard] WRONG role → redirecting to /unauthorized. role:', role, 'allowed:', allowedRoles);
+      setRedirecting(true);
       router.replace('/unauthorized');
     } else {
       console.log('[RoleGuard] ✅ ACCESS GRANTED — role:', role);
     }
-  // DO NOT include allowedRoles in deps — it's a static prop and causes re-runs
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, isReady, isAuthenticated, role, pathname, router, searchParams]);
 
@@ -58,9 +59,13 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
     );
   }
 
-  // After isReady, if not authenticated or wrong role — render nothing (redirect is in progress)
-  if (!isAuthenticated || (role && !allowedRoles.includes(role))) {
-    return null;
+  // Show spinner while redirect is in progress (prevents blank page)
+  if (!isAuthenticated || (role && !allowedRoles.includes(role)) || redirecting) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
   }
 
   return <>{children}</>;
