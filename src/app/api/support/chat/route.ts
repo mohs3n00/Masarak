@@ -83,20 +83,30 @@ export async function POST(req: NextRequest) {
       try {
         // Map conversation history to Hugging Face format
         const historyContents = conversationHistory.slice(-4).map(m => ({
-          role: m.role,
+          role: m.role as "user" | "assistant" | "system",
           content: m.content
         }));
 
+        const finalMessages = [
+          { role: 'system' as const, content: systemInstruction },
+          ...historyContents,
+          { role: 'user' as const, content: message }
+        ];
+
+        console.log('\n--- 🤖 AI SYSTEM TRIGGERED ---');
+        console.log('1️⃣ USER MESSAGE:', message);
+        console.log('2️⃣ RETRIEVED DOCS (RAG):', retrievedDocs.map(d => ({ q: d.question, score: d.keywords })));
+        console.log('3️⃣ FINAL SYSTEM PROMPT:', systemInstruction);
+
         const response = await hf.chatCompletion({
           model: 'meta-llama/Meta-Llama-3-8B-Instruct',
-          messages: [
-            { role: 'system', content: systemInstruction },
-            ...historyContents,
-            { role: 'user', content: message }
-          ],
-          temperature: 0.2, // Keep it deterministic and factual
-          max_tokens: 400, // Limit response length
+          messages: finalMessages,
+          temperature: 0.7, // 0.7 for natural, conversational tone (was 0.2)
+          max_tokens: 500, // Limit response length
         });
+
+        console.log('4️⃣ RAW API RESPONSE:', JSON.stringify(response, null, 2));
+        console.log('------------------------------\n');
 
         answer = response.choices[0].message.content || '';
 
@@ -104,13 +114,14 @@ export async function POST(req: NextRequest) {
           throw new Error('Empty response from AI');
         }
       } catch (aiError: any) {
-        console.error('Hugging Face API Error:', aiError);
+        console.error('❌ Hugging Face API Error:', aiError);
         debugInfo.status = 'API Error';
         debugInfo.error = aiError.message || 'Unknown API Error';
         
-        // Graceful degradation: use RAG results directly
+        // Graceful degradation: use RAG results directly ONLY on complete API failure
         if (retrievedDocs.length > 0) {
           answer = retrievedDocs[0].answer;
+          console.log('⚠️ FALLBACK USED: Returned RAG document directly due to API error.');
         } else {
           answer = 'حصل خطأ تقني مؤقت ومقدرتش أوصل للذكاء الاصطناعي. هحولك للدعم أو تقدر تستنى شوية وتجرب تاني.';
           shouldEscalate = true;
