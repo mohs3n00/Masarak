@@ -2,7 +2,7 @@
 // Server-side API route for AI Support Chat
 
 import { NextRequest, NextResponse } from 'next/server';
-import { retrieveRelevantDocs, buildContext, buildSystemPrompt, isOutOfScope } from '@/features/support/services/ragService';
+import { detectIntent, retrieveRelevantDocs, buildPersonaPrompt, buildKnowledgePrompt } from '@/features/support/services/ragService';
 import { ChatRequest, ChatResponse, KnowledgeItem } from '@/features/support/types';
 import { HfInference } from '@huggingface/inference';
 
@@ -12,6 +12,10 @@ const HF_API_KEY = process.env.HF_API_KEY;
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_MAX = 15; // Max 15 requests per IP
 const RATE_LIMIT_WINDOW = 60 * 1000; // per 1 minute
+
+// In-memory lightweight retrieval cache scoped to this serverless instance
+const retrievalCache = new Map<string, { docs: KnowledgeItem[], timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -54,25 +58,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Step 1: Retrieve relevant documents (RAG)
-    retrievedDocs = retrieveRelevantDocs(message, 3);
-    const context = buildContext(retrievedDocs);
-    const outOfScope = isOutOfScope(message, retrievedDocs);
+    const reqId = Math.random().toString(36).substring(7);
+    const isDebug = process.env.DEBUG_AI === 'true';
 
-    // Step 2: Build system prompt
-    const systemInstruction = buildSystemPrompt(context, userContext);
+    // Step 1: Intent Detection
+    const intent = detectIntent(message);
 
-    // Step 3: Call AI API
+    // Step 2: Retrieve relevant documents (RAG) ONLY if PLATFORM_QUERY
+    if (intent === 'PLATFORM_QUERY') {
+      const normalizedQuery = message.trim().toLowerCase();
+      const cached = retrievalCache.get(normalizedQuery);
+      const now = Date.now();
+      
+      if (cached && (now - cached.timestamp < CACHE_TTL)) {
+        retrievedDocs = cached.docs;
+      } else {
+        retrievedDocs = retrieveRelevantDocs(message, 3).map(r => r.doc);
+        retrievalCache.set(normalizedQuery, { docs: retrievedDocs, timestamp: now });
+      }
+    }
+
+    // Step 3: Build Prompts
+    const personaPrompt = buildPersonaPrompt(userContext);
+    const knowledgePrompt = buildKnowledgePrompt(retrievedDocs);
+    const systemInstruction = knowledgePrompt ? `${personaPrompt}\n\n${knowledgePrompt}` : personaPrompt;
+
+    // Production Logging
+    console.log(`[AI_${reqId}] Time: ${new Date().toISOString()} | Intent: ${intent} | RAG: ${retrievedDocs.length > 0}`);
+    if (isDebug) {
+      console.log(`[AI_${reqId}] 📝 USER MESSAGE:`, message);
+      console.log(`[AI_${reqId}] 📚 RAG DOCS:`, retrievedDocs.map(d => d.question));
+      console.log(`[AI_${reqId}] ⚙️ SYSTEM PROMPT:\n`, systemInstruction);
+    }
+
+    // Step 4: Call AI API
     let answer = '';
     let shouldEscalate = false;
+    let fallbackUsed = false;
 
     if (!HF_API_KEY) {
-      // Fallback mode
       debugInfo.status = 'Using Fallback';
       debugInfo.error = 'HF_API_KEY is not configured.';
       
       if (retrievedDocs.length > 0) {
         answer = retrievedDocs[0].answer;
+        fallbackUsed = true;
       } else {
         answer = 'للأسف مش عارف الإجابة دي. هحولك لفريق الدعم.';
         shouldEscalate = true;
@@ -81,7 +111,6 @@ export async function POST(req: NextRequest) {
       const hf = new HfInference(HF_API_KEY);
       
       try {
-        // Map conversation history to Hugging Face format
         const historyContents = conversationHistory.slice(-4).map(m => ({
           role: m.role as "user" | "assistant" | "system",
           content: m.content
@@ -93,20 +122,16 @@ export async function POST(req: NextRequest) {
           { role: 'user' as const, content: message }
         ];
 
-        console.log('\n--- 🤖 AI SYSTEM TRIGGERED ---');
-        console.log('1️⃣ USER MESSAGE:', message);
-        console.log('2️⃣ RETRIEVED DOCS (RAG):', retrievedDocs.map(d => ({ q: d.question, score: d.keywords })));
-        console.log('3️⃣ FINAL SYSTEM PROMPT:', systemInstruction);
-
         const response = await hf.chatCompletion({
           model: 'meta-llama/Meta-Llama-3-8B-Instruct',
           messages: finalMessages,
-          temperature: 0.7, // 0.7 for natural, conversational tone (was 0.2)
-          max_tokens: 500, // Limit response length
+          temperature: 0.7, 
+          max_tokens: 500,
         });
 
-        console.log('4️⃣ RAW API RESPONSE:', JSON.stringify(response, null, 2));
-        console.log('------------------------------\n');
+        if (isDebug) {
+          console.log(`[AI_${reqId}] 🤖 RAW API RESPONSE:`, JSON.stringify(response, null, 2));
+        }
 
         answer = response.choices[0].message.content || '';
 
@@ -114,14 +139,15 @@ export async function POST(req: NextRequest) {
           throw new Error('Empty response from AI');
         }
       } catch (aiError: any) {
-        console.error('❌ Hugging Face API Error:', aiError);
+        console.error(`[AI_${reqId}] ❌ API Error:`, aiError.message);
         debugInfo.status = 'API Error';
         debugInfo.error = aiError.message || 'Unknown API Error';
         
         // Graceful degradation: use RAG results directly ONLY on complete API failure
         if (retrievedDocs.length > 0) {
           answer = retrievedDocs[0].answer;
-          console.log('⚠️ FALLBACK USED: Returned RAG document directly due to API error.');
+          fallbackUsed = true;
+          console.log(`[AI_${reqId}] ⚠️ FALLBACK TRIGGERED`);
         } else {
           answer = 'حصل خطأ تقني مؤقت ومقدرتش أوصل للذكاء الاصطناعي. هحولك للدعم أو تقدر تستنى شوية وتجرب تاني.';
           shouldEscalate = true;
@@ -129,13 +155,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Step 4: Detect escalation signals
+    // Step 5: Detect escalation signals
     const escalationPhrases = [
       'هحولك', 'تواصل مع', 'فريق الدعم', 'خارج نطاق', 'مش عارف', 'مش بعرف', 'أعتذر جداً عن المشكلة', 'أحد ممثلي خدمة العملاء'
     ];
     shouldEscalate = shouldEscalate || escalationPhrases.some(p => answer.includes(p));
 
-    debugInfo.responseTime = Date.now() - startTime;
+    const latency = Date.now() - startTime;
+    debugInfo.responseTime = latency;
+
+    console.log(`[AI_${reqId}] Latency: ${latency}ms | Fallback: ${fallbackUsed} | Escalate: ${shouldEscalate}`);
 
     const responsePayload: ChatResponse = {
       answer,
