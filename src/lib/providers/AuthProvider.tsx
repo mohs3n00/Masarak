@@ -11,27 +11,27 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({ isReady: false });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { setAuth, clearAuth, setLoading, isAuthenticated } = useAuthStore();
+  const { setAuth, clearAuth, setLoading } = useAuthStore();
   const [isReady, setIsReady] = React.useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
+      console.log('[AuthProvider] checkSession START');
       setLoading(true);
       try {
         const { data: user } = await apiClient.get('/users/me');
-        // Tokens live in HTTPOnly cookies — we don't store them in state
+        console.log('[AuthProvider] /users/me SUCCESS → role:', user?.role);
         setAuth(user, { accessToken: '', refreshToken: '' });
-      } catch {
-        // 401 means no valid session — clear any stale state
+      } catch (err: any) {
+        console.warn('[AuthProvider] /users/me FAILED →', err?.response?.status, err?.message);
         clearAuth();
       } finally {
         setLoading(false);
+        console.log('[AuthProvider] isReady = true');
         setIsReady(true);
       }
     };
 
-    // Only fetch if we don't already have a verified session
-    // (Zustand persists user across page refreshes — still verify on mount)
     checkSession();
   }, []);
 

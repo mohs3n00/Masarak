@@ -24,20 +24,25 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
   }, []);
 
   useEffect(() => {
-    // CRITICAL: Wait until AuthProvider has finished checking the session.
-    // Without this, the guard redirects to /login while /users/me is still in-flight,
-    // causing the "flash redirect back to home" bug.
-    if (!mounted || !isReady) return;
+    console.log(`[RoleGuard] state → mounted:${mounted} isReady:${isReady} isAuthenticated:${isAuthenticated} role:${role} allowedRoles:${allowedRoles}`);
+
+    if (!mounted || !isReady) {
+      console.log('[RoleGuard] waiting — not mounted or not ready');
+      return;
+    }
 
     if (!isAuthenticated) {
       const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+      console.warn('[RoleGuard] NOT authenticated → redirecting to /login, redirect:', currentUrl);
       router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
     } else if (role && !allowedRoles.includes(role)) {
+      console.warn('[RoleGuard] WRONG role → redirecting to /unauthorized. role:', role, 'allowed:', allowedRoles);
       router.replace('/unauthorized');
+    } else {
+      console.log('[RoleGuard] ✅ ACCESS GRANTED — role:', role);
     }
   }, [mounted, isReady, isAuthenticated, role, allowedRoles, router, pathname, searchParams]);
 
-  // Show loading spinner while session is being verified — never redirect prematurely.
   if (!mounted || !isReady) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
