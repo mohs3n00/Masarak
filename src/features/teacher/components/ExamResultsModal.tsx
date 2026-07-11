@@ -174,12 +174,14 @@ export function ExamResultsModal({ courseId, lessonId, lessonTitle, onClose }: E
                         {retakeStatus[session.student.id] === 'loading' ? 'جاري التنفيذ...' : 
                          retakeStatus[session.student.id] === 'success' ? 'تم السماح' : 'السماح بإعادة الامتحان'}
                       </button>
-                      <button
-                        onClick={() => window.open(`/exam-review/${session.id}`, '_blank')}
-                        className="py-2 text-xs font-bold rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                      <a
+                        href={`/exam-review/${session.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 text-xs font-bold rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex items-center justify-center"
                       >
                         عرض الإجابات
-                      </button>
+                      </a>
                     </div>
                   )}
                 </div>

@@ -231,12 +231,14 @@ export function ExamPlayer({ lessonId, courseId, onExamCompleted }: ExamPlayerPr
         )}
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            onClick={() => window.open(`/exam-review/${session.id}`, '_blank')}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors w-full sm:w-auto"
+          <a
+            href={`/exam-review/${session.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors w-full sm:w-auto text-center block sm:inline-block"
           >
             عرض الإجابات
-          </button>
+          </a>
 
           {examDetails?.hasRetakePermission && (
             <button

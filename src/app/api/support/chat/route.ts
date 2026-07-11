@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   // 1. Basic Origin / Referer validation for security
   const referer = req.headers.get('referer') || req.headers.get('origin');
-  if (referer && !referer.includes('localhost') && !referer.includes('masarak.com')) {
+  if (referer && !referer.includes('localhost') && !referer.includes('masarak.com') && !referer.includes('vercel.app')) {
     return NextResponse.json({ error: 'Unauthorized origin' }, { status: 403 });
   }
 
