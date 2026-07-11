@@ -185,18 +185,18 @@ export function Navbar() {
                   } />
                   <DropdownContent align="end" className="w-56 mt-2 p-1">
                     {user.role !== 'STUDENT' && (
-                      <Link href={dashboardHref} onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))}>
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-colors text-foreground group">
+                      <DropdownMenuItem asChild>
+                        <Link href={dashboardHref} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-colors text-foreground group cursor-pointer">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                             <LayoutDashboard className="w-4 h-4" />
                           </div>
                           <span className="font-semibold text-sm">لوحة التحكم</span>
-                        </div>
-                      </Link>
+                        </Link>
+                      </DropdownMenuItem>
                     )}
                     {user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
-                      <DropdownMenuItem>
-                        <Link href={user.role === 'STUDENT' ? '/dashboard/student' : '/dashboard/teacher/profile'} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors">
+                      <DropdownMenuItem asChild>
+                        <Link href={user.role === 'STUDENT' ? '/dashboard/student' : '/dashboard/teacher/profile'} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
                           <User className="w-4 h-4 text-text-muted" />
                           <span className="font-semibold text-sm">الملف الشخصي</span>
                         </Link>
