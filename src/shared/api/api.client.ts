@@ -16,6 +16,23 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
+// Request interceptor for logging outgoing requests
+apiClient.interceptors.request.use(
+  (config) => {
+    const state = useAuthStore.getState();
+    console.log(`[apiClient request] URL: ${config.url}`, {
+      hasAccessTokenInStore: !!state.accessToken,
+      hasRefreshTokenInStore: !!state.refreshToken,
+      headers: config.headers,
+    });
+    return config;
+  },
+  (error) => {
+    console.error('[apiClient request error]', error);
+    return Promise.reject(error);
+  }
+);
+
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -31,16 +48,24 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`[apiClient response success] URL: ${response.config.url} | Status: ${response.status}`);
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as any;
+    console.warn(`[apiClient response error] URL: ${originalRequest?.url} | Status: ${error.response?.status}`, {
+      message: error.message,
+      data: error.response?.data,
+    });
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/login')) {
-        // If refresh fails or login fails, just clear auth and let it fall through to throw ApiError
+        console.warn('[apiClient] Refresh or Login failed with 401. Triggering clearAuth (intercepted for debug).');
         useAuthStore.getState().clearAuth();
       } else {
         if (isRefreshing) {
+          console.log('[apiClient] Already refreshing, queueing request...');
           return new Promise(function (resolve, reject) {
             failedQueue.push({ resolve, reject });
           })
@@ -55,23 +80,23 @@ apiClient.interceptors.response.use(
         originalRequest._retry = true;
         isRefreshing = true;
 
+        console.log('[apiClient] Access token expired or rejected. Triggering token refresh...');
         try {
-          await apiClient.post('/auth/refresh');
+          const refreshToken = useAuthStore.getState().refreshToken;
+          console.log('[apiClient] Refreshing token with body:', { refreshToken: !!refreshToken });
+          await apiClient.post('/auth/refresh', { refreshToken });
+          console.log('[apiClient] Token refresh SUCCESS');
           isRefreshing = false;
           processQueue(null);
           return apiClient(originalRequest);
         } catch (err: any) {
+          console.error('[apiClient] Token refresh FAILED:', err.message, err.response?.data);
           isRefreshing = false;
           processQueue(err);
-          // Only clear auth if we get a definitive authentication error from the server
           if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            console.warn('[apiClient] Refresh returned auth error. Triggering clearAuth (intercepted for debug).');
             useAuthStore.getState().clearAuth();
           }
-          // Let it fall through so the refresh error can also be wrapped if needed, 
-          // or we can just reject if we don't care about refresh error format.
-          // But wait, if we fall through, `error` is the original 401 error. 
-          // If we want to throw the refresh error, we should throw it.
-          // Let's just return Promise.reject(err) for refresh errors since they are caught by guards anyway.
           return Promise.reject(err);
         }
       }

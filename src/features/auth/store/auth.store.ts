@@ -53,10 +53,12 @@ export const useAuthStore = create<AuthStore>()(
           refreshToken: tokens.refreshToken,
         }),
 
-      clearAuth: () =>
-        set({
-          ...initialState,
-        }),
+      clearAuth: () => {
+        console.warn('[Zustand Store] clearAuth called! Stack trace:');
+        console.trace();
+        // Prevent clearAuth from actually clearing auth for tracking purposes
+        // set({ ...initialState });
+      },
 
       setLoading: (isLoading) => set({ isLoading }),
 

@@ -16,14 +16,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkSession = async () => {
-      console.log('[AuthProvider] checkSession START');
+      const state = useAuthStore.getState();
+      console.log('[AuthProvider] checkSession START', {
+        isAuthenticated: state.isAuthenticated,
+        hasAccessToken: !!state.accessToken,
+        hasRefreshToken: !!state.refreshToken,
+      });
       setLoading(true);
       try {
         const { data: user } = await apiClient.get('/users/me');
         console.log('[AuthProvider] /users/me SUCCESS → role:', user?.role);
         useAuthStore.setState({ user, role: user.role, isAuthenticated: true });
       } catch (err: any) {
-        console.warn('[AuthProvider] /users/me FAILED →', err?.response?.status, err?.message);
+        console.warn('[AuthProvider] /users/me FAILED → status:', err?.response?.status, 'message:', err?.message);
         clearAuth();
       } finally {
         setLoading(false);
