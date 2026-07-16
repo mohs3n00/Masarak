@@ -27,7 +27,10 @@ const DEFAULT_BRANDING = [
 export async function Footer() {
   let brandingConfig: any[] = [];
   try {
-    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    let envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl && !envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
+      envUrl = `https://${envUrl}`;
+    }
     let baseUrl: string | undefined;
     if (envUrl) {
       baseUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;

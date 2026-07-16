@@ -12,7 +12,10 @@ async function getExamData(courseId: string, lessonId: string) {
     
     if (!token) return null;
 
-    const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    let envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    if (envUrl && !envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
+      envUrl = `https://${envUrl}`;
+    }
     const apiBase = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
     const res = await fetch(`${apiBase}/teacher/courses/${courseId}/lessons/${lessonId}/exam`, {
       headers: {

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
@@ -22,7 +22,7 @@ import { ApiError } from '@/shared/api/error.models';
 
 import signInImage from '@/assets/images/sgin in.png';
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
   const { setAuth, setLoading, setError, isLoading, error } = useAuthStore();
 
@@ -130,5 +130,17 @@ export default function LoginPage() {
         </AuthCard>
       </AuthLayout>
     </GuestGuard>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

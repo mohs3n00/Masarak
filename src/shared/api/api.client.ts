@@ -2,7 +2,10 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ApiError } from './error.models';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 
-const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+let envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+if (envUrl && !envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
+  envUrl = `https://${envUrl}`;
+}
 const baseURL = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
