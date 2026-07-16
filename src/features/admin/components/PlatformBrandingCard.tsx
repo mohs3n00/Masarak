@@ -30,7 +30,19 @@ const SUPPORTED_PLATFORMS = [
 ];
 
 export function PlatformBrandingCard() {
-  const [configs, setConfigs] = useState<Record<string, BrandingConfig>>({});
+  const [configs, setConfigs] = useState<Record<string, BrandingConfig>>(() => {
+    const initialMap: Record<string, BrandingConfig> = {};
+    SUPPORTED_PLATFORMS.forEach((p) => {
+      initialMap[p.id] = {
+        platform: p.id,
+        url: '',
+        isEnabled: false,
+        showInFooter: true,
+        showInExport: true,
+      };
+    });
+    return initialMap;
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
