@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: user } = await apiClient.get('/users/me');
         console.log('[AuthProvider] /users/me SUCCESS → role:', user?.role);
-        setAuth(user, { accessToken: '', refreshToken: '' });
+        useAuthStore.setState({ user, role: user.role, isAuthenticated: true });
       } catch (err: any) {
         console.warn('[AuthProvider] /users/me FAILED →', err?.response?.status, err?.message);
         clearAuth();
