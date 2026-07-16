@@ -16,14 +16,22 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor for logging outgoing requests
+// Request interceptor for logging outgoing requests and attaching Authorization header
 apiClient.interceptors.request.use(
   (config) => {
     const state = useAuthStore.getState();
-    console.log(`[apiClient request] URL: ${config.url}`, {
-      hasAccessTokenInStore: !!state.accessToken,
-      hasRefreshTokenInStore: !!state.refreshToken,
-      headers: config.headers,
+    const accessToken = state.accessToken;
+
+    if (accessToken && config.headers) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    console.log('[DEBUG apiClient request]', {
+      url: config.url,
+      accessTokenSnippet: accessToken ? `${accessToken.substring(0, 10)}...` : null,
+      authHeaderSnippet: config.headers?.Authorization 
+        ? `${config.headers.Authorization.toString().substring(0, 20)}...` 
+        : 'NONE',
     });
     return config;
   },
@@ -69,7 +77,10 @@ apiClient.interceptors.response.use(
           return new Promise(function (resolve, reject) {
             failedQueue.push({ resolve, reject });
           })
-            .then(() => {
+            .then((token) => {
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+              }
               return apiClient(originalRequest);
             })
             .catch((err) => {
@@ -84,10 +95,25 @@ apiClient.interceptors.response.use(
         try {
           const refreshToken = useAuthStore.getState().refreshToken;
           console.log('[apiClient] Refreshing token with body:', { refreshToken: !!refreshToken });
-          await apiClient.post('/auth/refresh', { refreshToken });
-          console.log('[apiClient] Token refresh SUCCESS');
+          const res = await apiClient.post('/auth/refresh', { refreshToken });
+          const newTokens = res.data;
+          
+          console.log('[apiClient] Token refresh SUCCESS. Saving new tokens to store:', {
+            hasNewAccess: !!newTokens.accessToken,
+            hasNewRefresh: !!newTokens.refreshToken,
+          });
+
+          useAuthStore.getState().setTokens({
+            accessToken: newTokens.accessToken,
+            refreshToken: newTokens.refreshToken || refreshToken,
+          });
+
           isRefreshing = false;
-          processQueue(null);
+          processQueue(null, newTokens.accessToken);
+          
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
+          }
           return apiClient(originalRequest);
         } catch (err: any) {
           console.error('[apiClient] Token refresh FAILED:', err.message, err.response?.data);

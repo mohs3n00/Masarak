@@ -40,7 +40,14 @@ function LoginForm() {
       setLoading(true);
       setError(null);
       const { user, tokens } = await authService.login(data);
+      console.log('[DEBUG LOGIN] Response data:', { user, tokens });
+      console.log('[DEBUG LOGIN] accessToken:', tokens?.accessToken ? tokens.accessToken.substring(0, 10) + '...' : null);
+      console.log('[DEBUG LOGIN] refreshToken:', tokens?.refreshToken ? tokens.refreshToken.substring(0, 10) + '...' : null);
+      
       setAuth(user, tokens);
+      console.log('[DEBUG LOGIN] authStore state after setAuth:', useAuthStore.getState());
+      console.log('[DEBUG LOGIN] localStorage masarak-user-data directly after setAuth:', window.localStorage.getItem('masarak-user-data'));
+      
       const redirectPath = searchParams.get('redirect') || '/';
       window.location.href = redirectPath;
     } catch (err: unknown) {

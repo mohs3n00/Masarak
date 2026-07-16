@@ -17,10 +17,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkSession = async () => {
       const state = useAuthStore.getState();
-      console.log('[AuthProvider] checkSession START', {
-        isAuthenticated: state.isAuthenticated,
-        hasAccessToken: !!state.accessToken,
-        hasRefreshToken: !!state.refreshToken,
+      const localData = typeof window !== 'undefined' ? window.localStorage.getItem('masarak-user-data') : null;
+      console.log('[DEBUG AuthProvider] Before /users/me checkSession', {
+        authStoreAccessToken: state.accessToken ? state.accessToken.substring(0, 10) + '...' : null,
+        authStoreRefreshToken: state.refreshToken ? state.refreshToken.substring(0, 10) + '...' : null,
+        localStorageData: localData,
       });
       setLoading(true);
       try {
