@@ -156,11 +156,27 @@ export class AuthController {
     @Body('refreshToken') bodyRefreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refreshToken || bodyRefreshToken;
+    const cookieRefreshToken = req.cookies?.refreshToken;
+    console.log('[AuthController.refresh] triggered', {
+      hasCookieRefresh: !!cookieRefreshToken,
+      cookieRefreshSnippet: cookieRefreshToken && cookieRefreshToken.length > 20
+        ? `${cookieRefreshToken.substring(0, 10)}...${cookieRefreshToken.substring(cookieRefreshToken.length - 10)}`
+        : cookieRefreshToken,
+      hasBodyRefresh: !!bodyRefreshToken,
+      bodyRefreshSnippet: bodyRefreshToken && bodyRefreshToken.length > 20
+        ? `${bodyRefreshToken.substring(0, 10)}...${bodyRefreshToken.substring(bodyRefreshToken.length - 10)}`
+        : bodyRefreshToken,
+    });
+
+    const refreshToken = cookieRefreshToken || bodyRefreshToken;
     if (!refreshToken) {
+      console.warn('[AuthController.refresh] FAILED: No refresh token in cookie or body');
       throw new UnauthorizedException('Refresh token is missing');
     }
+
+    console.log('[AuthController.refresh] Calling authService.refreshToken...');
     const tokens = await this.authService.refreshToken(refreshToken);
+    console.log('[AuthController.refresh] authService.refreshToken returned tokens successfully');
 
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', tokens.accessToken, {

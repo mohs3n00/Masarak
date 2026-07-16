@@ -297,22 +297,46 @@ export class AuthService {
   }
 
   async refreshToken(oldRefreshToken: string) {
-    const decoded = await this.tokenService.verifyRefreshToken(oldRefreshToken);
+    console.log('[AuthService.refreshToken] Called');
+    let decoded;
+    try {
+      decoded = await this.tokenService.verifyRefreshToken(oldRefreshToken);
+      console.log('[AuthService.refreshToken] Decoded refresh token successfully:', decoded);
+    } catch (e: any) {
+      console.error('[AuthService.refreshToken] FAILED verifying refresh token:', e.name, e.message);
+      throw new UnauthorizedException(`Invalid refresh token: ${e.message}`);
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: decoded.sub },
     });
-    if (!user || !user.isActive)
-      throw new UnauthorizedException('User not found or banned');
+    if (!user) {
+      console.warn('[AuthService.refreshToken] FAILED: User not found for id:', decoded.sub);
+      throw new UnauthorizedException('User not found');
+    }
+    if (!user.isActive) {
+      console.warn('[AuthService.refreshToken] FAILED: User is banned/inactive:', decoded.sub);
+      throw new UnauthorizedException('User is banned or inactive');
+    }
 
+    console.log('[AuthService.refreshToken] Generating new tokens...');
     const tokens = await this.tokenService.generateTokens(
       user,
       decoded.sessionId,
     );
-    await this.sessionService.validateAndRotateSession(
-      decoded.sessionId,
-      oldRefreshToken,
-      tokens.refreshToken,
-    );
+
+    console.log('[AuthService.refreshToken] Rotating session in DB...');
+    try {
+      await this.sessionService.validateAndRotateSession(
+        decoded.sessionId,
+        oldRefreshToken,
+        tokens.refreshToken,
+      );
+      console.log('[AuthService.refreshToken] Session rotation SUCCESS');
+    } catch (e: any) {
+      console.error('[AuthService.refreshToken] Session rotation FAILED:', e.message);
+      throw new UnauthorizedException(`Session rotation failed: ${e.message}`);
+    }
     return tokens;
   }
 
