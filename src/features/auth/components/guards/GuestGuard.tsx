@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '../../store/auth.store';
 import { useAuthContext } from '@/lib/providers/AuthProvider';
@@ -14,7 +14,7 @@ function getDashboardPath(role: string | null | undefined): string {
   return PROTECTED_ROUTES.DASHBOARD;
 }
 
-const GuestGuardContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, role } = useAuthStore();
   const { isReady } = useAuthContext();
   const router = useRouter();
@@ -64,16 +64,4 @@ const GuestGuardContent: React.FC<{ children: React.ReactNode }> = ({ children }
   }
 
   return <>{children}</>;
-};
-
-export const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <Suspense fallback={
-      <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-      </div>
-    }>
-      <GuestGuardContent>{children}</GuestGuardContent>
-    </Suspense>
-  );
 };

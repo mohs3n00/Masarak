@@ -278,7 +278,7 @@ export class AuthService {
       userAgent,
     );
 
-    return { tokens, user };
+    return tokens;
   }
 
   async logout(
@@ -297,46 +297,22 @@ export class AuthService {
   }
 
   async refreshToken(oldRefreshToken: string) {
-    console.log('[AuthService.refreshToken] Called');
-    let decoded;
-    try {
-      decoded = await this.tokenService.verifyRefreshToken(oldRefreshToken);
-      console.log('[AuthService.refreshToken] Decoded refresh token successfully:', decoded);
-    } catch (e: any) {
-      console.error('[AuthService.refreshToken] FAILED verifying refresh token:', e.name, e.message);
-      throw new UnauthorizedException(`Invalid refresh token: ${e.message}`);
-    }
-
+    const decoded = await this.tokenService.verifyRefreshToken(oldRefreshToken);
     const user = await this.prisma.user.findUnique({
       where: { id: decoded.sub },
     });
-    if (!user) {
-      console.warn('[AuthService.refreshToken] FAILED: User not found for id:', decoded.sub);
-      throw new UnauthorizedException('User not found');
-    }
-    if (!user.isActive) {
-      console.warn('[AuthService.refreshToken] FAILED: User is banned/inactive:', decoded.sub);
-      throw new UnauthorizedException('User is banned or inactive');
-    }
+    if (!user || !user.isActive)
+      throw new UnauthorizedException('User not found or banned');
 
-    console.log('[AuthService.refreshToken] Generating new tokens...');
     const tokens = await this.tokenService.generateTokens(
       user,
       decoded.sessionId,
     );
-
-    console.log('[AuthService.refreshToken] Rotating session in DB...');
-    try {
-      await this.sessionService.validateAndRotateSession(
-        decoded.sessionId,
-        oldRefreshToken,
-        tokens.refreshToken,
-      );
-      console.log('[AuthService.refreshToken] Session rotation SUCCESS');
-    } catch (e: any) {
-      console.error('[AuthService.refreshToken] Session rotation FAILED:', e.message);
-      throw new UnauthorizedException(`Session rotation failed: ${e.message}`);
-    }
+    await this.sessionService.validateAndRotateSession(
+      decoded.sessionId,
+      oldRefreshToken,
+      tokens.refreshToken,
+    );
     return tokens;
   }
 
@@ -396,7 +372,6 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    await this.sessionService.revokeAllUserSessions(userId);
     await this.auditService.logAction(userId, AuditAction.PASSWORD_CHANGE);
   }
   async forceChangePassword(dto: ForceChangePasswordDto) {
@@ -419,7 +394,6 @@ export class AuthService {
       },
     });
 
-    await this.sessionService.revokeAllUserSessions(dto.userId);
     await this.auditService.logAction(dto.userId, AuditAction.PASSWORD_CHANGE);
   }
 }

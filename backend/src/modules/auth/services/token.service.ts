@@ -28,29 +28,15 @@ export class TokenService {
       sessionId,
     };
 
-    const accessSecret = this.configService.get<string>('auth.jwtAccessSecret');
-    const refreshSecret = this.configService.get<string>('auth.jwtRefreshSecret');
-    
-    console.log('[TokenService.generateTokens] Configured Secrets loaded:', {
-      accessSecretLength: accessSecret?.length || 0,
-      accessSecretSnippet: accessSecret && accessSecret.length >= 6
-        ? `${accessSecret.substring(0, 3)}...${accessSecret.substring(accessSecret.length - 3)}`
-        : accessSecret || 'NULL/EMPTY',
-      refreshSecretLength: refreshSecret?.length || 0,
-      refreshSecretSnippet: refreshSecret && refreshSecret.length >= 6
-        ? `${refreshSecret.substring(0, 3)}...${refreshSecret.substring(refreshSecret.length - 3)}`
-        : refreshSecret || 'NULL/EMPTY',
-    });
-
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: accessSecret,
+        secret: this.configService.get<string>('auth.jwtAccessSecret'),
         expiresIn: this.configService.get<string>(
           'auth.jwtAccessExpiresIn',
         ) as any,
       }),
       this.jwtService.signAsync(payload, {
-        secret: refreshSecret,
+        secret: this.configService.get<string>('auth.jwtRefreshSecret'),
         expiresIn: this.configService.get<string>(
           'auth.jwtRefreshExpiresIn',
         ) as any,
@@ -61,15 +47,8 @@ export class TokenService {
   }
 
   async verifyRefreshToken(token: string): Promise<JwtPayload> {
-    const refreshSecret = this.configService.get<string>('auth.jwtRefreshSecret');
-    console.log('[TokenService.verifyRefreshToken] Verifying refresh token using secret:', {
-      refreshSecretLength: refreshSecret?.length || 0,
-      refreshSecretSnippet: refreshSecret && refreshSecret.length >= 6
-        ? `${refreshSecret.substring(0, 3)}...${refreshSecret.substring(refreshSecret.length - 3)}`
-        : refreshSecret || 'NULL/EMPTY',
-    });
     return this.jwtService.verifyAsync<JwtPayload>(token, {
-      secret: refreshSecret,
+      secret: this.configService.get<string>('auth.jwtRefreshSecret'),
     });
   }
 }

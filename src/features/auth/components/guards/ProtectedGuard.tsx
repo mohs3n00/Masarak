@@ -23,14 +23,9 @@ export const ProtectedGuard: React.FC<{ children: React.ReactNode }> = ({ childr
     // Without this, the guard redirects to /login while /users/me is still in-flight.
     if (!mounted || !isReady) return;
 
-    console.log(`[ProtectedGuard] checkSession finished. mounted:${mounted} isReady:${isReady} isAuthenticated:${isAuthenticated}`);
-
     if (!isAuthenticated) {
       const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-      console.warn('[ProtectedGuard] NOT authenticated! Stack trace:');
-      console.trace();
-      console.warn('[ProtectedGuard] REDIRECT TO LOGIN PREVENTED FOR DEBUGGING');
-      // router.replace(`${AUTH_ROUTES.LOGIN}?redirect=${encodeURIComponent(currentUrl)}`);
+      router.replace(`${AUTH_ROUTES.LOGIN}?redirect=${encodeURIComponent(currentUrl)}`);
     }
   }, [mounted, isReady, isAuthenticated, router, pathname, searchParams]);
 

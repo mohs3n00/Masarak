@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
@@ -22,7 +22,7 @@ import { ApiError } from '@/shared/api/error.models';
 
 import signInImage from '@/assets/images/sgin in.png';
 
-function LoginForm() {
+export default function LoginPage() {
   const searchParams = useSearchParams();
   const { setAuth, setLoading, setError, isLoading, error } = useAuthStore();
 
@@ -39,15 +39,8 @@ function LoginForm() {
     try {
       setLoading(true);
       setError(null);
-      const { user, tokens } = await authService.login(data);
-      console.log('[DEBUG LOGIN] Response data:', { user, tokens });
-      console.log('[DEBUG LOGIN] accessToken:', tokens?.accessToken ? tokens.accessToken.substring(0, 10) + '...' : null);
-      console.log('[DEBUG LOGIN] refreshToken:', tokens?.refreshToken ? tokens.refreshToken.substring(0, 10) + '...' : null);
-      
-      setAuth(user, tokens);
-      console.log('[DEBUG LOGIN] authStore state after setAuth:', useAuthStore.getState());
-      console.log('[DEBUG LOGIN] localStorage masarak-user-data directly after setAuth:', window.localStorage.getItem('masarak-user-data'));
-      
+      const { user } = await authService.login(data);
+      setAuth(user, { accessToken: '', refreshToken: '' });
       const redirectPath = searchParams.get('redirect') || '/';
       window.location.href = redirectPath;
     } catch (err: unknown) {
@@ -137,17 +130,5 @@ function LoginForm() {
         </AuthCard>
       </AuthLayout>
     </GuestGuard>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-      </div>
-    }>
-      <LoginForm />
-    </Suspense>
   );
 }

@@ -37,17 +37,13 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
 
     if (!isAuthenticated) {
       const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-      console.warn('[RoleGuard] NOT authenticated after isReady! Stack trace:');
-      console.trace();
-      console.warn('[RoleGuard] REDIRECT TO LOGIN PREVENTED FOR DEBUGGING. pathname:', pathname);
+      console.warn('[RoleGuard] NOT authenticated after isReady → redirecting to /login. pathname:', pathname);
       setRedirecting(true);
-      // router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
     } else if (role && !allowedRoles.includes(role)) {
-      console.warn('[RoleGuard] WRONG role! Stack trace:');
-      console.trace();
-      console.warn('[RoleGuard] REDIRECT TO UNAUTHORIZED PREVENTED FOR DEBUGGING. role:', role, 'allowed:', allowedRoles);
+      console.warn('[RoleGuard] WRONG role → redirecting to /unauthorized. role:', role, 'allowed:', allowedRoles);
       setRedirecting(true);
-      // router.replace('/unauthorized');
+      router.replace('/unauthorized');
     } else {
       console.log('[RoleGuard] ✅ ACCESS GRANTED — role:', role);
     }

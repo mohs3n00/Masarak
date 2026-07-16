@@ -82,22 +82,20 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.login(
+    const tokens = await this.authService.login(
       dto,
       req.ip,
       req.headers['user-agent'],
     );
-    const tokens = result.tokens;
-    const user = result.user;
 
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Default maxAge is 24 hours for access token
+    // Default maxAge is 15 minutes for access token
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax', 
-      maxAge: 24 * 60 * 60 * 1000, 
+      sameSite: isProduction ? 'none' : 'strict',
+      maxAge: 15 * 60 * 1000, 
     });
 
     // Refresh token lives for 30 days if rememberMe, else 1 day (or could be session-only)
@@ -108,15 +106,11 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      sameSite: isProduction ? 'none' : 'strict',
       ...(refreshTokenMaxAge ? { maxAge: refreshTokenMaxAge } : {}),
     });
 
-    return {
-      message: 'Logged in successfully',
-      user,
-      tokens,
-    };
+    return { message: 'Logged in successfully' };
   }
 
   @Post('logout')
@@ -134,14 +128,10 @@ export class AuthController {
       req.ip,
       req.headers['user-agent'],
     );
-    const isProduction = process.env.NODE_ENV === 'production';
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: (isProduction ? 'none' : 'lax') as any,
-    };
-    res.clearCookie('refreshToken', cookieOptions);
-    res.clearCookie('accessToken', cookieOptions);
+
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
     return { message: 'Logged out successfully' };
   }
 
@@ -156,40 +146,24 @@ export class AuthController {
     @Body('refreshToken') bodyRefreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const cookieRefreshToken = req.cookies?.refreshToken;
-    console.log('[AuthController.refresh] triggered', {
-      hasCookieRefresh: !!cookieRefreshToken,
-      cookieRefreshSnippet: cookieRefreshToken && cookieRefreshToken.length > 20
-        ? `${cookieRefreshToken.substring(0, 10)}...${cookieRefreshToken.substring(cookieRefreshToken.length - 10)}`
-        : cookieRefreshToken,
-      hasBodyRefresh: !!bodyRefreshToken,
-      bodyRefreshSnippet: bodyRefreshToken && bodyRefreshToken.length > 20
-        ? `${bodyRefreshToken.substring(0, 10)}...${bodyRefreshToken.substring(bodyRefreshToken.length - 10)}`
-        : bodyRefreshToken,
-    });
-
-    const refreshToken = cookieRefreshToken || bodyRefreshToken;
+    const refreshToken = req.cookies?.refreshToken || bodyRefreshToken;
     if (!refreshToken) {
-      console.warn('[AuthController.refresh] FAILED: No refresh token in cookie or body');
       throw new UnauthorizedException('Refresh token is missing');
     }
-
-    console.log('[AuthController.refresh] Calling authService.refreshToken...');
     const tokens = await this.authService.refreshToken(refreshToken);
-    console.log('[AuthController.refresh] authService.refreshToken returned tokens successfully');
 
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: isProduction ? 'none' : 'strict',
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 

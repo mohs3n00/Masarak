@@ -2,10 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ApiError } from './error.models';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 
-let envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-if (envUrl && !envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
-  envUrl = `https://${envUrl}`;
-}
+const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const baseURL = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
@@ -16,27 +13,17 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor for logging outgoing requests and attaching Authorization header
+// Request interceptor to attach Authorization header
 apiClient.interceptors.request.use(
   (config) => {
     const state = useAuthStore.getState();
     const accessToken = state.accessToken;
-
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-
-    console.log('[DEBUG apiClient request]', {
-      url: config.url,
-      accessTokenSnippet: accessToken ? `${accessToken.substring(0, 10)}...` : null,
-      authHeaderSnippet: config.headers?.Authorization 
-        ? `${config.headers.Authorization.toString().substring(0, 20)}...` 
-        : 'NONE',
-    });
     return config;
   },
   (error) => {
-    console.error('[apiClient request error]', error);
     return Promise.reject(error);
   }
 );
@@ -56,24 +43,16 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 apiClient.interceptors.response.use(
-  (response) => {
-    console.log(`[apiClient response success] URL: ${response.config.url} | Status: ${response.status}`);
-    return response;
-  },
+  (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as any;
-    console.warn(`[apiClient response error] URL: ${originalRequest?.url} | Status: ${error.response?.status}`, {
-      message: error.message,
-      data: error.response?.data,
-    });
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/login')) {
-        console.warn('[apiClient] Refresh or Login failed with 401. Triggering clearAuth (intercepted for debug).');
+        // If refresh fails or login fails, just clear auth and let it fall through to throw ApiError
         useAuthStore.getState().clearAuth();
       } else {
         if (isRefreshing) {
-          console.log('[apiClient] Already refreshing, queueing request...');
           return new Promise(function (resolve, reject) {
             failedQueue.push({ resolve, reject });
           })
@@ -91,17 +70,10 @@ apiClient.interceptors.response.use(
         originalRequest._retry = true;
         isRefreshing = true;
 
-        console.log('[apiClient] Access token expired or rejected. Triggering token refresh...');
         try {
           const refreshToken = useAuthStore.getState().refreshToken;
-          console.log('[apiClient] Refreshing token with body:', { refreshToken: !!refreshToken });
           const res = await apiClient.post('/auth/refresh', { refreshToken });
           const newTokens = res.data;
-          
-          console.log('[apiClient] Token refresh SUCCESS. Saving new tokens to store:', {
-            hasNewAccess: !!newTokens.accessToken,
-            hasNewRefresh: !!newTokens.refreshToken,
-          });
 
           useAuthStore.getState().setTokens({
             accessToken: newTokens.accessToken,
@@ -110,17 +82,16 @@ apiClient.interceptors.response.use(
 
           isRefreshing = false;
           processQueue(null, newTokens.accessToken);
-          
+
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
           }
           return apiClient(originalRequest);
         } catch (err: any) {
-          console.error('[apiClient] Token refresh FAILED:', err.message, err.response?.data);
           isRefreshing = false;
           processQueue(err);
+          // Only clear auth if we get a definitive authentication error from the server
           if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-            console.warn('[apiClient] Refresh returned auth error. Triggering clearAuth (intercepted for debug).');
             useAuthStore.getState().clearAuth();
           }
           return Promise.reject(err);

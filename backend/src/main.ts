@@ -16,10 +16,6 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  // Enable trust proxy for secure cookies behind reverse proxies (Railway, Vercel, etc.)
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', 1);
-
   // 1. Logger configuration
   app.useLogger(app.get(Logger));
 
@@ -27,9 +23,6 @@ async function bootstrap() {
   const port = configService.get<number>('app.port') || 3000;
   const apiPrefix = configService.get<string>('app.apiPrefix') || 'api';
   const corsOrigin = configService.get<string>('app.corsOrigin') || '*';
-  const origins = corsOrigin.includes(',')
-    ? corsOrigin.split(',').map(o => o.trim())
-    : corsOrigin;
 
   app.setGlobalPrefix(apiPrefix);
 
@@ -38,7 +31,7 @@ async function bootstrap() {
   app.use(compression());
   app.use(cookieParser());
   app.enableCors({
-    origin: origins,
+    origin: corsOrigin,
     credentials: true,
   });
 

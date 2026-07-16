@@ -54,10 +54,12 @@ export const useAuthStore = create<AuthStore>()(
         }),
 
       clearAuth: () => {
-        console.warn('[Zustand Store] clearAuth called! Stack trace:');
-        console.trace();
-        // Prevent clearAuth from actually clearing auth for tracking purposes
-        // set({ ...initialState });
+        set({
+          ...initialState,
+        });
+        if (typeof window !== 'undefined') {
+          window.localStorage.clear();
+        }
       },
 
       setLoading: (isLoading) => set({ isLoading }),
