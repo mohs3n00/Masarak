@@ -153,9 +153,10 @@ export class AuthController {
   })
   async refresh(
     @Req() req: Request,
+    @Body('refreshToken') bodyRefreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || bodyRefreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing');
     }
