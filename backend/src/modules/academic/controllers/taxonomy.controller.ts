@@ -10,44 +10,16 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { TaxonomyService } from '../services/taxonomy.service';
 import {
-  CreateCategoryDto,
   CreateTagDto,
   CreateSkillDto,
   CreateSpecializationDto,
 } from '../dto/academic.dto';
-import { CacheInterceptor, CacheKey } from '@nestjs/cache-manager';
 
 @ApiTags('Academic Taxonomy')
 @ApiBearerAuth()
 @Controller('academic/taxonomy')
 export class TaxonomyController {
   constructor(private readonly service: TaxonomyService) {}
-
-  @Post('categories')
-  @ApiOperation({ summary: 'Create category or subcategory' })
-  async createCategory(@Body() dto: CreateCategoryDto) {
-    return this.service.createCategory(
-      dto.name,
-      dto.slug,
-      dto.parentId,
-      dto.description,
-      dto.icon,
-    );
-  }
-
-  @Get('categories')
-  @UseInterceptors(CacheInterceptor)
-  @CacheKey('academic_categories')
-  @ApiOperation({ summary: 'Get all hierarchical categories' })
-  async getCategories() {
-    return this.service.getCategories();
-  }
-
-  @Delete('categories/:id')
-  @ApiOperation({ summary: 'Soft delete category' })
-  async deleteCategory(@Param('id') id: string) {
-    return this.service.deleteCategory(id);
-  }
 
   @Post('tags')
   @ApiOperation({ summary: 'Create tag' })

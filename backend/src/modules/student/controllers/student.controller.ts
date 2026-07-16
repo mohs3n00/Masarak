@@ -213,5 +213,17 @@ export class StudentController {
     });
     return { success: true };
   }
+
+  @Post('courses/:courseId/rate')
+  @Roles(Role.STUDENT)
+  @ApiOperation({ summary: 'Rate an enrolled course' })
+  async rateCourse(
+    @CurrentUser('id') userId: string,
+    @Param('courseId') courseId: string,
+    @Body('rating') rating: number,
+    @Body('comment') comment?: string,
+  ) {
+    return this.studentService.rateCourse(userId, courseId, rating, comment);
+  }
 }
 

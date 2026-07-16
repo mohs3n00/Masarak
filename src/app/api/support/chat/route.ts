@@ -4,9 +4,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { detectIntent, retrieveRelevantDocs, buildPersonaPrompt, buildKnowledgePrompt } from '@/features/support/services/ragService';
 import { ChatRequest, ChatResponse, KnowledgeItem } from '@/features/support/types';
-import { HfInference } from '@huggingface/inference';
 
-const HF_API_KEY = process.env.HF_API_KEY;
+const AI_PROVIDER = process.env.AI_PROVIDER || 'openrouter';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+
 
 // Simple in-memory rate limiting map (IP -> { count, resetTime })
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -20,8 +22,8 @@ const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   let debugInfo: ChatResponse['debugInfo'] = {
-    provider: 'Hugging Face',
-    model: 'Qwen/Qwen2.5-7B-Instruct',
+    provider: AI_PROVIDER === 'openrouter' ? 'OpenRouter' : 'Fallback',
+    model: OPENROUTER_MODEL,
     responseTime: 0,
     status: 'Connected',
   };
@@ -96,9 +98,9 @@ export async function POST(req: NextRequest) {
     let shouldEscalate = false;
     let fallbackUsed = false;
 
-    if (!HF_API_KEY) {
+    if (AI_PROVIDER === 'openrouter' && !OPENROUTER_API_KEY) {
       debugInfo.status = 'Using Fallback';
-      debugInfo.error = 'HF_API_KEY is not configured.';
+      debugInfo.error = 'OPENROUTER_API_KEY is not configured.';
       
       if (retrievedDocs.length > 0) {
         answer = retrievedDocs[0].answer;
@@ -107,9 +109,7 @@ export async function POST(req: NextRequest) {
         answer = 'للأسف مش عارف الإجابة دي. هحولك لفريق الدعم.';
         shouldEscalate = true;
       }
-    } else {
-      const hf = new HfInference(HF_API_KEY);
-      
+    } else if (AI_PROVIDER === 'openrouter') {
       try {
         const historyContents = conversationHistory.slice(-4).map(m => ({
           role: m.role as "user" | "assistant" | "system",
@@ -122,18 +122,34 @@ export async function POST(req: NextRequest) {
           { role: 'user' as const, content: message }
         ];
 
-        const response = await hf.chatCompletion({
-          model: 'Qwen/Qwen2.5-7B-Instruct',
-          messages: finalMessages,
-          temperature: 0.7, 
-          max_tokens: 500,
+        const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'HTTP-Referer': 'https://masarak.com',
+            'X-Title': 'Masarak AI Support',
+          },
+          body: JSON.stringify({
+            model: OPENROUTER_MODEL,
+            messages: finalMessages,
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
         });
 
-        if (isDebug) {
-          console.log(`[AI_${reqId}] 🤖 RAW API RESPONSE:`, JSON.stringify(response, null, 2));
+        if (!openRouterResponse.ok) {
+          const errText = await openRouterResponse.text();
+          throw new Error(`OpenRouter API error: ${openRouterResponse.status} ${errText}`);
         }
 
-        answer = response.choices[0].message.content || '';
+        const responseData = await openRouterResponse.json();
+
+        if (isDebug) {
+          console.log(`[AI_${reqId}] 🤖 RAW API RESPONSE:`, JSON.stringify(responseData, null, 2));
+        }
+
+        answer = responseData.choices?.[0]?.message?.content || '';
 
         if (!answer) {
           throw new Error('Empty response from AI');
@@ -156,6 +172,9 @@ export async function POST(req: NextRequest) {
           shouldEscalate = true;
         }
       }
+    } else {
+      answer = 'مزود الذكاء الاصطناعي غير مدعوم حالياً.';
+      shouldEscalate = true;
     }
 
     // Step 5: Detect escalation signals

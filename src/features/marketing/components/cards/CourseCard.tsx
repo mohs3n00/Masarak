@@ -83,27 +83,42 @@ export function CoursePreviewCard({ course, teacher, className, isEnrolled, prog
             </h3>
           </Link>
 
-          {/* Teacher */}
-          {teacher && (
-            <div className="flex items-center gap-2 mt-0.5">
-              <Avatar className="w-6 h-6 shrink-0 ring-1 ring-border/50">
-                <AvatarImage src={teacher.avatar} alt={teacher.name} />
-                <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{teacher.name.substring(0, 2)}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground font-medium line-clamp-1">{teacher.name}</span>
-            </div>
+          {/* Short Description */}
+          {course.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed" style={{ minHeight: '2.5rem' }}>
+              {course.description}
+            </p>
           )}
+
+          {/* Teacher */}
+          {(() => {
+            const activeTeacher = teacher || (course as any).teacher;
+            if (!activeTeacher) return null;
+            return (
+              <div className="flex items-center gap-2 mt-0.5">
+                <Avatar className="w-6 h-6 shrink-0 ring-1 ring-border/50">
+                  <AvatarImage src={activeTeacher.avatar} alt={activeTeacher.name} />
+                  <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{activeTeacher.name.substring(0, 2)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-muted-foreground font-medium line-clamp-1">{activeTeacher.name}</span>
+              </div>
+            );
+          })()}
 
           {/* Meta: Rating + Students */}
           <div className="flex items-center gap-3 text-[13px] text-muted-foreground mt-1">
             <div className="flex items-center gap-1.5">
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
-              <span className="text-foreground font-semibold">{(course.rating || 0).toFixed(1)}</span>
+              <span className="text-foreground font-semibold">
+                {((course as any).averageRating ?? (course as any).rating ?? 0).toFixed(1)} / 5
+              </span>
             </div>
             <span className="text-border/60">•</span>
             <div className="flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5 shrink-0 opacity-70" />
-              <span>{(course.studentsCount || 0).toLocaleString('ar-SA')} طالب</span>
+              <span>
+                {((course as any).enrollmentCount ?? (course as any).studentsCount ?? 0).toLocaleString('ar-EG')} طالب
+              </span>
             </div>
           </div>
 
@@ -111,11 +126,11 @@ export function CoursePreviewCard({ course, teacher, className, isEnrolled, prog
           <div className="mt-auto pt-4 border-t border-border/30 flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="font-extrabold text-lg text-primary">{course.price}</span>
-              <span className="text-[13px] font-medium text-muted-foreground">{course.currency}</span>
+              <span className="text-[13px] font-medium text-muted-foreground">{course.currency || 'ج.م'}</span>
             </div>
             {course.originalPrice && (
               <span className="text-[13px] font-medium text-muted-foreground/60 line-through">
-                {course.originalPrice} {course.currency}
+                {course.originalPrice} {course.currency || 'ج.م'}
               </span>
             )}
           </div>

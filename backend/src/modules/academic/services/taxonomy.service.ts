@@ -9,38 +9,7 @@ export class TaxonomyService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async createCategory(
-    name: string,
-    slug: string,
-    parentId?: string,
-    description?: string,
-    icon?: string,
-  ) {
-    if (parentId) {
-      // Prevent circular logic or self referencing
-      const parents = await this.repo.findCategories(); // Just checking if it exists
-      if (!parents.some((c) => c.id === parentId)) {
-        throw new NotFoundException('Parent category not found');
-      }
-    }
-    const cat = await this.repo.createCategory({
-      name,
-      slug,
-      parentId,
-      description,
-      icon,
-    });
-    this.eventEmitter.emit('academic.category.created', cat);
-    return cat;
-  }
 
-  async getCategories() {
-    return this.repo.findCategories();
-  }
-
-  async deleteCategory(id: string) {
-    return this.repo.softDeleteCategory(id);
-  }
 
   async createTag(name: string, slug: string) {
     const tag = await this.repo.createTag({ name, slug });

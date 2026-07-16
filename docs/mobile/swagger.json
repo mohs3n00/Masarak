@@ -1,0 +1,4641 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/register/student": {
+      "post": {
+        "operationId": "AuthController_registerStudent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterStudentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Register a new student account",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/register/teacher": {
+      "post": {
+        "operationId": "AuthController_registerTeacher",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterTeacherDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Register a new teacher account",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Login and receive access and refresh tokens",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Logout and revoke the current session",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Rotate the refresh token and receive a new access token",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Request password reset via Email",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/verify-reset-code": {
+      "post": {
+        "operationId": "AuthController_verifyResetCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyResetCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verify the reset code sent to email",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Reset the password using OTP",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/password/change": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the password (requires current password)",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/force-change-password": {
+      "post": {
+        "operationId": "AuthController_forceChangePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForceChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Force password change for accounts requiring it (like first-login Super Admin)",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/avatar": {
+      "patch": {
+        "operationId": "AuthController_uploadAvatar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload a new avatar",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      "delete": {
+        "operationId": "AuthController_deleteAvatar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove the avatar",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "UsersController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user data with all relations",
+        "tags": [
+          "Users & Identity"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update basic user info (name, bio)",
+        "tags": [
+          "Users & Identity"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_deleteAccount",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own account",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/profile/student": {
+      "patch": {
+        "operationId": "UsersController_updateStudentProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update student profile details",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/profile/teacher": {
+      "patch": {
+        "operationId": "UsersController_updateTeacherProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeacherProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update teacher profile details",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/settings": {
+      "get": {
+        "operationId": "UsersController_getSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user settings (alias for GET /me)",
+        "tags": [
+          "Users & Identity"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update generic user settings",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/settings/notifications": {
+      "patch": {
+        "operationId": "UsersController_updateNotifications",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update notification preferences",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/settings/privacy": {
+      "patch": {
+        "operationId": "UsersController_updatePrivacy",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePrivacySettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update privacy settings",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/preferences": {
+      "patch": {
+        "operationId": "UsersController_updatePreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update timezone, language, theme",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/avatar": {
+      "post": {
+        "operationId": "UsersController_uploadAvatar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload new avatar",
+        "tags": [
+          "Users & Identity"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_deleteAvatar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete current avatar",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/devices": {
+      "get": {
+        "operationId": "UsersController_getDevices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all active devices",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/devices/{deviceId}": {
+      "delete": {
+        "operationId": "UsersController_removeDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a specific device",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/activity": {
+      "get": {
+        "operationId": "UsersController_getActivity",
+        "parameters": [
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user activity log",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/notifications": {
+      "get": {
+        "operationId": "UsersController_getNotifications",
+        "parameters": [
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user notifications",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/notifications/read-all": {
+      "patch": {
+        "operationId": "UsersController_markAllNotificationsRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark all notifications as read",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/users/notifications/{id}/read": {
+      "patch": {
+        "operationId": "UsersController_markNotificationRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark specific notification as read",
+        "tags": [
+          "Users & Identity"
+        ]
+      }
+    },
+    "/academic/taxonomy/categories": {
+      "post": {
+        "operationId": "TaxonomyController_createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create category or subcategory",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      },
+      "get": {
+        "operationId": "TaxonomyController_getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all hierarchical categories",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      }
+    },
+    "/academic/taxonomy/categories/{id}": {
+      "delete": {
+        "operationId": "TaxonomyController_deleteCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete category",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      }
+    },
+    "/academic/taxonomy/tags": {
+      "post": {
+        "operationId": "TaxonomyController_createTag",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create tag",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      },
+      "get": {
+        "operationId": "TaxonomyController_getTags",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all tags",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      }
+    },
+    "/academic/taxonomy/skills": {
+      "post": {
+        "operationId": "TaxonomyController_createSkill",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSkillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create skill",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      },
+      "get": {
+        "operationId": "TaxonomyController_getSkills",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all skills",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      }
+    },
+    "/academic/taxonomy/specializations": {
+      "post": {
+        "operationId": "TaxonomyController_createSpecialization",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpecializationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create specialization",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      },
+      "get": {
+        "operationId": "TaxonomyController_getSpecializations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all specializations",
+        "tags": [
+          "Academic Taxonomy"
+        ]
+      }
+    },
+    "/academic/structure/stages": {
+      "post": {
+        "operationId": "StructureController_createStage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create educational stage (e.g. Primary)",
+        "tags": [
+          "Academic Structure"
+        ]
+      },
+      "get": {
+        "operationId": "StructureController_getStages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all stages with their levels",
+        "tags": [
+          "Academic Structure"
+        ]
+      }
+    },
+    "/academic/structure/levels": {
+      "post": {
+        "operationId": "StructureController_createLevel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLevelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create level for a stage",
+        "tags": [
+          "Academic Structure"
+        ]
+      },
+      "get": {
+        "operationId": "StructureController_getLevels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all levels",
+        "tags": [
+          "Academic Structure"
+        ]
+      }
+    },
+    "/academic/structure/departments": {
+      "post": {
+        "operationId": "StructureController_createDepartment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDepartmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create department",
+        "tags": [
+          "Academic Structure"
+        ]
+      },
+      "get": {
+        "operationId": "StructureController_getDepartments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all departments with branches",
+        "tags": [
+          "Academic Structure"
+        ]
+      }
+    },
+    "/academic/structure/branches": {
+      "post": {
+        "operationId": "StructureController_createBranch",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBranchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create branch for department",
+        "tags": [
+          "Academic Structure"
+        ]
+      }
+    },
+    "/academic/subjects/groups": {
+      "post": {
+        "operationId": "SubjectController_createSubjectGroup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubjectGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create subject group",
+        "tags": [
+          "Academic Subjects"
+        ]
+      },
+      "get": {
+        "operationId": "SubjectController_getSubjectGroups",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all subject groups",
+        "tags": [
+          "Academic Subjects"
+        ]
+      }
+    },
+    "/academic/subjects": {
+      "post": {
+        "operationId": "SubjectController_createSubject",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubjectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a subject",
+        "tags": [
+          "Academic Subjects"
+        ]
+      },
+      "get": {
+        "operationId": "SubjectController_getSubjects",
+        "parameters": [
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get subjects with pagination",
+        "tags": [
+          "Academic Subjects"
+        ]
+      }
+    },
+    "/academic/subjects/{id}": {
+      "delete": {
+        "operationId": "SubjectController_deleteSubject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete subject",
+        "tags": [
+          "Academic Subjects"
+        ]
+      }
+    },
+    "/academic/time/years": {
+      "post": {
+        "operationId": "TimeController_createAcademicYear",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAcademicYearDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create academic year",
+        "tags": [
+          "Academic Time"
+        ]
+      },
+      "get": {
+        "operationId": "TimeController_getAcademicYears",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get academic years and semesters",
+        "tags": [
+          "Academic Time"
+        ]
+      }
+    },
+    "/academic/time/semesters": {
+      "post": {
+        "operationId": "TimeController_createSemester",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSemesterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create semester inside academic year",
+        "tags": [
+          "Academic Time"
+        ]
+      }
+    },
+    "/academic/learning-paths": {
+      "post": {
+        "operationId": "LearningPathController_createLearningPath",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLearningPathDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create learning path",
+        "tags": [
+          "Academic Learning Paths"
+        ]
+      },
+      "get": {
+        "operationId": "LearningPathController_getLearningPaths",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all learning paths",
+        "tags": [
+          "Academic Learning Paths"
+        ]
+      }
+    },
+    "/academic/learning-paths/{id}": {
+      "delete": {
+        "operationId": "LearningPathController_deleteLearningPath",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete learning path",
+        "tags": [
+          "Academic Learning Paths"
+        ]
+      }
+    },
+    "/student/dashboard": {
+      "get": {
+        "operationId": "StudentController_getDashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get student dashboard data",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/courses": {
+      "get": {
+        "operationId": "StudentController_getMyCourses",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my enrolled courses",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/courses/{courseId}/check-enrollment": {
+      "get": {
+        "operationId": "StudentController_checkEnrollment",
+        "parameters": [
+          {
+            "name": "courseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Check if student is enrolled in a course",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/explore": {
+      "get": {
+        "operationId": "StudentController_getAvailableCourses",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get available (grade-filtered) courses",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/courses/{slug}/workspace": {
+      "get": {
+        "operationId": "StudentController_getCourseWorkspace",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get course learning workspace content",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/lessons/{lessonId}/note": {
+      "get": {
+        "operationId": "StudentController_getLessonNote",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get student note for a lesson",
+        "tags": [
+          "Student"
+        ]
+      },
+      "post": {
+        "operationId": "StudentController_saveLessonNote",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save student note for a lesson",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/lessons/{lessonId}/complete": {
+      "post": {
+        "operationId": "StudentController_markLessonCompleted",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a lesson as completed",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/notifications": {
+      "get": {
+        "operationId": "StudentController_getNotifications",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my notifications",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/notifications/{id}/read": {
+      "post": {
+        "operationId": "StudentController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark notification as read",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/video/{videoId}/stream": {
+      "get": {
+        "operationId": "StudentController_getVideoStream",
+        "parameters": [
+          {
+            "name": "videoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get video stream URL (requires enrollment)",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/video/{videoId}/duration": {
+      "patch": {
+        "operationId": "StudentController_updateVideoDuration",
+        "parameters": [
+          {
+            "name": "videoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Silently update video duration if it is currently 0",
+        "tags": [
+          "Student"
+        ]
+      }
+    },
+    "/student/checkout/apply-coupon": {
+      "post": {
+        "operationId": "CheckoutController_applyCoupon",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Validate a coupon code for a specific course",
+        "tags": [
+          "Student Checkout"
+        ]
+      }
+    },
+    "/student/checkout/enroll": {
+      "post": {
+        "operationId": "CheckoutController_enroll",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Enroll in a course (for free courses or 100% discount coupons)",
+        "tags": [
+          "Student Checkout"
+        ]
+      }
+    },
+    "/teacher/dashboard": {
+      "get": {
+        "operationId": "TeacherController_getDashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get teacher dashboard statistics",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses": {
+      "get": {
+        "operationId": "TeacherController_getMyCourses",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my courses",
+        "tags": [
+          "Teacher"
+        ]
+      },
+      "post": {
+        "operationId": "TeacherController_createCourse",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCourseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new course",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}": {
+      "get": {
+        "operationId": "TeacherController_getCourseDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get course detail for editing",
+        "tags": [
+          "Teacher"
+        ]
+      },
+      "patch": {
+        "operationId": "TeacherController_updateCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a course (owner only)",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/sections": {
+      "post": {
+        "operationId": "TeacherController_addSection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a new section to a course",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/sections/{sectionId}": {
+      "delete": {
+        "operationId": "TeacherController_deleteSection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a section from a course",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/lessons": {
+      "post": {
+        "operationId": "TeacherController_addLesson",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddLessonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a video lesson to a course",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/lessons/{lessonId}/duration": {
+      "patch": {
+        "operationId": "TeacherController_updateLessonDuration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update video duration if missing",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/lessons/{lessonId}": {
+      "delete": {
+        "operationId": "TeacherController_deleteLesson",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a lesson from a course",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/lessons/{lessonId}/attachments": {
+      "post": {
+        "operationId": "TeacherController_addLessonAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddAttachmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add an attachment to a lesson",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/submit": {
+      "post": {
+        "operationId": "TeacherController_submitForReview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit course for admin review",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/students": {
+      "get": {
+        "operationId": "TeacherController_getMyStudents",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get students enrolled in my courses",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/enrollments/{enrollmentId}": {
+      "delete": {
+        "operationId": "TeacherController_cancelStudentSubscription",
+        "parameters": [
+          {
+            "name": "enrollmentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a student subscription from a paid course",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/courses/{id}/lessons/{lessonId}/results": {
+      "get": {
+        "operationId": "TeacherController_getLessonExamResults",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get exam results for a lesson",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/notifications/send": {
+      "post": {
+        "operationId": "TeacherController_sendNotification",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a notification to all my students",
+        "tags": [
+          "Teacher"
+        ]
+      }
+    },
+    "/teacher/coupons": {
+      "get": {
+        "operationId": "TeacherCouponsController_getCoupons",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all coupons for courses owned by the teacher",
+        "tags": [
+          "Teacher Coupons"
+        ]
+      },
+      "post": {
+        "operationId": "TeacherCouponsController_createCoupon",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new coupon for a course",
+        "tags": [
+          "Teacher Coupons"
+        ]
+      }
+    },
+    "/teacher/coupons/{id}": {
+      "delete": {
+        "operationId": "TeacherCouponsController_deleteCoupon",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete or deactivate a coupon",
+        "tags": [
+          "Teacher Coupons"
+        ]
+      }
+    },
+    "/teacher/courses/{courseId}/lessons/{lessonId}/exam": {
+      "post": {
+        "operationId": "TeacherExamController_createOrUpdateExam",
+        "parameters": [
+          {
+            "name": "courseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrUpdateExamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create or update exam for a lesson",
+        "tags": [
+          "Teacher Exams"
+        ]
+      },
+      "get": {
+        "operationId": "TeacherExamController_getExam",
+        "parameters": [
+          {
+            "name": "courseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get exam for a lesson",
+        "tags": [
+          "Teacher Exams"
+        ]
+      }
+    },
+    "/teacher/courses/{courseId}/lessons/{lessonId}/exam/retake": {
+      "post": {
+        "operationId": "TeacherExamController_grantRetake",
+        "parameters": [
+          {
+            "name": "courseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Grant exam retake permission to a student",
+        "tags": [
+          "Teacher Exams"
+        ]
+      }
+    },
+    "/admin/academic-year/promote": {
+      "post": {
+        "operationId": "AcademicYearController_promoteStudents",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AcademicYear"
+        ]
+      }
+    },
+    "/admin/academic-year/graduate": {
+      "delete": {
+        "operationId": "AcademicYearController_graduateStudents",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AcademicYear"
+        ]
+      }
+    },
+    "/admin/academic-year/reset": {
+      "delete": {
+        "operationId": "AcademicYearController_resetAllStudents",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AcademicYear"
+        ]
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "operationId": "AdminController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get platform statistics",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/teachers": {
+      "get": {
+        "operationId": "AdminController_getTeachers",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all teachers with filters",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/teachers/{id}/approve": {
+      "post": {
+        "operationId": "AdminController_approveTeacher",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve a teacher application",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/teachers/{id}/reject": {
+      "post": {
+        "operationId": "AdminController_rejectTeacher",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reject a teacher application",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/students": {
+      "get": {
+        "operationId": "AdminController_getStudents",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all students",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/suspend": {
+      "post": {
+        "operationId": "AdminController_suspendUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Suspend a user account",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/activate": {
+      "post": {
+        "operationId": "AdminController_activateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate a user account",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/delete": {
+      "post": {
+        "operationId": "AdminController_deleteUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a user account permanently",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/courses": {
+      "get": {
+        "operationId": "AdminController_getCourses",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all courses",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/courses/{id}/publish": {
+      "post": {
+        "operationId": "AdminController_publishCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Publish a course",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/courses/{id}/unpublish": {
+      "post": {
+        "operationId": "AdminController_unpublishCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unpublish a course",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/courses/{id}": {
+      "delete": {
+        "operationId": "AdminController_deleteCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a course completely",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/courses/slug/{slug}": {
+      "get": {
+        "operationId": "AdminController_getCourseBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get course details by slug for admin",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/notifications/send": {
+      "post": {
+        "operationId": "AdminController_sendNotification",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a notification to users",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/coupons": {
+      "get": {
+        "operationId": "AdminController_getCoupons",
+        "parameters": [
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all coupons",
+        "tags": [
+          "Admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_createCoupon",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new coupon",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/coupons/{id}": {
+      "delete": {
+        "operationId": "AdminController_deleteCoupon",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a coupon",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/unlock": {
+      "patch": {
+        "operationId": "AdminController_unlockUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unlock a locked user account and reset failed attempts",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/taxonomy/categories": {
+      "get": {
+        "operationId": "AdminTaxonomyController_getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all categories",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      },
+      "post": {
+        "operationId": "AdminTaxonomyController_createCategory",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a category",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      }
+    },
+    "/admin/taxonomy/categories/{id}": {
+      "patch": {
+        "operationId": "AdminTaxonomyController_updateCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a category",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminTaxonomyController_deleteCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a category",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      }
+    },
+    "/admin/taxonomy/subjects": {
+      "get": {
+        "operationId": "AdminTaxonomyController_getSubjects",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all subjects",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      },
+      "post": {
+        "operationId": "AdminTaxonomyController_createSubject",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a subject",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      }
+    },
+    "/admin/taxonomy/subjects/{id}": {
+      "patch": {
+        "operationId": "AdminTaxonomyController_updateSubject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a subject",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminTaxonomyController_deleteSubject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a subject",
+        "tags": [
+          "Admin Taxonomy"
+        ]
+      }
+    },
+    "/public/get-sections": {
+      "get": {
+        "operationId": "PublicController_getSections",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/test-delete-section/{id}": {
+      "get": {
+        "operationId": "PublicController_testDeleteSection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/fix-db": {
+      "get": {
+        "operationId": "PublicController_fixDb",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/courses": {
+      "get": {
+        "operationId": "PublicController_getCourses",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Search query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "description": "Category slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "grade",
+            "required": false,
+            "in": "query",
+            "description": "Grade/level slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "newest | rating | popular",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List published courses for public browsing",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/courses/{slug}": {
+      "get": {
+        "operationId": "PublicController_getCourse",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get a single published course by slug",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/teachers": {
+      "get": {
+        "operationId": "PublicController_getTeachers",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subjectId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List approved teachers for public browsing",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/teachers/{id}": {
+      "get": {
+        "operationId": "PublicController_getTeacher",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get teacher public profile with their courses",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/categories": {
+      "get": {
+        "operationId": "PublicController_getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List all categories with published course counts",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/subjects": {
+      "get": {
+        "operationId": "PublicController_getSubjects",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List all subjects that have at least one approved teacher",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/stats": {
+      "get": {
+        "operationId": "PublicController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get public platform statistics",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/public/platform-branding": {
+      "get": {
+        "operationId": "PublicController_getPlatformBranding",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get enabled platform branding configurations",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/admin/platform-branding": {
+      "get": {
+        "operationId": "PlatformBrandingController_getAllConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all platform branding configurations",
+        "tags": [
+          "Admin - Platform Branding"
+        ]
+      }
+    },
+    "/admin/platform-branding/{platform}": {
+      "patch": {
+        "operationId": "PlatformBrandingController_upsertConfig",
+        "parameters": [
+          {
+            "name": "platform",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatformBrandingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update or create a platform branding configuration",
+        "tags": [
+          "Admin - Platform Branding"
+        ]
+      }
+    },
+    "/community/feed": {
+      "get": {
+        "operationId": "CommunityController_getFeed",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get community feed",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/posts": {
+      "post": {
+        "operationId": "CommunityController_createPost",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new post",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/posts/{id}/like": {
+      "post": {
+        "operationId": "CommunityController_reactToPost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Like or unlike a post",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/posts/{id}/comments": {
+      "post": {
+        "operationId": "CommunityController_addComment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Comment on a post",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/posts/{id}": {
+      "delete": {
+        "operationId": "CommunityController_deletePost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a post",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/upload/image": {
+      "post": {
+        "operationId": "UploadController_uploadImage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "folder": {
+                    "type": "string",
+                    "description": "The target folder in Cloudinary (e.g. masarak/avatars)"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload an image to Cloudinary (requires auth)",
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/file": {
+      "post": {
+        "operationId": "UploadController_uploadFile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "folder": {
+                    "type": "string",
+                    "description": "masarak/attachments"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload a file (PDF, DOC, ZIP) to Cloudinary (requires auth)",
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/exams/lesson/{lessonId}": {
+      "get": {
+        "operationId": "ExamController_getExamByLesson",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get exam details for a lesson",
+        "tags": [
+          "Exams"
+        ]
+      }
+    },
+    "/exams/start": {
+      "post": {
+        "operationId": "ExamController_startSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartExamSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start a new exam session or resume an existing one",
+        "tags": [
+          "Exams"
+        ]
+      }
+    },
+    "/exams/save": {
+      "post": {
+        "operationId": "ExamController_autoSave",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoSaveSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Auto save answers during the exam",
+        "tags": [
+          "Exams"
+        ]
+      }
+    },
+    "/exams/submit": {
+      "post": {
+        "operationId": "ExamController_submitSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitExamSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit exam session for auto-correction",
+        "tags": [
+          "Exams"
+        ]
+      }
+    },
+    "/exams/review/{sessionId}": {
+      "get": {
+        "operationId": "ExamController_getReviewDetails",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get exam review details",
+        "tags": [
+          "Exams"
+        ]
+      }
+    },
+    "/payments/checkout": {
+      "post": {
+        "operationId": "PaymentsController_checkout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Initialize checkout for a course",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/payments/history": {
+      "get": {
+        "operationId": "PaymentsController_getHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get payment history",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/webhooks/paymob": {
+      "post": {
+        "operationId": "WebhookController_handlePaymobWebhook",
+        "parameters": [
+          {
+            "name": "hmac",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Handle Paymob callback webhooks",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Masarak API",
+    "description": "The Masarak Enterprise E-Learning API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterStudentDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterTeacherDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "VerifyResetCodeDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ForceChangePasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateStudentProfileDto": {
+        "type": "object",
+        "properties": {
+          "academicYear": {
+            "type": "string"
+          },
+          "learningPreferences": {
+            "type": "string"
+          },
+          "countryId": {
+            "type": "string"
+          },
+          "cityId": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateTeacherProfileDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "qualifications": {
+            "type": "string"
+          },
+          "subjectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "experience": {
+            "type": "number"
+          },
+          "levelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "socialLinks": {
+            "type": "string"
+          },
+          "countryId": {
+            "type": "string"
+          },
+          "cityId": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateSettingsDto": {
+        "type": "object",
+        "properties": {
+          "accessibilityMode": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateNotificationSettingsDto": {
+        "type": "object",
+        "properties": {
+          "emailAlerts": {
+            "type": "boolean"
+          },
+          "smsAlerts": {
+            "type": "boolean"
+          },
+          "pushAlerts": {
+            "type": "boolean"
+          },
+          "marketingAlerts": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdatePrivacySettingsDto": {
+        "type": "object",
+        "properties": {
+          "profileVisibility": {
+            "type": "string"
+          },
+          "showActivity": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdatePreferencesDto": {
+        "type": "object",
+        "properties": {
+          "languageId": {
+            "type": "string"
+          },
+          "themeId": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateTagDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateSkillDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateSpecializationDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateStageDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateLevelDto": {
+        "type": "object",
+        "properties": {
+          "stageId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "stageId",
+          "name",
+          "slug"
+        ]
+      },
+      "CreateDepartmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateBranchDto": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "departmentId",
+          "name",
+          "slug"
+        ]
+      },
+      "CreateSubjectGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateSubjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "departmentId": {
+            "type": "string"
+          },
+          "branchId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CreateAcademicYearDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "CreateSemesterDto": {
+        "type": "object",
+        "properties": {
+          "academicYearId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "academicYearId",
+          "name",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "CreateLearningPathDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "slug"
+        ]
+      },
+      "CreateCourseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AddLessonDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AddAttachmentDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateOrUpdateExamDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdatePlatformBrandingDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "StartExamSessionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AutoSaveSessionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SubmitExamSessionDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

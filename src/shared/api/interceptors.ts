@@ -1,4 +1,4 @@
-import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { apiClient } from './api.client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import {
@@ -64,27 +64,21 @@ export const setupInterceptors = () => {
 
         try {
           const refreshToken = useAuthStore.getState().refreshToken;
-          if (!refreshToken) {
-            throw new Error('No refresh token available');
+          const baseURL = apiClient.defaults.baseURL || 'http://127.0.0.1:4000/api';
+          const res = await axios.post(`${baseURL}/auth/refresh`, {}, { withCredentials: true });
+          const { accessToken, refreshToken: newRefreshToken } = res.data;
+
+          useAuthStore.getState().setTokens({
+            accessToken,
+            refreshToken: newRefreshToken || refreshToken
+          });
+
+          processQueue(null, accessToken);
+
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           }
-
-          // In the future this will be a real call: await authService.refreshToken({ refreshToken })
-          // For now, simulate a call or rely on authService to handle it.
-          // Since authService might import apiClient, to avoid circular deps we just clearAuth if refresh fails.
-          
-          // MOCK Refresh (Assuming authService handles the actual API call, we can just reject here for now or call a specific refresh endpoint)
-          // const res = await axios.post(`${baseURL}/auth/refresh`, { refreshToken });
-          // const { accessToken } = res.data;
-          
-          // useAuthStore.getState().setTokens({ accessToken, refreshToken: res.data.refreshToken });
-          // processQueue(null, accessToken);
-          // if (originalRequest.headers) {
-          //   originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          // }
-          // return apiClient(originalRequest);
-
-          // For the mock phase:
-          throw new UnauthorizedError('Session expired. Please login again.');
+          return apiClient(originalRequest);
         } catch (refreshError: unknown) {
           processQueue(refreshError as Error, null);
           useAuthStore.getState().clearAuth();

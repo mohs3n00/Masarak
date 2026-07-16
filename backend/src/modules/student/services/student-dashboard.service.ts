@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { EnrollmentStatus, CourseStatus } from '@prisma/client';
 
@@ -28,7 +28,7 @@ export class StudentDashboardService {
         include: {
           course: {
             select: {
-              id: true, title: true, slug: true, thumbnailUrl: true, grade: true,
+              id: true, title: true, slug: true, thumbnailUrl: true, grades: true,
               instructors: {
                 include: { teacher: { include: { user: { select: { name: true } } } } },
                 where: { isOwner: true },
@@ -65,7 +65,7 @@ export class StudentDashboardService {
         title: e.course.title,
         slug: e.course.slug,
         thumbnailUrl: e.course.thumbnailUrl,
-        grade: e.course.grade,
+        grade: e.course.grades[0] || null,
         teacherName: e.course.instructors[0]?.teacher?.user?.name,
       },
       progress: progressMap.get(e.course.id) ?? { completionPct: 0 },
@@ -136,7 +136,7 @@ export class StudentDashboardService {
           slug: e.course.slug,
           thumbnailUrl: e.course.thumbnailUrl,
           price: e.course.price,
-          grade: e.course.grade,
+          grade: e.course.grades[0] || null,
           teacherName: e.course.instructors[0]?.teacher?.user?.name,
           teacherAvatar: e.course.instructors[0]?.teacher?.user?.avatar,
           sectionsCount: e.course._count.sections,
@@ -159,7 +159,7 @@ export class StudentDashboardService {
     const where: any = {
       status: CourseStatus.PUBLISHED,
       // Filter by grade if student has a grade set
-      ...(profile?.grade && { grade: profile.grade }),
+      ...(profile?.grade && { grades: { has: profile.grade } }),
     };
 
     const [courses, total] = await Promise.all([
@@ -174,7 +174,7 @@ export class StudentDashboardService {
             where: { isOwner: true },
             take: 1,
           },
-          category: { select: { name: true } },
+          subject: { select: { name: true } },
           _count: { select: { enrollments: true } },
         },
       }),
@@ -196,8 +196,8 @@ export class StudentDashboardService {
         thumbnailUrl: c.thumbnailUrl,
         price: c.price,
         accessType: c.accessType,
-        grade: c.grade,
-        category: c.category?.name,
+        grade: c.grades[0] || null,
+        category: c.subject?.name,
         teacherName: c.instructors[0]?.teacher?.user?.name,
         teacherAvatar: c.instructors[0]?.teacher?.user?.avatar,
         enrollmentCount: c._count.enrollments,
@@ -287,14 +287,30 @@ export class StudentDashboardService {
       throw new ForbiddenException('You must be enrolled to access this course workspace');
     }
 
+    const userRating = await this.prisma.review.findUnique({
+      where: {
+        courseId_studentId: {
+          courseId: course.id,
+          studentId: userId,
+        },
+      },
+      select: {
+        rating: true,
+        comment: true,
+      },
+    });
+
     return {
       course: {
         id: course.id,
         title: course.title,
         slug: course.slug,
-        teacherName: course.instructors[0]?.teacher?.user?.name
+        teacherName: course.instructors[0]?.teacher?.user?.name,
+        averageRating: course.averageRating,
+        reviewCount: course.reviewCount,
       },
       sections: course.sections,
+      userRating: userRating || null,
     };
   }
 
@@ -324,11 +340,96 @@ export class StudentDashboardService {
       },
     });
   }
+
   async checkEnrollment(userId: string, courseId: string) {
     const enrollment = await this.prisma.enrollment.findFirst({
       where: { userId, courseId, status: EnrollmentStatus.ACTIVE },
     });
     return { isEnrolled: !!enrollment };
+  }
+
+  async rateCourse(userId: string, courseId: string, rating: number, comment?: string) {
+    const enrollment = await this.prisma.enrollment.findFirst({
+      where: { userId, courseId, status: EnrollmentStatus.ACTIVE },
+    });
+    if (!enrollment) {
+      throw new ForbiddenException('يمكنك تقييم الكورس فقط بعد الاشتراك فيه');
+    }
+
+    if (rating < 1 || rating > 5) {
+      throw new BadRequestException('يجب أن يكون التقييم بين 1 و 5 نجوم');
+    }
+
+    const review = await this.prisma.review.upsert({
+      where: {
+        courseId_studentId: {
+          courseId,
+          studentId: userId,
+        },
+      },
+      update: {
+        rating,
+        comment,
+      },
+      create: {
+        courseId,
+        studentId: userId,
+        rating,
+        comment,
+      },
+    });
+
+    const aggregate = await this.prisma.review.aggregate({
+      where: { courseId },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    const averageRating = aggregate._avg.rating || 0;
+    const reviewCount = aggregate._count.rating || 0;
+
+    await this.prisma.course.update({
+      where: { id: courseId },
+      data: {
+        averageRating,
+        reviewCount,
+      },
+    });
+
+    const ownerInstructor = await this.prisma.courseInstructor.findFirst({
+      where: { courseId, isOwner: true },
+      include: { teacher: true },
+    });
+
+    if (ownerInstructor) {
+      const teacherId = ownerInstructor.teacherId;
+      const teacherCourses = await this.prisma.courseInstructor.findMany({
+        where: { teacherId },
+        select: { courseId: true },
+      });
+      const courseIds = teacherCourses.map((tc) => tc.courseId);
+
+      const teacherAggregate = await this.prisma.review.aggregate({
+        where: { courseId: { in: courseIds } },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+
+      await this.prisma.teacherAnalytics.upsert({
+        where: { teacherId },
+        update: {
+          averageRating: teacherAggregate._avg.rating || 0,
+          totalReviews: teacherAggregate._count.rating || 0,
+        },
+        create: {
+          teacherId,
+          averageRating: teacherAggregate._avg.rating || 0,
+          totalReviews: teacherAggregate._count.rating || 0,
+        },
+      });
+    }
+
+    return review;
   }
 
 }

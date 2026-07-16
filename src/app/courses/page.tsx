@@ -4,7 +4,7 @@ import { CourseSearchBar } from "@/features/marketing/components/filters/CourseS
 import { CourseSidebarFilters } from "@/features/marketing/components/filters/CourseSidebarFilters";
 import { CourseSortSelect } from "@/features/marketing/components/filters/CourseSortSelect";
 import { AppPagination } from "@/shared/components/molecules/AppPagination";
-import { fetchPublicCourses, fetchPublicCategories } from "@/lib/api/public";
+import { fetchPublicCourses, fetchPublicSubjects } from "@/lib/api/public";
 import { cookies } from "next/headers";
 
 const ITEMS_PER_PAGE = 9;
@@ -21,25 +21,25 @@ export default async function CoursesPage(props: { searchParams: Promise<{ [key:
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken')?.value;
   
-  const categorySlug = typeof searchParams.category === 'string' ? searchParams.category : undefined;
+  const subjectSlug = typeof searchParams.subject === 'string' ? searchParams.subject : (typeof searchParams.category === 'string' ? searchParams.category : undefined);
   const query = typeof searchParams.q === 'string' ? searchParams.q.toLowerCase() : undefined;
   const levels = Array.isArray(searchParams.level) ? searchParams.level : (typeof searchParams.level === 'string' ? [searchParams.level] : []);
-  const gradeSlug = levels.length > 0 ? levels[0] : undefined;
+  const gradeSlug = token && levels.length > 0 ? levels[0] : undefined;
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : undefined;
   const page = typeof searchParams.page === 'string' ? Math.max(1, parseInt(searchParams.page) || 1) : 1;
 
   // Fetch real data
-  const [{ data: courses, total: totalItems }, categories] = await Promise.all([
+  const [{ data: courses, total: totalItems }, subjects] = await Promise.all([
     fetchPublicCourses({
       take: ITEMS_PER_PAGE,
       skip: (page - 1) * ITEMS_PER_PAGE,
       q: query,
-      category: categorySlug,
+      subject: subjectSlug,
       grade: gradeSlug,
       sort: sort,
       token: token,
     }),
-    fetchPublicCategories()
+    fetchPublicSubjects()
   ]);
 
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -70,7 +70,7 @@ export default async function CoursesPage(props: { searchParams: Promise<{ [key:
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
             {/* Sidebar / Categories */}
-            <CourseSidebarFilters categories={categories} totalCourses={totalItems} levels={mockLevels} />
+            <CourseSidebarFilters categories={subjects} totalCourses={totalItems} levels={token ? mockLevels : []} />
 
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">

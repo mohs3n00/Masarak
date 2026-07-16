@@ -52,6 +52,7 @@ export class TeacherDashboardService {
       totalReviews: analytics?.totalReviews ?? 0,
       walletBalance: wallet?.availableBalance ?? 0,
       totalEarned: wallet?.totalEarned ?? 0,
+      currency: wallet?.currency ?? 'SAR',
       verificationStatus: profile.verificationStatus,
     };
   }
@@ -71,7 +72,7 @@ export class TeacherDashboardService {
       include: {
         course: {
           include: {
-            category: { select: { name: true } },
+            subject: { select: { name: true } },
             _count: { select: { enrollments: true, sections: true } },
           },
         },
@@ -90,9 +91,9 @@ export class TeacherDashboardService {
         price: row.course.price,
         status: row.course.status,
         visibility: row.course.visibility,
-        grade: row.course.grade,
+        grade: row.course.grades[0] || null,
         isOwner: row.isOwner,
-        category: row.course.category?.name,
+        category: row.course.subject?.name,
         enrollmentCount: row.course._count.enrollments,
         sectionCount: row.course._count.sections,
         createdAt: row.course.createdAt,
@@ -109,7 +110,9 @@ export class TeacherDashboardService {
       title: string;
       description: string;
       grade?: string;
+      grades?: string[];
       categoryId?: string;
+      subjectId?: string;
       price?: number;
       accessType?: CourseAccessType;
       type?: CourseType;
@@ -125,34 +128,38 @@ export class TeacherDashboardService {
       .replace(/^-|-$/g, '') +
       '-' + Date.now();
 
-    // Enforce "One Subject per Teacher" rule and link courses to the teacher's subject.
-    let assignedCategoryId = dto.categoryId || null;
+    // Link course to selected subject, or fallback to teacher's first subject.
+    let assignedSubjectId = dto.subjectId || null;
     
-    if (profile.subjects && profile.subjects.length > 0) {
-      const subject = profile.subjects[0];
-      const category = await this.prisma.category.findFirst({
+    // Compatibility: if categoryId is sent, map it to subjectId if we can find a subject with that ID/slug/name
+    if (!assignedSubjectId && dto.categoryId) {
+      const subject = await this.prisma.subject.findFirst({
         where: {
           OR: [
-            { id: subject.id },
-            { name: subject.name },
-            { slug: subject.slug }
+            { id: dto.categoryId },
+            { slug: dto.categoryId },
           ]
         }
       });
-      if (category) {
-        assignedCategoryId = category.id;
-      } else {
-        // If the teacher has a subject that doesn't exist as a category, we should still fall back to something or leave it null.
+      if (subject) {
+        assignedSubjectId = subject.id;
       }
     }
+
+    if (!assignedSubjectId && profile.subjects && profile.subjects.length > 0) {
+      assignedSubjectId = profile.subjects[0].id;
+    }
+
+    // Combine grades array or fallback to grade string
+    const courseGrades = dto.grades || (dto.grade ? [dto.grade] : []);
 
     const course = await this.prisma.course.create({
       data: {
         title: dto.title,
         description: dto.description,
         slug,
-        grade: dto.grade,
-        categoryId: assignedCategoryId,
+        grades: courseGrades,
+        subjectId: assignedSubjectId,
         price: dto.price ?? 0,
         accessType: dto.accessType ?? CourseAccessType.PAID,
         type: dto.type ?? CourseType.RECORDED,
@@ -376,9 +383,19 @@ export class TeacherDashboardService {
     });
     if (!ownership) throw new ForbiddenException('You do not own this course');
 
+    const updateData = { ...dto };
+    if (updateData.grade) {
+      updateData.grades = [updateData.grade];
+      delete updateData.grade;
+    }
+    if (updateData.categoryId) {
+      updateData.subjectId = updateData.categoryId;
+      delete updateData.categoryId;
+    }
+
     return this.prisma.course.update({
       where: { id: courseId },
-      data: dto,
+      data: updateData,
     });
   }
 
@@ -502,7 +519,7 @@ export class TeacherDashboardService {
     });
     if (!ownership) throw new ForbiddenException('You do not own this course');
 
-    return this.prisma.course.findUnique({
+    const course = await this.prisma.course.findUnique({
       where: { id: courseId },
       include: {
         sections: {
@@ -514,12 +531,21 @@ export class TeacherDashboardService {
           },
           orderBy: { order: 'asc' },
         },
-        category: true,
+        subject: true,
         objectives: true,
         requirements: true,
         faqs: true,
       },
     });
+
+    if (!course) return null;
+    const { subject, ...rest } = course as any;
+    return {
+      ...rest,
+      subject,
+      category: subject,
+      grade: course.grades?.[0] || null,
+    };
   }
 
 

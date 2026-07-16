@@ -20,7 +20,7 @@ export class CourseRepository {
   ) {
     const where: Prisma.CourseWhereInput = {};
     if (filterOptions?.grade) {
-      where.grade = filterOptions.grade;
+      where.grades = { has: filterOptions.grade };
     }
 
     const courses = await this.prisma.course.findMany({

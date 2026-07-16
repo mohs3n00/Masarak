@@ -545,17 +545,17 @@ model Course {
   seoTitle        String?
   metaDescription String?
   reviews         Review[]
+  averageRating   Float              @default(0.0)
+  reviewCount     Int                @default(0)
 
-  categoryId String?
   subjectId  String?
-  grade      String?
+  grades     String[]         @default([])
   difficulty Difficulty?
   type       CourseType       @default(RECORDED)
   status     CourseStatus     @default(DRAFT)
   visibility CourseVisibility @default(PUBLIC)
   accessType CourseAccessType @default(PAID)
 
-  category Category? @relation(fields: [categoryId], references: [id])
   subject  Subject?  @relation(fields: [subjectId], references: [id])
 
   tags          Tag[]
@@ -893,23 +893,6 @@ model Branch {
 // TAXONOMY (Categories, Tags, Skills, Subjects)
 // ------------------------------------------------------
 
-model Category {
-  id          String    @id @default(uuid())
-  parentId    String?
-  name        String
-  slug        String    @unique
-  description String?
-  icon        String?
-  order       Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-
-  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children Category[] @relation("CategoryHierarchy")
-  subjects Subject[]
-  courses  Course[]
-}
 
 model Tag {
   id        String   @id @default(uuid())
@@ -954,7 +937,6 @@ model Subject {
   name         String
   slug         String    @unique
   description  String?
-  categoryId   String?
   groupId      String?
   departmentId String?
   branchId     String?
@@ -962,7 +944,6 @@ model Subject {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  category   Category?     @relation(fields: [categoryId], references: [id])
   group      SubjectGroup? @relation(fields: [groupId], references: [id])
   department Department?   @relation(fields: [departmentId], references: [id])
   branch     Branch?       @relation(fields: [branchId], references: [id])

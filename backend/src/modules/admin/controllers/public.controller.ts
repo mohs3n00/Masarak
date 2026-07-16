@@ -83,7 +83,8 @@ export class PublicController {
   @ApiQuery({ name: 'take', required: false, type: Number })
   @ApiQuery({ name: 'skip', required: false, type: Number })
   @ApiQuery({ name: 'q', required: false, description: 'Search query' })
-  @ApiQuery({ name: 'category', required: false, description: 'Category slug' })
+  @ApiQuery({ name: 'category', required: false, description: 'Category (compatibility: mapped to subject) slug' })
+  @ApiQuery({ name: 'subject', required: false, description: 'Subject slug' })
   @ApiQuery({ name: 'grade', required: false, description: 'Grade/level slug' })
   @ApiQuery({ name: 'sort', required: false, description: 'newest | rating | popular' })
   async getCourses(
@@ -92,6 +93,7 @@ export class PublicController {
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number,
     @Query('q') q?: string,
     @Query('category') category?: string,
+    @Query('subject') subject?: string,
     @Query('grade') grade?: string,
     @Query('sort') sort?: string,
   ) {
@@ -109,7 +111,7 @@ export class PublicController {
         where: { userId: user.id }
       });
       if (profile && profile.grade) {
-        where.grade = profile.grade;
+        where.grades = { has: profile.grade };
       }
     }
 
@@ -119,15 +121,21 @@ export class PublicController {
         { description: { contains: q, mode: 'insensitive' } },
       ];
     }
-    if (category) {
-      where.category = { slug: category };
+    const selectedSubject = subject || category;
+    if (selectedSubject) {
+      where.subject = {
+        OR: [
+          { slug: selectedSubject },
+          { id: selectedSubject }
+        ]
+      };
     }
     if (grade) {
       const gradesToMatch = [grade];
       if (grade.endsWith('ي')) gradesToMatch.push(grade.replace(/ي$/, 'ى'));
       else if (grade.endsWith('ى')) gradesToMatch.push(grade.replace(/ى$/, 'ي'));
       
-      where.grade = { in: gradesToMatch };
+      where.grades = { hasSome: gradesToMatch };
     }
 
     let orderBy: any = { createdAt: 'desc' };
@@ -141,7 +149,7 @@ export class PublicController {
         take,
         orderBy,
         include: {
-          category: { select: { id: true, name: true, slug: true, icon: true } },
+          subject: { select: { id: true, name: true, slug: true } },
           instructors: {
             where: { isOwner: true },
             include: {
@@ -168,12 +176,13 @@ export class PublicController {
         price: c.price,
         originalPrice: c.originalPrice,
         accessType: c.accessType,
-        grade: c.grade,
+        grade: c.grades[0] || null,
         averageRating: c.averageRating,
         reviewCount: c.reviewCount,
         enrollmentCount: c._count.enrollments,
         lessonsCount: c._count.sections,
-        category: c.category,
+        category: c.subject ? { id: c.subject.id, name: c.subject.name, slug: c.subject.slug, icon: '📚' } : null,
+        subject: c.subject,
         teacher: c.instructors[0]
           ? {
               id: c.instructors[0].teacher.user.id,
@@ -202,7 +211,7 @@ export class PublicController {
         status: CourseStatus.PUBLISHED 
       },
       include: {
-        category: true,
+        subject: true,
         instructors: {
           include: {
             teacher: {
@@ -230,7 +239,13 @@ export class PublicController {
     });
 
     if (!course) throw new NotFoundException('Course not found');
-    return course;
+    const { subject, ...rest } = course as any;
+    return {
+      ...rest,
+      subject,
+      category: subject ? { id: subject.id, name: subject.name, slug: subject.slug, icon: '📚' } : null,
+      grade: course.grades?.[0] || null,
+    };
   }
 
   // ── Approved Teachers ───────────────────────────────────────────────
@@ -334,7 +349,7 @@ export class PublicController {
 
     const courseWhereClause: any = { status: CourseStatus.PUBLISHED, isPublished: true };
     if (studentGrade) {
-      courseWhereClause.grade = studentGrade;
+      courseWhereClause.grades = { has: studentGrade };
     }
 
     const user = await this.prisma.user.findFirst({
@@ -348,7 +363,7 @@ export class PublicController {
               include: {
                 course: {
                   include: {
-                    category: { select: { name: true } },
+                    subject: { select: { name: true } },
                     _count: { select: { enrollments: true } },
                   },
                 },
@@ -376,18 +391,18 @@ export class PublicController {
           price: i.course!.price,
           originalPrice: i.course!.originalPrice,
           accessType: i.course!.accessType,
-          category: i.course!.category?.name,
+          category: i.course!.subject?.name,
           enrollmentCount: i.course!._count.enrollments,
           averageRating: i.course!.averageRating,
         })),
     };
   }
 
-  // ── Categories ──────────────────────────────────────────────────────
   @Get('categories')
-  @ApiOperation({ summary: 'List all categories with published course counts' })
+  @ApiOperation({ summary: 'List all categories with published course counts (compatibility layer for subjects)' })
   async getCategories() {
-    const categories = await this.prisma.category.findMany({
+    const subjects = await this.prisma.subject.findMany({
+      where: { deletedAt: null },
       orderBy: { name: 'asc' },
       include: {
         _count: {
@@ -398,52 +413,36 @@ export class PublicController {
       },
     });
 
-    return categories.map((c: any) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      iconEmoji: c.iconEmoji,
-      color: c.color,
-      coursesCount: c._count.courses,
+    return subjects.map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      iconEmoji: '📚',
+      color: '#4F46E5',
+      coursesCount: s._count.courses,
     }));
   }
 
   // ── Subjects ────────────────────────────────────────────────────────
   @Get('subjects')
-  @ApiOperation({ summary: 'List all subjects that have at least one approved teacher' })
+  @ApiOperation({ summary: 'List all subjects' })
   async getSubjects() {
     const subjects = await this.prisma.subject.findMany({
-      where: { 
-        deletedAt: null,
-        OR: [
-          {
-            teachers: {
-              some: {
-                user: { isActive: true },
-                verificationStatus: 'APPROVED'
-              }
-            }
-          },
-          {
-            courses: {
-              some: {
-                status: 'PUBLISHED',
-                instructors: {
-                  some: {
-                    teacher: {
-                      user: { isActive: true },
-                      verificationStatus: 'APPROVED'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
-      },
+      where: { deletedAt: null },
       orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: {
+            courses: { where: { status: CourseStatus.PUBLISHED, isPublished: true } },
+          },
+        },
+      },
     });
-    return subjects;
+    return subjects.map((s: any) => ({
+      ...s,
+      coursesCount: s._count.courses,
+      courseCount: s._count.courses,
+    }));
   }
 
   // ── Platform Stats ──────────────────────────────────────────────────
@@ -456,7 +455,7 @@ export class PublicController {
         where: { role: 'TEACHER', isActive: true, teacherProfile: { verificationStatus: 'APPROVED' } },
       }),
       this.prisma.course.count({ where: { status: CourseStatus.PUBLISHED } }),
-      this.prisma.category.count(),
+      this.prisma.subject.count({ where: { deletedAt: null } }),
     ]);
 
     return { totalStudents, totalTeachers, totalCourses, totalCategories };

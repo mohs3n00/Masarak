@@ -65,6 +65,7 @@ export async function fetchPublicCourses(params?: {
   skip?: number;
   q?: string;
   category?: string;
+  subject?: string;
   grade?: string;
   sort?: string;
   token?: string;
@@ -74,6 +75,7 @@ export async function fetchPublicCourses(params?: {
   if (params?.skip) qs.set('skip', String(params.skip));
   if (params?.q) qs.set('q', params.q);
   if (params?.category) qs.set('category', params.category);
+  if (params?.subject) qs.set('subject', params.subject);
   if (params?.grade) qs.set('grade', params.grade);
   if (params?.sort) qs.set('sort', params.sort);
 

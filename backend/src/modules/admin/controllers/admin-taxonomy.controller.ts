@@ -25,32 +25,7 @@ import { AdminTaxonomyService } from '../services/admin-taxonomy.service';
 export class AdminTaxonomyController {
   constructor(private readonly taxonomyService: AdminTaxonomyService) {}
 
-  // ── Categories ─────────────────────────────────────────────────────────
-  @Get('categories')
-  @ApiOperation({ summary: 'Get all categories' })
-  getCategories() {
-    return this.taxonomyService.getCategories();
-  }
 
-  @Post('categories')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a category' })
-  createCategory(@Body() dto: { name: string; description?: string }) {
-    return this.taxonomyService.createCategory(dto);
-  }
-
-  @Patch('categories/:id')
-  @ApiOperation({ summary: 'Update a category' })
-  updateCategory(@Param('id') id: string, @Body() dto: { name?: string; description?: string }) {
-    return this.taxonomyService.updateCategory(id, dto);
-  }
-
-  @Delete('categories/:id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a category' })
-  deleteCategory(@Param('id') id: string) {
-    return this.taxonomyService.deleteCategory(id);
-  }
 
   // ── Subjects ───────────────────────────────────────────────────────────
   @Get('subjects')
@@ -62,13 +37,13 @@ export class AdminTaxonomyController {
   @Post('subjects')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a subject' })
-  createSubject(@Body() dto: { name: string; description?: string; categoryId?: string }) {
+  createSubject(@Body() dto: { name: string; description?: string }) {
     return this.taxonomyService.createSubject(dto);
   }
 
   @Patch('subjects/:id')
   @ApiOperation({ summary: 'Update a subject' })
-  updateSubject(@Param('id') id: string, @Body() dto: { name?: string; description?: string; categoryId?: string }) {
+  updateSubject(@Param('id') id: string, @Body() dto: { name?: string; description?: string }) {
     return this.taxonomyService.updateSubject(id, dto);
   }
 

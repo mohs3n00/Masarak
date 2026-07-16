@@ -82,20 +82,22 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.login(
+    const result = await this.authService.login(
       dto,
       req.ip,
       req.headers['user-agent'],
     );
+    const tokens = result.tokens;
+    const user = result.user;
 
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Default maxAge is 15 minutes for access token
+    // Default maxAge is 24 hours for access token
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'strict',
-      maxAge: 15 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000, 
     });
 
     // Refresh token lives for 30 days if rememberMe, else 1 day (or could be session-only)
@@ -110,7 +112,11 @@ export class AuthController {
       ...(refreshTokenMaxAge ? { maxAge: refreshTokenMaxAge } : {}),
     });
 
-    return { message: 'Logged in successfully' };
+    return {
+      message: 'Logged in successfully',
+      user,
+      tokens,
+    };
   }
 
   @Post('logout')
@@ -156,7 +162,7 @@ export class AuthController {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'strict',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie('refreshToken', tokens.refreshToken, {
@@ -166,7 +172,11 @@ export class AuthController {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return { message: 'Tokens refreshed successfully' };
+    return {
+      message: 'Tokens refreshed successfully',
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
 

@@ -21,7 +21,6 @@ export class SubjectService {
     name: string;
     slug: string;
     description?: string;
-    categoryId?: string;
     groupId?: string;
     departmentId?: string;
     branchId?: string;

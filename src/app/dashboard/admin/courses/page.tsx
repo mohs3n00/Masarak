@@ -17,6 +17,7 @@ interface Course {
   teacherName?: string;
   createdAt: string;
   enrollmentCount: number;
+  averageRating?: number;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -123,6 +124,7 @@ export default function AdminCoursesPage() {
                 <th className="px-6 py-4 text-start font-bold">الكورس</th>
                 <th className="px-6 py-4 text-start font-bold">المدرس</th>
                 <th className="px-6 py-4 text-center font-bold">الطلاب</th>
+                <th className="px-6 py-4 text-center font-bold">التقييم</th>
                 <th className="px-6 py-4 text-center font-bold">تاريخ الإنشاء</th>
                 <th className="px-6 py-4 text-center font-bold">الحالة</th>
                 <th className="px-6 py-4 text-end font-bold">الإجراءات</th>
@@ -138,6 +140,7 @@ export default function AdminCoursesPage() {
                     </td>
                     <td className="px-6 py-4"><div className="h-5 w-24 bg-muted rounded" /></td>
                     <td className="px-6 py-4 text-center"><div className="h-5 w-8 bg-muted rounded mx-auto" /></td>
+                    <td className="px-6 py-4 text-center"><div className="h-5 w-8 bg-muted rounded mx-auto" /></td>
                     <td className="px-6 py-4"><div className="h-5 w-24 bg-muted rounded mx-auto" /></td>
                     <td className="px-6 py-4 text-center"><div className="h-6 w-20 bg-muted rounded-full mx-auto" /></td>
                     <td className="px-6 py-4"><div className="h-8 w-16 bg-muted rounded-lg ms-auto" /></td>
@@ -145,7 +148,7 @@ export default function AdminCoursesPage() {
                 ))
               ) : courses.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-text-muted">
+                  <td colSpan={7} className="px-6 py-12 text-center text-text-muted">
                     <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     لا توجد كورسات مطابقة للبحث
                   </td>
@@ -170,6 +173,9 @@ export default function AdminCoursesPage() {
                     </td>
                     <td className="px-6 py-4 text-text-muted">{course.teacherName || '—'}</td>
                     <td className="px-6 py-4 text-center font-bold">{course.enrollmentCount}</td>
+                    <td className="px-6 py-4 text-center font-bold text-amber-500">
+                      ⭐ {(course.averageRating || 0).toFixed(1)}
+                    </td>
                     <td className="px-6 py-4 text-center text-xs text-text-muted">
                       {new Date(course.createdAt).toLocaleDateString('ar-EG')}
                     </td>

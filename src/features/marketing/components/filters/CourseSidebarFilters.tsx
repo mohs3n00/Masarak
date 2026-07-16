@@ -18,15 +18,17 @@ export function CourseSidebarFilters({ categories, totalCourses = 0, levels }: C
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const currentCategory = searchParams.get('category');
+  const currentCategory = searchParams.get('subject') || searchParams.get('category');
   const currentLevels = searchParams.getAll('level');
 
   const createURL = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value === null) {
       params.delete(key);
+      if (key === 'subject') params.delete('category');
     } else {
       params.set(key, value);
+      if (key === 'subject') params.delete('category');
     }
     params.delete('page');
     return `${pathname}?${params.toString()}`;
@@ -55,10 +57,10 @@ export function CourseSidebarFilters({ categories, totalCourses = 0, levels }: C
   return (
     <aside className="hidden lg:block space-y-8">
       <div>
-        <h3 className="font-bold text-lg mb-4 text-foreground">التصنيفات</h3>
+        <h3 className="font-bold text-lg mb-4 text-foreground">المواد الدراسية</h3>
         <div className="flex flex-col gap-1.5">
           <Link 
-            href={createURL('category', null)} 
+            href={createURL('subject', null)} 
             scroll={false}
             className={cn(
               "flex items-center justify-between px-3 py-2.5 rounded-lg font-bold text-sm transition-colors text-start", 
@@ -72,13 +74,12 @@ export function CourseSidebarFilters({ categories, totalCourses = 0, levels }: C
           </Link>
           
           {categories
-            .filter((cat: any) => (cat.coursesCount || cat.courseCount || 0) > 0)
             .map((cat, idx) => {
             const isActive = currentCategory === cat.slug;
             return (
               <Link 
                 key={cat.id} 
-                href={createURL('category', cat.slug)}
+                href={createURL('subject', cat.slug)}
                 scroll={false}
                 className={cn(
                   "flex items-center justify-between px-3 py-2.5 rounded-lg font-medium text-sm transition-colors text-start group", 

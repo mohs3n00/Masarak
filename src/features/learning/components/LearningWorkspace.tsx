@@ -9,9 +9,10 @@ import { CourseAccordion } from '@/features/learning/components/CourseAccordion'
 import { LessonTabs } from '@/features/learning/components/LessonTabs';
 import { MasarakPlayer } from '@/features/media/components/VideoPlayer/MasarakPlayer';
 import { ExamPlayer } from '@/features/learning/components/ExamPlayer';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const formatDuration = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
@@ -37,6 +38,12 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
   const [activeLesson, setActiveLesson] = useState<WorkspaceLesson | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoLoading, setVideoLoading] = useState(false);
+
+  const [courseId, setCourseId] = useState<string>('');
+  const [userRating, setUserRating] = useState<number>(0);
+  const [ratingComment, setRatingComment] = useState<string>('');
+  const [ratingHover, setRatingHover] = useState<number>(0);
+  const [submittingRating, setSubmittingRating] = useState<boolean>(false);
 
   const handleLessonComplete = (lessonId: string) => {
     setChapters(prev => prev.map(ch => ({
@@ -107,6 +114,11 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
       .then((res) => {
         const data = res.data;
         setCourseTitle(data.course.title);
+        setCourseId(data.course.id);
+        if (data.userRating) {
+          setUserRating(data.userRating.rating);
+          setRatingComment(data.userRating.comment || '');
+        }
         
         const mappedChapters: WorkspaceChapter[] = data.sections.map((sec: any) => ({
           id: sec.id,
@@ -187,6 +199,44 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
       })
       .finally(() => setLoading(false));
   }, [slug, router, pathname, searchParams]);
+
+  const handleRatingSubmit = async (stars: number) => {
+    if (!courseId) return;
+    setUserRating(stars);
+    setSubmittingRating(true);
+    try {
+      await apiClient.post(`/student/courses/${courseId}/rate`, {
+        rating: stars,
+        comment: ratingComment || undefined
+      });
+      toast.success('تم حفظ تقييمك بنجاح! شكراً لك.');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'فشل في حفظ التقييم');
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!courseId) return;
+    if (userRating === 0) {
+      toast.error('يرجى تحديد عدد النجوم أولاً للتقييم');
+      return;
+    }
+    setSubmittingRating(true);
+    try {
+      await apiClient.post(`/student/courses/${courseId}/rate`, {
+        rating: userRating,
+        comment: ratingComment
+      });
+      toast.success('تم تحديث تعليقك بنجاح!');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'فشل في حفظ التعليق');
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -325,8 +375,65 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
              chapters={chapters} 
              activeLessonId={String(activeLesson.id)}
              onLessonSelect={setActiveLesson}
-             className="sticky top-[90px] max-h-[calc(100vh-120px)] overflow-y-auto"
+             className="sticky top-[90px] max-h-[calc(100vh-320px)] overflow-y-auto"
            />
+
+           {/* Rating Widget */}
+           <div className="bg-card border border-border/60 rounded-2xl p-5 shadow-sm space-y-4">
+             <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+               <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+               تقييم الكورس
+             </h3>
+             <p className="text-xs text-muted-foreground leading-relaxed">
+               رأيك يهمنا! قيم الكورس لمساعدة المعلم والطلاب الآخرين.
+             </p>
+             
+             {/* Stars */}
+             <div className="flex items-center gap-1.5 justify-start" style={{ direction: 'ltr' }}>
+               {[1, 2, 3, 4, 5].map((stars) => {
+                 const active = ratingHover >= stars || (ratingHover === 0 && userRating >= stars);
+                 return (
+                   <button
+                     key={stars}
+                     type="button"
+                     disabled={submittingRating}
+                     className="p-1 transition-transform hover:scale-110 duration-200 outline-none"
+                     onMouseEnter={() => setRatingHover(stars)}
+                     onMouseLeave={() => setRatingHover(0)}
+                     onClick={() => handleRatingSubmit(stars)}
+                   >
+                     <Star 
+                       className={cn(
+                         "w-6 h-6 transition-colors", 
+                         active ? "text-amber-500 fill-amber-500" : "text-muted-foreground/30 hover:text-amber-400"
+                       )} 
+                     />
+                   </button>
+                 );
+               })}
+             </div>
+
+             {/* Comment form */}
+             {userRating > 0 && (
+               <form onSubmit={handleCommentSubmit} className="space-y-2 mt-2">
+                 <textarea
+                   rows={2}
+                   value={ratingComment}
+                   onChange={(e) => setRatingComment(e.target.value)}
+                   placeholder="اكتب رأيك أو تعليقك هنا (اختياري)..."
+                   className="w-full text-xs p-3 bg-muted/40 border border-border/50 rounded-xl outline-none focus:border-primary transition-all resize-none"
+                   disabled={submittingRating}
+                 />
+                 <button
+                   type="submit"
+                   disabled={submittingRating}
+                   className="w-full py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                 >
+                   {submittingRating ? 'جاري الحفظ...' : 'حفظ التعليق'}
+                 </button>
+               </form>
+             )}
+           </div>
         </div>
 
       </div>

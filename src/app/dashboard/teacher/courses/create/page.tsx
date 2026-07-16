@@ -15,28 +15,40 @@ export default function CreateCoursePage() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [success, setSuccess] = React.useState(false);
+  const [subjects, setSubjects] = React.useState<any[]>([]);
   const [form, setForm] = React.useState({
-    title: '', description: '', grade: '', price: 0, originalPrice: 0,
+    title: '', description: '', subjectId: '', grades: [] as string[], price: 0, originalPrice: 0,
     accessType: 'PAID', difficulty: '', thumbnailUrl: '',
   });
 
-  const update = (field: string, value: string | number) => setForm((f) => ({ ...f, [field]: value }));
+  const update = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
+
+  React.useEffect(() => {
+    apiClient.get('/public/subjects')
+      .then(({ data }) => setSubjects(data || []))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
     try {
       const payload = { 
-        ...form, 
+        title: form.title,
+        description: form.description,
+        subjectId: form.subjectId || undefined,
+        grades: form.grades,
         price: Number(form.price), 
         originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
-        difficulty: form.difficulty || undefined 
+        accessType: form.accessType,
+        difficulty: form.difficulty || undefined,
+        thumbnailUrl: form.thumbnailUrl || undefined,
       };
       const { data } = await apiClient.post('/teacher/courses', payload);
       setSuccess(true);
       setTimeout(() => router.push(`/dashboard/teacher/courses`), 1500);
     } catch (err: any) {
-      setError(err?.message || 'حدث خطأ');
+      setError(err?.response?.data?.message || err?.message || 'حدث خطأ');
     } finally {
       setLoading(false);
     }
@@ -95,11 +107,11 @@ export default function CreateCoursePage() {
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold mb-2">الصف الدراسي</label>
-                <select value={form.grade} onChange={(e) => update('grade', e.target.value)}
+                <label className="block text-sm font-bold mb-2">المادة الدراسية *</label>
+                <select value={form.subjectId} onChange={(e) => update('subjectId', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background outline-none text-sm">
-                  <option value="">اختر الصف</option>
-                  {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                  <option value="">اختر المادة</option>
+                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <div>
@@ -109,6 +121,31 @@ export default function CreateCoursePage() {
                   <option value="PAID">مدفوع</option>
                   <option value="FREE">مجاني</option>
                 </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold mb-2">الصفوف الدراسية المدعومة *</label>
+              <div className="flex flex-wrap gap-4 bg-muted p-4 rounded-xl border border-border">
+                {GRADES.map((g) => {
+                  const checked = form.grades.includes(g);
+                  return (
+                    <label key={g} className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          const newGrades = checked
+                            ? form.grades.filter((x) => x !== g)
+                            : [...form.grades, g];
+                          update('grades', newGrades);
+                        }}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      {g}
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -178,6 +215,8 @@ export default function CreateCoursePage() {
           <button onClick={() => {
             if (step === 0 && !form.title.trim()) { setError('عنوان الكورس مطلوب'); return; }
             if (step === 0 && !form.description.trim()) { setError('الوصف مطلوب'); return; }
+            if (step === 1 && !form.subjectId) { setError('المادة الدراسية مطلوبة'); return; }
+            if (step === 1 && form.grades.length === 0) { setError('يجب اختيار صف دراسي واحد على الأقل'); return; }
             setError(''); setStep(s => s + 1);
           }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary-hover">
             التالي<ChevronLeft className="w-4 h-4" />

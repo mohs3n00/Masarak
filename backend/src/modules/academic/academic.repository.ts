@@ -7,28 +7,8 @@ export class AcademicRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   // ------------------------------------------------------
-  // TAXONOMY (Category, Tag, Skill, Specialization)
+  // TAXONOMY (Tag, Skill, Specialization)
   // ------------------------------------------------------
-  async createCategory(data: Prisma.CategoryUncheckedCreateInput) {
-    return this.prisma.category.create({ data });
-  }
-  async findCategories(skip?: number, take?: number) {
-    return this.prisma.category.findMany({
-      where: { deletedAt: null },
-      include: { children: true },
-      skip,
-      take,
-    });
-  }
-  async updateCategory(id: string, data: Prisma.CategoryUncheckedUpdateInput) {
-    return this.prisma.category.update({ where: { id }, data });
-  }
-  async softDeleteCategory(id: string) {
-    return this.prisma.category.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
-  }
 
   async createTag(data: Prisma.TagCreateInput) {
     return this.prisma.tag.create({ data });

@@ -247,7 +247,7 @@ export class AdminDashboardService {
             include: { teacher: { include: { user: { select: { name: true } } } } },
             where: { isOwner: true },
           },
-          category: { select: { name: true } },
+          subject: { select: { name: true } },
           _count: { select: { enrollments: true } },
         },
       }),
@@ -264,11 +264,13 @@ export class AdminDashboardService {
         status: c.status,
         visibility: c.visibility,
         accessType: c.accessType,
-        grade: c.grade,
+        grade: c.grades[0] || null,
         createdAt: c.createdAt,
-        category: c.category?.name,
+        category: c.subject?.name,
         ownerName: c.instructors[0]?.teacher?.user?.name,
+        teacherName: c.instructors[0]?.teacher?.user?.name,
         enrollmentCount: c._count.enrollments,
+        averageRating: c.averageRating,
       })),
       total,
       take,
@@ -332,7 +334,7 @@ export class AdminDashboardService {
         ]
       },
       include: {
-        category: true,
+        subject: true,
         sections: {
           include: {
             lessons: {
@@ -357,7 +359,13 @@ export class AdminDashboardService {
     if (!course) {
       throw new NotFoundException('Course not found');
     }
-    return course;
+    const { subject, ...rest } = course as any;
+    return {
+      ...rest,
+      subject,
+      category: subject,
+      grade: course.grades?.[0] || null,
+    };
   }
 
   // ── Notifications ───────────────────────────────────────────────────────

@@ -8,30 +8,7 @@ import {
 } from 'class-validator';
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
-export class CreateCategoryDto {
-  @ApiProperty()
-  @IsString()
-  name: string;
 
-  @ApiProperty()
-  @IsString()
-  slug: string;
-
-  @ApiPropertyOptional()
-  @IsUUID()
-  @IsOptional()
-  parentId?: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  icon?: string;
-}
 
 export class CreateTagDto {
   @ApiProperty()
@@ -169,11 +146,6 @@ export class CreateSubjectDto {
   @IsString()
   @IsOptional()
   description?: string;
-
-  @ApiPropertyOptional()
-  @IsUUID()
-  @IsOptional()
-  categoryId?: string;
 
   @ApiPropertyOptional()
   @IsUUID()

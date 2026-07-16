@@ -39,8 +39,8 @@ export default function LoginPage() {
     try {
       setLoading(true);
       setError(null);
-      const { user } = await authService.login(data);
-      setAuth(user, { accessToken: '', refreshToken: '' });
+      const { user, tokens } = await authService.login(data);
+      setAuth(user, tokens);
       const redirectPath = searchParams.get('redirect') || '/';
       window.location.href = redirectPath;
     } catch (err: unknown) {

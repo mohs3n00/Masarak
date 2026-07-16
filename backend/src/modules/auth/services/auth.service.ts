@@ -278,7 +278,7 @@ export class AuthService {
       userAgent,
     );
 
-    return tokens;
+    return { tokens, user };
   }
 
   async logout(
@@ -372,6 +372,7 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
+    await this.sessionService.revokeAllUserSessions(userId);
     await this.auditService.logAction(userId, AuditAction.PASSWORD_CHANGE);
   }
   async forceChangePassword(dto: ForceChangePasswordDto) {
@@ -394,6 +395,7 @@ export class AuthService {
       },
     });
 
+    await this.sessionService.revokeAllUserSessions(dto.userId);
     await this.auditService.logAction(dto.userId, AuditAction.PASSWORD_CHANGE);
   }
 }
