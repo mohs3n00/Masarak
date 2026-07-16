@@ -65,7 +65,7 @@ export const setupInterceptors = () => {
         try {
           const refreshToken = useAuthStore.getState().refreshToken;
           const baseURL = apiClient.defaults.baseURL || 'http://127.0.0.1:4000/api';
-          const res = await axios.post(`${baseURL}/auth/refresh`, {}, { withCredentials: true });
+          const res = await axios.post(`${baseURL}/auth/refresh`, { refreshToken }, { withCredentials: true });
           const { accessToken, refreshToken: newRefreshToken } = res.data;
 
           useAuthStore.getState().setTokens({
