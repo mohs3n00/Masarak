@@ -16,6 +16,10 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
+  // Enable trust proxy for secure cookies behind reverse proxies (Railway, Vercel, etc.)
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
+
   // 1. Logger configuration
   app.useLogger(app.get(Logger));
 

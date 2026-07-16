@@ -134,10 +134,14 @@ export class AuthController {
       req.ip,
       req.headers['user-agent'],
     );
-
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as any,
+    };
+    res.clearCookie('refreshToken', cookieOptions);
+    res.clearCookie('accessToken', cookieOptions);
     return { message: 'Logged out successfully' };
   }
 
