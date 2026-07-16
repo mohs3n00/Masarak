@@ -23,6 +23,9 @@ async function bootstrap() {
   const port = configService.get<number>('app.port') || 3000;
   const apiPrefix = configService.get<string>('app.apiPrefix') || 'api';
   const corsOrigin = configService.get<string>('app.corsOrigin') || '*';
+  const origins = corsOrigin.includes(',')
+    ? corsOrigin.split(',').map(o => o.trim())
+    : corsOrigin;
 
   app.setGlobalPrefix(apiPrefix);
 
@@ -31,7 +34,7 @@ async function bootstrap() {
   app.use(compression());
   app.use(cookieParser());
   app.enableCors({
-    origin: corsOrigin,
+    origin: origins,
     credentials: true,
   });
 
