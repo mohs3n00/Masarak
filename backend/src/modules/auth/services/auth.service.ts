@@ -278,7 +278,7 @@ export class AuthService {
       userAgent,
     );
 
-    return tokens;
+    return { tokens, user };
   }
 
   async logout(

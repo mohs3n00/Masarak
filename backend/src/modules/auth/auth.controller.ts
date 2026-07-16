@@ -82,7 +82,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.login(
+    const { tokens, user } = await this.authService.login(
       dto,
       req.ip,
       req.headers['user-agent'],
@@ -110,7 +110,11 @@ export class AuthController {
       ...(refreshTokenMaxAge ? { maxAge: refreshTokenMaxAge } : {}),
     });
 
-    return { message: 'Logged in successfully' };
+    return { 
+      message: 'Logged in successfully',
+      tokens,
+      user,
+    };
   }
 
   @Post('logout')
@@ -128,10 +132,14 @@ export class AuthController {
       req.ip,
       req.headers['user-agent'],
     );
-
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as any,
+    };
+    res.clearCookie('refreshToken', cookieOptions);
+    res.clearCookie('accessToken', cookieOptions);
     return { message: 'Logged out successfully' };
   }
 
@@ -143,9 +151,11 @@ export class AuthController {
   })
   async refresh(
     @Req() req: Request,
-    @Body('refreshToken') bodyRefreshToken: string,
+    @Body() body: any,
     @Res({ passthrough: true }) res: Response,
   ) {
+    console.log('[AuthController.refresh] Received entire Body payload:', body);
+    const bodyRefreshToken = body?.refreshToken;
     const refreshToken = req.cookies?.refreshToken || bodyRefreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing');

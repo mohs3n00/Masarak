@@ -39,8 +39,12 @@ export default function LoginPage() {
     try {
       setLoading(true);
       setError(null);
-      const { user } = await authService.login(data);
-      setAuth(user, { accessToken: '', refreshToken: '' });
+      const { user, tokens } = await authService.login(data);
+      console.log('[DEBUG LOGIN] Response data:', { user, tokens });
+      
+      setAuth(user, tokens);
+      console.log('[DEBUG LOGIN] useAuthStore.getState():', useAuthStore.getState());
+      
       const redirectPath = searchParams.get('redirect') || '/';
       window.location.href = redirectPath;
     } catch (err: unknown) {

@@ -71,8 +71,23 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          const refreshToken = useAuthStore.getState().refreshToken;
-          const res = await apiClient.post('/auth/refresh', { refreshToken });
+          const storeState = useAuthStore.getState();
+          const refreshToken = storeState.refreshToken;
+          
+          let localData: any = null;
+          try {
+            const rawLocal = typeof window !== 'undefined' ? window.localStorage.getItem('masarak-user-data') : null;
+            localData = rawLocal ? JSON.parse(rawLocal) : null;
+          } catch {}
+
+          const requestBody = { refreshToken };
+          console.log('[DEBUG REFRESH] Before POST /auth/refresh:', {
+            storeRefreshToken: refreshToken,
+            localStorageRefreshToken: localData?.state?.refreshToken,
+            requestBody,
+          });
+
+          const res = await apiClient.post('/auth/refresh', requestBody);
           const newTokens = res.data;
 
           useAuthStore.getState().setTokens({

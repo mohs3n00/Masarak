@@ -7,10 +7,9 @@ import {
 } from '../schemas/auth.schemas';
 
 class AuthService {
-  async login(credentials: LoginFormData): Promise<{ user: any }> {
-    await apiClient.post('/auth/login', credentials);
-    const { data: user } = await apiClient.get('/users/me');
-    return { user };
+  async login(credentials: LoginFormData): Promise<{ user: any; tokens: any }> {
+    const { data } = await apiClient.post('/auth/login', credentials);
+    return { user: data.user, tokens: data.tokens };
   }
 
   async getProfile(): Promise<any> {
