@@ -315,17 +315,32 @@ export class PublicController {
       this.prisma.user.count({ where }),
     ]);
 
+    const dataWithStudentsCount = await Promise.all(
+      data.map(async (u: any) => {
+        const studentsCount = u.teacherProfile
+          ? await this.prisma.enrollment.count({
+              where: {
+                course: {
+                  instructors: { some: { teacherId: u.teacherProfile.id } },
+                },
+              },
+            })
+          : 0;
+        return {
+          id: u.id,
+          name: u.name,
+          avatar: u.avatar,
+          bio: u.bio,
+          specializations: u.teacherProfile?.subjects?.map((s: any) => s.name) ?? [],
+          coursesCount: u.teacherProfile?._count?.courseInstructors ?? 0,
+          studentsCount,
+          createdAt: u.createdAt,
+        };
+      })
+    );
+
     return {
-      data: data.map((u: any) => ({
-        id: u.id,
-        name: u.name,
-        avatar: u.avatar,
-        bio: u.bio,
-        specializations: u.teacherProfile?.subjects?.map((s: any) => s.name) ?? [],
-        coursesCount: u.teacherProfile?._count?.courseInstructors ?? 0,
-        studentsCount: u._count?.enrollments ?? 0,
-        createdAt: u.createdAt,
-      })),
+      data: dataWithStudentsCount,
       total,
       take,
       skip,

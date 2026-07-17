@@ -254,6 +254,22 @@ export function ExamPlayer({ lessonId, courseId, onExamCompleted }: ExamPlayerPr
   }
 
   if (!session) {
+    const now = new Date();
+    const availableFrom = examDetails?.template?.availableFrom ? new Date(examDetails.template.availableFrom) : null;
+    const availableUntil = examDetails?.template?.availableUntil ? new Date(examDetails.template.availableUntil) : null;
+    const isNotYetAvailable = availableFrom && now < availableFrom;
+    const isClosed = availableUntil && now > availableUntil;
+
+    const formatFriendlyDate = (date: Date) => {
+      return date.toLocaleString('ar-EG', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    };
+
     return (
       <div className="max-w-md mx-auto text-center p-8 bg-card rounded-3xl border border-border/50 shadow-sm">
         <div className="w-20 h-20 bg-indigo-500/10 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -286,19 +302,45 @@ export function ExamPlayer({ lessonId, courseId, onExamCompleted }: ExamPlayerPr
             <p>عدد المحاولات: <span className="text-foreground">غير محدود</span></p>
           )}
 
-          {examDetails.template.availableUntil && (
-            <p>ينتهي الاختبار في: <span className="text-foreground">{new Date(examDetails.template.availableUntil).toLocaleString('ar-EG')}</span></p>
+          {availableFrom && availableUntil && (
+            <p className="text-[13px] text-muted-foreground mt-2">
+              فترة الإتاحة: من <span className="text-foreground">{formatFriendlyDate(availableFrom)}</span> إلى <span className="text-foreground">{formatFriendlyDate(availableUntil)}</span>
+            </p>
+          )}
+          {!availableFrom && availableUntil && (
+            <p className="text-[13px] text-muted-foreground mt-2">
+              ينتهي الاختبار في: <span className="text-foreground">{formatFriendlyDate(availableUntil)}</span>
+            </p>
+          )}
+          {availableFrom && !availableUntil && (
+            <p className="text-[13px] text-muted-foreground mt-2">
+              يبدأ الاختبار في: <span className="text-foreground">{formatFriendlyDate(availableFrom)}</span>
+            </p>
           )}
         </div>
+
+        {isNotYetAvailable && (
+          <div className="bg-warning/10 border border-warning/20 p-4 rounded-2xl mb-6 text-warning flex flex-col gap-1 items-center justify-center">
+            <span className="text-sm font-black">هذا الاختبار غير متاح حالياً</span>
+            <span className="text-xs font-bold">سيكون متاحاً اعتباراً من: {formatFriendlyDate(availableFrom!)}</span>
+          </div>
+        )}
+
+        {isClosed && (
+          <div className="bg-error/10 border border-error/20 p-4 rounded-2xl mb-6 text-error flex flex-col gap-1 items-center justify-center">
+            <span className="text-sm font-black">انتهت فترة إتاحة الاختبار</span>
+            <span className="text-xs font-bold font-heading">كان متاحاً حتى: {formatFriendlyDate(availableUntil!)}</span>
+          </div>
+        )}
 
         {error && <p className="text-error font-bold text-sm mb-4">{error}</p>}
 
         <button
           onClick={() => startExam(examDetails.template.id)}
-          disabled={loading}
+          disabled={loading || isNotYetAvailable || isClosed}
           className="w-full py-3.5 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
         >
-          {loading ? 'جاري البدء...' : 'ابدأ الاختبار الآن'}
+          {loading ? 'جاري البدء...' : isNotYetAvailable ? 'الاختبار غير متاح بعد' : isClosed ? 'انتهت صلاحية الاختبار' : 'ابدأ الاختبار الآن'}
         </button>
       </div>
     );

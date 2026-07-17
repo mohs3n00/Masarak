@@ -25,21 +25,34 @@ import { apiClient } from "@/shared/api/api.client"
 export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [mounted, setMounted] = React.useState(false)
   const [isDark, setIsDark] = React.useState(false)
   const [isScrolled, setIsScrolled] = React.useState(false)
 
   const { user, isAuthenticated, clearAuth } = useAuthStore()
 
   React.useEffect(() => {
+    setMounted(true)
+    const storedTheme = localStorage.getItem("theme")
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+    const initialDark = storedTheme === "dark" || (!storedTheme && systemPrefersDark) || document.documentElement.classList.contains("dark")
+    setIsDark(initialDark)
+
     const handleScroll = () => setIsScrolled(window.scrollY > 10)
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   React.useEffect(() => {
-    if (isDark) document.documentElement.classList.add("dark")
-    else document.documentElement.classList.remove("dark")
-  }, [isDark])
+    if (!mounted) return
+    if (isDark) {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    }
+  }, [isDark, mounted])
 
   const handleLogout = async () => {
     try {

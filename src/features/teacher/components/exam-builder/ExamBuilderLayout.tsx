@@ -16,7 +16,7 @@ interface ExamBuilderLayoutProps {
 
 export function ExamBuilderLayout({ courseId, lessonId, initialData }: ExamBuilderLayoutProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!initialData);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -43,6 +43,60 @@ export function ExamBuilderLayout({ courseId, lessonId, initialData }: ExamBuild
   );
 
   const [activeTab, setActiveTab] = useState<'questions' | 'settings'>('questions');
+
+  useEffect(() => {
+    if (initialData) {
+      setSettings({
+        title: initialData.title || 'اختبار جديد',
+        description: initialData.description || '',
+        instructions: initialData.instructions || '',
+        durationMin: initialData.durationMin || 30,
+        passingScore: initialData.passingScore || 50,
+        passingScoreType: initialData.passingScoreType || 'PERCENTAGE',
+        attemptsLimit: initialData.attemptsLimit ?? 1,
+        availableFrom: initialData.availableFrom,
+        availableUntil: initialData.availableUntil,
+        status: initialData.status || 'PUBLISHED',
+        rules: initialData.rules || {}
+      });
+      if (initialData.questions?.length > 0) {
+        setQuestions(initialData.questions);
+      }
+      setLoading(false);
+      return;
+    }
+
+    const fetchExam = async () => {
+      try {
+        setLoading(true);
+        const res = await apiClient.get(`/teacher/courses/${courseId}/lessons/${lessonId}/exam`);
+        if (res.data && !res.data.notFound) {
+          setSettings({
+            title: res.data.title || 'اختبار جديد',
+            description: res.data.description || '',
+            instructions: res.data.instructions || '',
+            durationMin: res.data.durationMin || 30,
+            passingScore: res.data.passingScore || 50,
+            passingScoreType: res.data.passingScoreType || 'PERCENTAGE',
+            attemptsLimit: res.data.attemptsLimit ?? 1,
+            availableFrom: res.data.availableFrom,
+            availableUntil: res.data.availableUntil,
+            status: res.data.status || 'PUBLISHED',
+            rules: res.data.rules || {}
+          });
+          if (res.data.questions?.length > 0) {
+            setQuestions(res.data.questions);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load exam client-side:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExam();
+  }, [courseId, lessonId, initialData]);
 
   const handleAddQuestion = (type: QuestionType) => {
     let newChoices = [{ text: '', isCorrect: true }, { text: '', isCorrect: false }];
@@ -184,7 +238,12 @@ export function ExamBuilderLayout({ courseId, lessonId, initialData }: ExamBuild
         {/* Canvas */}
         <main className="flex-1 overflow-y-auto bg-background/50 p-6 md:p-8">
           <div className="max-w-4xl mx-auto pb-32">
-            {activeTab === 'settings' ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <p className="text-sm text-text-muted font-bold">جاري تحميل بيانات الاختبار...</p>
+              </div>
+            ) : activeTab === 'settings' ? (
               <ExamSettingsPanel settings={settings} onChange={setSettings} />
             ) : (
               <div className="space-y-6">

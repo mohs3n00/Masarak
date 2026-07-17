@@ -2,6 +2,14 @@ import React from 'react';
 import { ExamSettings } from './types';
 import { Settings, Clock, Target, AlertCircle, Calendar, Eye, RefreshCw, CheckCircle2 } from 'lucide-react';
 
+const toLocalISOString = (dateInput: any) => {
+  if (!dateInput) return '';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '';
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+};
+
 interface ExamSettingsPanelProps {
   settings: ExamSettings;
   onChange: (settings: ExamSettings) => void;
@@ -206,7 +214,7 @@ export function ExamSettingsPanel({ settings, onChange }: ExamSettingsPanelProps
             <label className="block text-sm font-bold text-foreground mb-2">متاح من (تاريخ ووقت)</label>
             <input
               type="datetime-local"
-              value={settings.availableFrom ? new Date(settings.availableFrom).toISOString().slice(0, 16) : ''}
+              value={toLocalISOString(settings.availableFrom)}
               onChange={(e) => handleChange('availableFrom', e.target.value ? new Date(e.target.value).toISOString() : null)}
               className="w-full px-4 py-3 rounded-xl border border-border bg-muted/50 focus:bg-background outline-none"
             />
@@ -217,7 +225,7 @@ export function ExamSettingsPanel({ settings, onChange }: ExamSettingsPanelProps
             <label className="block text-sm font-bold text-foreground mb-2">متاح حتى (تاريخ ووقت)</label>
             <input
               type="datetime-local"
-              value={settings.availableUntil ? new Date(settings.availableUntil).toISOString().slice(0, 16) : ''}
+              value={toLocalISOString(settings.availableUntil)}
               onChange={(e) => handleChange('availableUntil', e.target.value ? new Date(e.target.value).toISOString() : null)}
               className="w-full px-4 py-3 rounded-xl border border-border bg-muted/50 focus:bg-background outline-none"
             />

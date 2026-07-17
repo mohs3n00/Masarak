@@ -6,12 +6,27 @@ import * as React from 'react';
 
 export function TopNav() {
   const { profile } = studentMockData;
+  const [mounted, setMounted] = React.useState(false);
   const [isDark, setIsDark] = React.useState(false);
 
   React.useEffect(() => {
-    if (isDark) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }, [isDark]);
+    setMounted(true);
+    const storedTheme = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialDark = storedTheme === "dark" || (!storedTheme && systemPrefersDark) || document.documentElement.classList.contains('dark');
+    setIsDark(initialDark);
+  }, []);
+
+  React.useEffect(() => {
+    if (!mounted) return;
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDark, mounted]);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/50 bg-background/80 px-4 md:px-6 backdrop-blur-xl">
