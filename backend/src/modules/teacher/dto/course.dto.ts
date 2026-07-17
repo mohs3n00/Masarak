@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsEnum, IsUrl, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsEnum, IsUrl, MinLength, IsArray } from 'class-validator';
 import { CourseAccessType, CourseType, Difficulty } from '@prisma/client';
 
 export class CreateCourseDto {
@@ -13,6 +13,11 @@ export class CreateCourseDto {
   @IsOptional()
   @IsString()
   grade?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  grades?: string[];
 
   @IsOptional()
   @IsString()
