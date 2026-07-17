@@ -257,8 +257,8 @@ export function ExamPlayer({ lessonId, courseId, onExamCompleted }: ExamPlayerPr
     const now = new Date();
     const availableFrom = examDetails?.template?.availableFrom ? new Date(examDetails.template.availableFrom) : null;
     const availableUntil = examDetails?.template?.availableUntil ? new Date(examDetails.template.availableUntil) : null;
-    const isNotYetAvailable = availableFrom && now < availableFrom;
-    const isClosed = availableUntil && now > availableUntil;
+    const isNotYetAvailable = !!(availableFrom && now < availableFrom);
+    const isClosed = !!(availableUntil && now > availableUntil);
 
     const formatFriendlyDate = (date: Date) => {
       return date.toLocaleString('ar-EG', {
