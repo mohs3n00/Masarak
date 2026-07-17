@@ -19,6 +19,10 @@ export class CreateCourseDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsString()
+  subjectId?: string;
+
+  @IsOptional()
   @IsNumber()
   price?: number;
 
