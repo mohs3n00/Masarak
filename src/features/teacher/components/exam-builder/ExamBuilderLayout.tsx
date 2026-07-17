@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Question, ExamSettings, QuestionType } from './types';
 import { ExamSettingsPanel } from './ExamSettingsPanel';
 import { QuestionEditor } from './QuestionEditor';
-import { Plus, Save, ArrowRight, LayoutList, Loader2, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Save, ArrowRight, LayoutList, Loader2, CheckCircle2, Clock, Settings } from 'lucide-react';
 import { apiClient } from '@/shared/api/api.client';
 import { useRouter } from 'next/navigation';
 
@@ -204,20 +204,30 @@ export function ExamBuilderLayout({ courseId, lessonId, initialData }: ExamBuild
         <aside className="w-64 border-l border-border/50 bg-card flex flex-col shrink-0">
           <div className="p-4 border-b border-border/50">
             <h2 className="font-bold flex items-center gap-2 text-text-muted mb-4">
-              <LayoutList className="w-5 h-5" /> أجزاء الاختبار
+              <LayoutList className="w-5 h-5 text-primary" /> أجزاء الاختبار
             </h2>
             <div className="flex flex-col gap-2">
               <button 
                 onClick={() => setActiveTab('settings')}
-                className={`text-right px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'settings' ? 'bg-primary/10 text-primary border border-primary/20' : 'hover:bg-muted text-foreground border border-transparent'}`}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'settings' 
+                    ? 'bg-primary text-white shadow-md shadow-primary/25 border border-primary' 
+                    : 'bg-muted/30 hover:bg-muted border border-border/50 text-foreground'
+                }`}
               >
-                إعدادات الاختبار
+                <Settings className="w-5 h-5 shrink-0" />
+                <span>إعدادات الاختبار</span>
               </button>
               <button 
                 onClick={() => setActiveTab('questions')}
-                className={`text-right px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'questions' ? 'bg-primary/10 text-primary border border-primary/20' : 'hover:bg-muted text-foreground border border-transparent'}`}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'questions' 
+                    ? 'bg-primary text-white shadow-md shadow-primary/25 border border-primary' 
+                    : 'bg-muted/30 hover:bg-muted border border-border/50 text-foreground'
+                }`}
               >
-                الأسئلة ({questions.length})
+                <LayoutList className="w-5 h-5 shrink-0" />
+                <span>الأسئلة ({questions.length})</span>
               </button>
             </div>
           </div>
