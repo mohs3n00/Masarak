@@ -129,7 +129,7 @@ export function ExamSettingsPanel({ settings, onChange }: ExamSettingsPanelProps
               <button
                 type="button"
                 onClick={() => handleChange('attemptsLimit', 1)}
-                className={`flex-1 py-2 px-3 rounded-xl border text-sm font-bold transition-colors ${settings.attemptsLimit === 1 || !settings.attemptsLimit ? 'bg-primary text-white border-primary' : 'bg-muted/30 border-border text-foreground hover:bg-muted'}`}
+                className={`flex-1 py-2 px-3 rounded-xl border text-sm font-bold transition-colors ${settings.attemptsLimit === 1 || settings.attemptsLimit === undefined || settings.attemptsLimit === null ? 'bg-primary text-white border-primary' : 'bg-muted/30 border-border text-foreground hover:bg-muted'}`}
               >
                 مرة واحدة
               </button>

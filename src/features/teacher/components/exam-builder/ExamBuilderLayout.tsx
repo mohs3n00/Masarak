@@ -137,16 +137,37 @@ export function ExamBuilderLayout({ courseId, lessonId, initialData }: ExamBuild
       setError('');
       setSuccessMsg('');
 
+      const sanitizedQuestions = questions.map((q, idx) => {
+        const sanitizedChoices = (q.choices || []).map((c, cIdx) => ({
+          id: c.id || undefined,
+          text: c.text,
+          isCorrect: c.isCorrect,
+          order: c.order ?? cIdx,
+          imageUrl: c.imageUrl || undefined,
+        }));
+
+        return {
+          id: q.id || undefined,
+          text: q.text,
+          type: q.type,
+          points: q.points || 1,
+          order: q.order ?? idx,
+          imageUrl: q.imageUrl || undefined,
+          explanation: q.explanation || undefined,
+          choices: sanitizedChoices,
+        };
+      });
+
       await apiClient.post(`/teacher/courses/${courseId}/lessons/${lessonId}/exam`, {
         ...settings,
-        questions: questions.map((q, idx) => ({ ...q, order: idx }))
+        questions: sanitizedQuestions
       });
 
       setSuccessMsg('تم حفظ الاختبار بنجاح!');
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err: any) {
       console.error('Failed to save exam:', err);
-      setError(err.response?.data?.message || 'حدث خطأ أثناء حفظ الاختبار');
+      setError(err.message || 'حدث خطأ أثناء حفظ الاختبار');
     } finally {
       setSaving(false);
     }
