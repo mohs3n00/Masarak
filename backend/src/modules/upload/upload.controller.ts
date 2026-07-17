@@ -16,7 +16,7 @@ import * as os from 'os';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 // الامتدادات المسموح بها فقط (حماية من extension bypass)
-const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.jfif'];
 const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx', '.zip'];
 const ALLOWED_FOLDERS = [
   'masarak/avatars',
@@ -73,10 +73,10 @@ export class UploadController {
       fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
         if (
-          !file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/) ||
+          !file.mimetype.match(/\/(jpg|jpeg|png|gif|webp|jfif|pjpeg)$/) ||
           !ALLOWED_IMAGE_EXTENSIONS.includes(ext)
         ) {
-          return cb(new BadRequestException('Only image files (jpg, png, gif, webp) are allowed'), false);
+          return cb(new BadRequestException('Only image files (jpg, png, gif, webp, jfif) are allowed'), false);
         }
         cb(null, true);
       },
