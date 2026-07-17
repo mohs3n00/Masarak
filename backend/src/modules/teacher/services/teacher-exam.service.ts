@@ -143,6 +143,12 @@ export class TeacherExamService {
       // 4. Create or update ExamTemplate
       const rules = { categoryId: category.id, limit: dto.questions.length, ...dto.rules };
 
+      const parseDate = (d?: string | null) => {
+        if (!d || d.trim() === '') return null;
+        const parsed = new Date(d);
+        return isNaN(parsed.getTime()) ? null : parsed;
+      };
+
       const template = await prisma.examTemplate.upsert({
         where: { lessonId: lesson.id },
         create: {
@@ -154,8 +160,8 @@ export class TeacherExamService {
           passingScore: dto.passingScore || 50,
           passingScoreType: dto.passingScoreType || 'PERCENTAGE',
           attemptsLimit: dto.attemptsLimit ?? 1,
-          availableFrom: dto.availableFrom ? new Date(dto.availableFrom) : null,
-          availableUntil: dto.availableUntil ? new Date(dto.availableUntil) : null,
+          availableFrom: parseDate(dto.availableFrom),
+          availableUntil: parseDate(dto.availableUntil),
           status: dto.status || 'PUBLISHED',
           rules,
         },
@@ -167,8 +173,8 @@ export class TeacherExamService {
           passingScore: dto.passingScore || 50,
           passingScoreType: dto.passingScoreType || 'PERCENTAGE',
           attemptsLimit: dto.attemptsLimit ?? 1,
-          availableFrom: dto.availableFrom ? new Date(dto.availableFrom) : null,
-          availableUntil: dto.availableUntil ? new Date(dto.availableUntil) : null,
+          availableFrom: parseDate(dto.availableFrom),
+          availableUntil: parseDate(dto.availableUntil),
           status: dto.status || 'PUBLISHED',
           rules,
         },

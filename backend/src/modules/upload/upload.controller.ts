@@ -18,7 +18,18 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 // الامتدادات المسموح بها فقط (حماية من extension bypass)
 const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx', '.zip'];
-const ALLOWED_FOLDERS = ['masarak/avatars', 'masarak/thumbnails', 'masarak/attachments', 'masarak/covers', 'masarak/courses'];
+const ALLOWED_FOLDERS = [
+  'masarak/avatars',
+  'masarak/thumbnails',
+  'masarak/attachments',
+  'masarak/covers',
+  'masarak/courses',
+  'masarak/teachers',
+  'masarak/community',
+  'masarak/logos',
+  'masarak/certificates',
+  'masarak/banners'
+];
 
 @ApiTags('Upload')
 @ApiBearerAuth()
