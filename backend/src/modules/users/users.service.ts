@@ -54,8 +54,7 @@ export class UsersService {
   }
 
   async updateFcmToken(userId: string, sessionId: string, fcmToken: string) {
-    await this.repository.updateSessionFcmToken(sessionId, fcmToken);
-    return this.repository.updateMe(userId, { fcmToken } as any);
+    return this.repository.updateSessionFcmToken(sessionId, fcmToken);
   }
 
   async updateStudentProfile(userId: string, dto: UpdateStudentProfileDto) {
