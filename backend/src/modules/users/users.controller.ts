@@ -65,9 +65,10 @@ export class UsersController {
   @ApiOperation({ summary: 'Update FCM token for push notifications' })
   async updateFcmToken(
     @CurrentUser('id') userId: string,
+    @CurrentUser('sessionId') sessionId: string,
     @Body('fcmToken') fcmToken: string,
   ) {
-    return this.usersService.updateFcmToken(userId, fcmToken);
+    return this.usersService.updateFcmToken(userId, sessionId, fcmToken);
   }
 
   @Patch('profile/student')

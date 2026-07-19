@@ -36,6 +36,13 @@ export class UsersRepository {
     });
   }
 
+  async updateSessionFcmToken(sessionId: string, fcmToken: string) {
+    return this.prisma.session.update({
+      where: { id: sessionId },
+      data: { fcmToken },
+    });
+  }
+
   async updateStudentProfile(
     userId: string,
     data: Prisma.StudentProfileUncheckedUpdateInput,

@@ -53,7 +53,8 @@ export class UsersService {
     return updated;
   }
 
-  async updateFcmToken(userId: string, fcmToken: string) {
+  async updateFcmToken(userId: string, sessionId: string, fcmToken: string) {
+    await this.repository.updateSessionFcmToken(sessionId, fcmToken);
     return this.repository.updateMe(userId, { fcmToken } as any);
   }
 
