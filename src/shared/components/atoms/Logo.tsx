@@ -12,8 +12,8 @@ interface LogoProps {
 
 export function Logo({ className, width = 160, height = 48, isIconOnly = false, href = "/" }: LogoProps) {
   // If we had an icon-only version, we'd conditionally render it here.
-  // For now, we use the provided Asset 1.svg for the primary logo.
-  const src = "/logo/Asset 1.svg";
+  // Primary logo SVG
+  const src = "/logo/Asset 3.svg";
 
   const image = (
     <Image
