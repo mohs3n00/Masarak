@@ -26,6 +26,24 @@ export class FcmNotificationProvider implements NotificationProvider {
           body: options.body,
         },
         data: options.data,
+        android: {
+          priority: 'high' as const,
+          notification: {
+            channelId: 'masarak_alerts_v3',
+            sound: 'default',
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              contentAvailable: true,
+              sound: 'default',
+            },
+          },
+          headers: {
+            'apns-priority': '10',
+          },
+        },
       };
 
       await messaging.send(message);

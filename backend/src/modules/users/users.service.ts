@@ -53,6 +53,10 @@ export class UsersService {
     return updated;
   }
 
+  async updateFcmToken(userId: string, fcmToken: string) {
+    return this.repository.updateMe(userId, { fcmToken } as any);
+  }
+
   async updateStudentProfile(userId: string, dto: UpdateStudentProfileDto) {
     const updated = await this.repository.updateStudentProfile(userId, dto);
     this.eventEmitter.emit(

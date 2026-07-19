@@ -60,6 +60,16 @@ export class UsersController {
     return this.usersService.deleteAccount(userId);
   }
 
+  @Post('me/fcm-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update FCM token for push notifications' })
+  async updateFcmToken(
+    @CurrentUser('id') userId: string,
+    @Body('fcmToken') fcmToken: string,
+  ) {
+    return this.usersService.updateFcmToken(userId, fcmToken);
+  }
+
   @Patch('profile/student')
   @ApiOperation({ summary: 'Update student profile details' })
   async updateStudentProfile(
