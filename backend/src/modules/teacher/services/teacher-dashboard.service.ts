@@ -140,6 +140,7 @@ export class TeacherDashboardService {
           OR: [
             { id: dto.categoryId },
             { slug: dto.categoryId },
+            { name: dto.categoryId },
           ]
         }
       });
@@ -232,6 +233,19 @@ export class TeacherDashboardService {
 
     this.cleanupService.deleteFilesByUrls(urlsToDelete);
     return deleted;
+  }
+
+  // ── Rename Section ────────────────────────────────────────────────
+  async renameSection(userId: string, courseId: string, sectionId: string, title: string) {
+    const ownership = await this.prisma.courseInstructor.findFirst({
+      where: { courseId, teacher: { userId } },
+    });
+    if (!ownership) throw new ForbiddenException('You do not own this course');
+
+    return this.prisma.courseSection.update({
+      where: { id: sectionId },
+      data: { title },
+    });
   }
 
   // ── Delete Lesson ────────────────────────────────────────────────
@@ -731,7 +745,7 @@ export class TeacherDashboardService {
       },
     });
 
-    if (!exam) throw new NotFoundException('Exam not found for this lesson');
+    if (!exam) return [];
 
     return exam.sessions;
   }

@@ -98,6 +98,19 @@ export class TeacherController {
     return this.teacherService.deleteSection(userId, courseId, sectionId);
   }
 
+  @Patch('courses/:id/sections/:sectionId')
+  @UseGuards(TeacherApprovedGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Rename a section' })
+  renameSection(
+    @CurrentUser('id') userId: string,
+    @Param('id') courseId: string,
+    @Param('sectionId') sectionId: string,
+    @Body('title') title: string,
+  ) {
+    return this.teacherService.renameSection(userId, courseId, sectionId, title);
+  }
+
   @Post('courses/:id/lessons')
   @UseGuards(TeacherApprovedGuard)
   @HttpCode(HttpStatus.CREATED)

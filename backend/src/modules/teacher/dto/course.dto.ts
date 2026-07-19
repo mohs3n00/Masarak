@@ -103,7 +103,6 @@ export class UpdateLessonDto {
 
   @IsOptional()
   @IsString()
-  @IsUrl()
   videoUrl?: string;
 
   @IsOptional()
@@ -113,6 +112,22 @@ export class UpdateLessonDto {
   @IsOptional()
   @IsString()
   fileName?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  sectionName?: string;
+
+  @IsOptional()
+  @IsString()
+  fileType?: string;
+
+  @IsOptional()
+  @IsNumber()
+  sizeBytes?: number;
 }
 
 export class AddAttachmentDto {
