@@ -48,7 +48,7 @@ export class CreateCourseDto {
   difficulty?: Difficulty;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   thumbnailUrl?: string;
 }
 
@@ -63,7 +63,6 @@ export class AddLessonDto {
 
   @IsOptional()
   @IsString()
-  @IsUrl()
   videoUrl?: string;
 
   @IsOptional()

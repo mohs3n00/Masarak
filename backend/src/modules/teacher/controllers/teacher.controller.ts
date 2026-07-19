@@ -226,6 +226,19 @@ export class TeacherController {
     return this.teacherService.getLessonExamResults(userId, courseId, lessonId);
   }
 
+  @Post('courses/:id/lessons/:lessonId/exam/retake')
+  @UseGuards(TeacherApprovedGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Grant a student permission to retake an exam' })
+  grantExamRetake(
+    @CurrentUser('id') userId: string,
+    @Param('id') courseId: string,
+    @Param('lessonId') lessonId: string,
+    @Body('studentId') studentId: string,
+  ) {
+    return this.teacherService.grantExamRetake(userId, courseId, lessonId, studentId);
+  }
+
   // ── Notifications ─────────────────────────────────────────────────────────
   @Post('notifications/send')
   @HttpCode(HttpStatus.OK)

@@ -771,5 +771,31 @@ export class TeacherDashboardService {
 
     return { success: true };
   }
+
+  // ── Grant Exam Retake ─────────────────────────────────────────────────
+  async grantExamRetake(userId: string, courseId: string, lessonId: string, studentId: string) {
+    const ownership = await this.prisma.courseInstructor.findFirst({
+      where: { courseId, teacher: { userId } },
+    });
+    if (!ownership) throw new ForbiddenException('You do not own this course');
+
+    const exam = await this.prisma.examTemplate.findUnique({ where: { lessonId } });
+    if (!exam) throw new NotFoundException('Exam not found for this lesson');
+
+    // Remove any unused existing permission to avoid duplicates
+    await this.prisma.examRetakePermission.deleteMany({
+      where: { examId: exam.id, studentId, isUsed: false },
+    });
+
+    await this.prisma.examRetakePermission.create({
+      data: {
+        examId: exam.id,
+        studentId,
+        grantedBy: userId,
+      },
+    });
+
+    return { success: true };
+  }
 }
 // trigger restart
