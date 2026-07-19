@@ -91,6 +91,30 @@ export class AddLessonDto {
   sizeBytes?: number;
 }
 
+export class UpdateLessonDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  videoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  fileUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  fileName?: string;
+}
+
 export class AddAttachmentDto {
   @IsString()
   fileName: string;

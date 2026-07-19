@@ -376,6 +376,105 @@ export class TeacherDashboardService {
     });
   }
 
+  // ── Update Lesson ─────────────────────────────────────────────────────
+  async updateLesson(
+    userId: string,
+    courseId: string,
+    lessonId: string,
+    dto: {
+      title?: string;
+      description?: string;
+      videoUrl?: string;
+      fileUrl?: string;
+      fileName?: string;
+    }
+  ) {
+    const profile = await this.getTeacherProfile(userId);
+    const ownership = await this.prisma.courseInstructor.findFirst({
+      where: { courseId, teacherId: profile.id },
+    });
+    if (!ownership) throw new ForbiddenException('You do not own this course');
+
+    const lesson = await this.prisma.lesson.findFirst({
+      where: { id: lessonId, section: { courseId } },
+      include: { videos: true, attachments: true }
+    });
+    if (!lesson) throw new NotFoundException('Lesson not found in this course');
+
+    // Update basic info
+    const updatedLesson = await this.prisma.lesson.update({
+      where: { id: lessonId },
+      data: {
+        title: dto.title !== undefined ? dto.title : lesson.title,
+        description: dto.description !== undefined ? dto.description : lesson.description,
+      },
+    });
+
+    if (lesson.type === 'VIDEO') {
+      if (dto.videoUrl !== undefined) {
+        let videoDuration = 0;
+        if (dto.videoUrl && (dto.videoUrl.includes('youtube.com') || dto.videoUrl.includes('youtu.be'))) {
+          try {
+            const videoIdMatch = dto.videoUrl.match(/(?:v=|\/)([0-9A-Za-z_-]{11}).*/);
+            if (videoIdMatch) {
+              const res = await fetch(`https://www.youtube.com/watch?v=${videoIdMatch[1]}`);
+              const text = await res.text();
+              const match = text.match(/lengthSeconds.:.(\d+)./);
+              if (match) videoDuration = parseInt(match[1], 10);
+            }
+          } catch (err) {
+            // keep 0
+          }
+        }
+
+        const existingVideo = lesson.videos[0];
+        if (existingVideo) {
+          await this.prisma.lessonVideo.update({
+            where: { id: existingVideo.id },
+            data: {
+              videoUrl: dto.videoUrl,
+              duration: videoDuration,
+            },
+          });
+        } else {
+          await this.prisma.lessonVideo.create({
+            data: {
+              lessonId,
+              videoUrl: dto.videoUrl,
+              duration: videoDuration,
+              provider: 'YOUTUBE',
+            },
+          });
+        }
+      }
+    } else if (lesson.type === 'PDF') {
+      if (dto.fileUrl !== undefined || dto.fileName !== undefined) {
+        const existingAttachment = lesson.attachments[0];
+        if (existingAttachment) {
+          await this.prisma.lessonAttachment.update({
+            where: { id: existingAttachment.id },
+            data: {
+              fileUrl: dto.fileUrl !== undefined ? dto.fileUrl : existingAttachment.fileUrl,
+              fileName: dto.fileName !== undefined ? dto.fileName : existingAttachment.fileName,
+            },
+          });
+        } else {
+          await this.prisma.lessonAttachment.create({
+            data: {
+              lessonId,
+              fileUrl: dto.fileUrl || '',
+              fileName: dto.fileName || 'document.pdf',
+              fileType: 'application/pdf',
+              sizeBytes: 0,
+            },
+          });
+        }
+      }
+    }
+
+    return updatedLesson;
+  }
+
   // ── Update Course (with ownership check) ───────────────────────────────
   async updateCourse(userId: string, courseId: string, dto: any) {
     const profile = await this.getTeacherProfile(userId);

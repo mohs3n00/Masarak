@@ -21,7 +21,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 import { TeacherDashboardService } from '../services/teacher-dashboard.service';
-import { CreateCourseDto, AddLessonDto, AddAttachmentDto, NotificationDto } from '../dto/course.dto';
+import { CreateCourseDto, AddLessonDto, UpdateLessonDto, AddAttachmentDto, NotificationDto } from '../dto/course.dto';
 
 @ApiTags('Teacher')
 @ApiBearerAuth()
@@ -121,6 +121,19 @@ export class TeacherController {
     @Body('duration') duration: number,
   ) {
     return this.teacherService.updateLessonDuration(userId, courseId, lessonId, duration);
+  }
+
+  @Patch('courses/:id/lessons/:lessonId')
+  @UseGuards(TeacherApprovedGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a lesson in a course' })
+  updateLesson(
+    @CurrentUser('id') userId: string,
+    @Param('id') courseId: string,
+    @Param('lessonId') lessonId: string,
+    @Body() dto: UpdateLessonDto,
+  ) {
+    return this.teacherService.updateLesson(userId, courseId, lessonId, dto);
   }
 
   @Delete('courses/:id/lessons/:lessonId')
