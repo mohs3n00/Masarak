@@ -1037,6 +1037,7 @@ model CourseInstructor {
   teacher TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, teacherId])
+  @@index([teacherId])
 }
 
 model CourseObjective {
@@ -1387,6 +1388,7 @@ model Enrollment {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+  @@index([courseId])
 }
 
 model Cart {

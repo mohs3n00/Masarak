@@ -144,6 +144,48 @@ export class CourseRepository {
     });
   }
 
+  async recalculateCourseProgress(userId: string, courseId: string) {
+    const totalLessons = await this.prisma.lesson.count({
+      where: {
+        section: { courseId },
+        NOT: {
+          type: 'EXAM',
+          examTemplate: {
+            status: 'DRAFT',
+          },
+        },
+      },
+    });
+
+    const completedLessons = await this.prisma.lessonProgress.count({
+      where: {
+        userId,
+        isCompleted: true,
+        lesson: {
+          section: { courseId },
+          NOT: {
+            type: 'EXAM',
+            examTemplate: {
+              status: 'DRAFT',
+            },
+          },
+        },
+      },
+    });
+
+    const completionPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+    const isCompleted = completionPct === 100;
+
+    return this.updateCourseProgress(userId, courseId, completionPct, isCompleted);
+  }
+
+  async getLessonVideoWithCourse(videoId: string) {
+    return this.prisma.lessonVideo.findUnique({
+      where: { id: videoId },
+      include: { lesson: { include: { section: true } } },
+    });
+  }
+
   // ------------------------------------------------------
   // STUDENT INTERACTION
   // ------------------------------------------------------

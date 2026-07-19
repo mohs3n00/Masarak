@@ -227,7 +227,15 @@ export class PublicController {
           include: {
             lessons: {
               orderBy: { order: 'asc' },
-              select: { id: true, title: true, isFreePreview: true, type: true },
+              select: {
+                id: true,
+                title: true,
+                isFreePreview: true,
+                type: true,
+                examTemplate: {
+                  select: { status: true }
+                }
+              },
             },
           },
         },
@@ -239,9 +247,21 @@ export class PublicController {
     });
 
     if (!course) throw new NotFoundException('Course not found');
-    const { subject, ...rest } = course as any;
+    const { subject, sections, ...rest } = course as any;
+    
+    const filteredSections = sections.map((section: any) => ({
+      ...section,
+      lessons: section.lessons.filter((lesson: any) => {
+        if (lesson.type === 'EXAM' && lesson.examTemplate?.status === 'DRAFT') {
+          return false;
+        }
+        return true;
+      }).map(({ examTemplate, ...lessonRest }: any) => lessonRest),
+    }));
+
     return {
       ...rest,
+      sections: filteredSections,
       subject,
       category: subject ? { id: subject.id, name: subject.name, slug: subject.slug, icon: '📚' } : null,
       grade: course.grades?.[0] || null,
@@ -390,12 +410,21 @@ export class PublicController {
     });
 
     if (!user) throw new NotFoundException('Teacher not found');
+
+    const coursesCount = (user as any).teacherProfile?.courseInstructors?.length ?? 0;
+    const studentsCount = (user as any).teacherProfile?.courseInstructors?.reduce(
+      (sum: number, ci: any) => sum + (ci.course?._count?.enrollments ?? 0),
+      0
+    ) ?? 0;
+
     return {
       id: user.id,
       name: user.name,
       avatar: user.avatar,
       bio: user.bio,
       specializations: (user as any).teacherProfile?.subjects?.map((s: any) => s.name) ?? [],
+      coursesCount,
+      studentsCount,
       courses: ((user as any).teacherProfile?.courseInstructors || [])
         .filter((i: any) => i.course)
         .map((i: any) => ({

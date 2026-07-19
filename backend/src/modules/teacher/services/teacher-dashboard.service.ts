@@ -2,12 +2,14 @@ import { Injectable, ForbiddenException, NotFoundException, BadRequestException 
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { CourseStatus, CourseVisibility, CourseAccessType, CourseType, Difficulty, ContentType } from '@prisma/client';
 import { CleanupService } from '../../../shared/cloudinary/cleanup.service';
+import { NotificationService } from '../../../shared/notifications/notification.service';
 
 @Injectable()
 export class TeacherDashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cleanupService: CleanupService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   // ── Resolve teacherProfileId from userId ───────────────────────────────
@@ -571,6 +573,7 @@ export class TeacherDashboardService {
     const studentIds = enrollments.map((e) => e.userId);
 
     if (studentIds.length > 0) {
+      // 1. Save to DB for in-app notification list
       await this.prisma.notification.createMany({
         data: studentIds.map((id) => ({
           userId: id,
@@ -579,6 +582,29 @@ export class TeacherDashboardService {
           type: 'SYSTEM',
         })),
       });
+
+      // 2. Fetch FCM tokens from active sessions for each student
+      const sessions = await this.prisma.session.findMany({
+        where: {
+          userId: { in: studentIds },
+          fcmToken: { not: null },
+          expiresAt: { gt: new Date() },
+        },
+        select: { userId: true, fcmToken: true },
+      });
+
+      // 3. Send FCM push to every device that has an active session with a token
+      await Promise.allSettled(
+        sessions
+          .filter((s) => s.fcmToken)
+          .map((s) =>
+            this.notificationService.sendPushNotification({
+              userId: s.fcmToken!,
+              title: dto.title,
+              body: dto.message,
+            }),
+          ),
+      );
     }
 
     return { success: true, count: studentIds.length };

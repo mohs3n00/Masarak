@@ -21,18 +21,24 @@ export class LearningEngineService {
       seconds,
       isCompleted,
     );
-    // Logic to recalculate total lesson progress goes here
+    
+    if (isCompleted) {
+      const video = await this.repo.getLessonVideoWithCourse(videoId);
+      if (video) {
+        await this.completeLesson(userId, video.lessonId, video.lesson.section.courseId);
+      }
+    }
     return progress;
   }
 
   async completeLesson(userId: string, lessonId: string, courseId: string) {
     const progress = await this.repo.markLessonCompleted(userId, lessonId);
+    await this.repo.recalculateCourseProgress(userId, courseId);
     this.eventEmitter.emit('course.lesson.completed', {
       userId,
       lessonId,
       courseId,
     });
-    // Triggers recalculation of course progress
     return progress;
   }
 }

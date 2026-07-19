@@ -258,6 +258,9 @@ export class StudentDashboardService {
                   select: { id: true, fileName: true, fileType: true, sizeBytes: true, fileUrl: true }
                 },
                 resources: true,
+                examTemplate: {
+                  select: { status: true }
+                },
                 progress: { where: { userId } }
               }
             }
@@ -300,6 +303,16 @@ export class StudentDashboardService {
       },
     });
 
+    const filteredSections = course.sections.map(section => ({
+      ...section,
+      lessons: section.lessons.filter(lesson => {
+        if (lesson.type === 'EXAM' && (lesson as any).examTemplate?.status === 'DRAFT') {
+          return false;
+        }
+        return true;
+      }),
+    }));
+
     return {
       course: {
         id: course.id,
@@ -309,7 +322,7 @@ export class StudentDashboardService {
         averageRating: course.averageRating,
         reviewCount: course.reviewCount,
       },
-      sections: course.sections,
+      sections: filteredSections,
       userRating: userRating || null,
     };
   }
