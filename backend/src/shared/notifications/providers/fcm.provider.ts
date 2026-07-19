@@ -52,7 +52,7 @@ export class FcmNotificationProvider implements NotificationProvider {
       );
     } catch (error: any) {
       this.logger.error(`Failed to send FCM notification: ${error.message}`);
-      // Don't throw if FCM fails; we don't want to crash the main flow if push notifications fail.
+      throw error;
     }
   }
 }

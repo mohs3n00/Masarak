@@ -593,8 +593,7 @@ export class TeacherDashboardService {
         select: { userId: true, fcmToken: true },
       });
 
-      // 3. Send FCM push to every device that has an active session with a token
-      await Promise.allSettled(
+      const pushResults = await Promise.allSettled(
         sessions
           .filter((s) => s.fcmToken)
           .map((s) =>
@@ -605,9 +604,10 @@ export class TeacherDashboardService {
             }),
           ),
       );
+      return { success: true, count: studentIds.length, pushResults };
     }
 
-    return { success: true, count: studentIds.length };
+    return { success: true, count: 0, pushResults: [] };
   }
 
   // ── Exam Results ─────────────────────────────────────────────────────────
