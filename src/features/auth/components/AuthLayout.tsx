@@ -95,7 +95,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               loop
               muted
               playsInline
-              className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-125 hover:scale-[1.02] transition-transform duration-500"
+              className="w-full h-full object-contain mix-blend-multiply dark:invert dark:mix-blend-screen hover:scale-[1.02] transition-transform duration-500"
             />
           </div>
         ) : (
