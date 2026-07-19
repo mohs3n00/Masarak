@@ -17,7 +17,7 @@ export default function ChooseAccountPage() {
       <AuthLayout 
         title="أهلاً بك في منصة مسارك"
         subtitle="انضم إلينا الآن وابدأ رحلتك نحو التفوق والنجاح."
-        illustration={signUpImage}
+        videoSrc="/assets/video/register-video.webm"
       >
         <AuthCard>
           <AuthHeader

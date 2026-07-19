@@ -88,14 +88,14 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
         {/* Illustration or Video */}
         {videoSrc ? (
-          <div className="relative w-full max-w-xl aspect-video z-10 rounded-2xl overflow-hidden shadow-2xl border border-border/50">
+          <div className="relative w-full max-w-2xl aspect-[4/3] z-10 flex items-center justify-center p-2">
             <video
               src={videoSrc}
               autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-125 hover:scale-[1.02] transition-transform duration-500"
             />
           </div>
         ) : (
