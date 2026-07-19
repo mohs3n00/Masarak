@@ -16,7 +16,7 @@ export default function TeacherRegisterPage() {
       <AuthLayout 
         title="أهلاً بك معلّمنا القدير"
         subtitle="انضم إلى نخبة المعلمين وشارك علمك مع آلاف الطلاب."
-        illustration={signUpImage}
+        videoSrc="/assets/video/register-video.webm"
       >
         <AuthCard>
           <TeacherRegistrationWizard />

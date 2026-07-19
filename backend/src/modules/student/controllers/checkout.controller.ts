@@ -145,11 +145,10 @@ export class CheckoutController {
 
     if (finalPrice < 0) finalPrice = 0;
 
-    // If it's not free and the final price isn't 0, we can't enroll directly
-    // REMOVED FOR TESTING: Allow enrollment anyway since payment gateways are not yet available
-    // if (finalPrice > 0.01) {
-    //   throw new BadRequestException('This course is paid. Please complete payment first.');
-    // }
+    // If it's not free and the final price isn't 0, student cannot enroll without 100% coupon
+    if (finalPrice > 0.01) {
+      throw new BadRequestException('يجب استخدام كود خصم 100% من معلمك للالتحاق بهذا الكورس لحين توفر بوابة الدفع الإلكتروني');
+    }
 
     // Process enrollment
     await this.prisma.$transaction(async (tx) => {

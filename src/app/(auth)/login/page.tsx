@@ -63,7 +63,7 @@ export default function LoginPage() {
       <AuthLayout 
         title="مرحباً بعودتك إلى مسارك"
         subtitle="سعداء برؤيتك مجدداً، واصل مسيرتك التعليمية."
-        illustration={signInImage}
+        videoSrc="/assets/video/login-video.webm"
       >
         <AuthCard>
           <AuthHeader

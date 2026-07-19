@@ -287,7 +287,7 @@ export class StudentDashboardService {
     }
 
     if (!isOwner && !isAdmin && !isEnrolled) {
-      throw new ForbiddenException('You must be enrolled to access this course workspace');
+      throw new ForbiddenException('يجب استخدام كود خصم 100% من معلمك لفتح هذه الدورة لحين تفعيل بوابة الدفع الإلكتروني');
     }
 
     const userRating = await this.prisma.review.findUnique({

@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   NotFoundException,
+  ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
@@ -372,6 +373,14 @@ export class PublicController {
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Get teacher public profile with their courses' })
   async getTeacher(@CurrentUser() reqUser: any, @Param('id') id: string) {
+    if (reqUser?.role === 'TEACHER') {
+      const teacherProfile = await this.prisma.teacherProfile.findUnique({
+        where: { userId: reqUser.id }
+      });
+      if (reqUser.id !== id && teacherProfile?.id !== id) {
+        throw new ForbiddenException('غير مسموح للمعلمين باستعراض حسابات أو كورسات المعلمين الآخرين');
+      }
+    }
     let studentGrade = null;
     if (reqUser?.role === 'STUDENT') {
       const profile = await this.prisma.studentProfile.findUnique({
@@ -394,7 +403,7 @@ export class PublicController {
           include: { 
             subjects: true,
             courseInstructors: {
-              where: { isOwner: true, course: courseWhereClause },
+              where: { isOwner: true, course: { status: CourseStatus.PUBLISHED, isPublished: true } },
               include: {
                 course: {
                   include: {
@@ -411,11 +420,12 @@ export class PublicController {
 
     if (!user) throw new NotFoundException('Teacher not found');
 
-    const coursesCount = (user as any).teacherProfile?.courseInstructors?.length ?? 0;
-    const studentsCount = (user as any).teacherProfile?.courseInstructors?.reduce(
+    const allInstructors = (user as any).teacherProfile?.courseInstructors || [];
+    const coursesCount = allInstructors.length;
+    const studentsCount = allInstructors.reduce(
       (sum: number, ci: any) => sum + (ci.course?._count?.enrollments ?? 0),
       0
-    ) ?? 0;
+    );
 
     return {
       id: user.id,

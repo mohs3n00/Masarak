@@ -19,6 +19,7 @@ interface AuthLayoutProps {
   children: React.ReactNode;
   illustration?: string | any;
   illustrationAlt?: string;
+  videoSrc?: string;
   title?: string;
   subtitle?: string;
   className?: string;
@@ -28,6 +29,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
   illustration = signInImage,
   illustrationAlt = 'Masarak Platform',
+  videoSrc,
   title,
   subtitle = 'منصتك التعليمية الأفضل لتحقيق التفوق والنجاح بخطوات واثقة.',
   className,
@@ -57,7 +59,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         </div>
       </main>
 
-      {/* Illustration Column (left side in RTL) — desktop only */}
+      {/* Illustration / Video Column (left side in RTL) — desktop only */}
       <aside
         className={cn(
           "hidden lg:flex lg:flex-1 flex-col",
@@ -75,7 +77,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         </div>
 
         {/* Text Above Illustration */}
-        <div className="z-10 text-center mb-10 mt-16 max-w-lg">
+        <div className="z-10 text-center mb-8 mt-12 max-w-lg">
           <h2 className="text-3xl font-extrabold text-foreground mb-4">
             {title ?? 'أهلاً بك في منصة مسارك'}
           </h2>
@@ -84,16 +86,29 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           </p>
         </div>
 
-        {/* Illustration */}
-        <div className="relative w-full max-w-xl aspect-[4/3] z-10 drop-shadow-xl dark:drop-shadow-[0_20px_50px_rgba(255,255,255,0.05)]">
-          <Image
-            src={illustration}
-            alt={illustrationAlt}
-            fill
-            className="object-contain hover:scale-[1.02] transition-transform duration-500"
-            priority
-          />
-        </div>
+        {/* Illustration or Video */}
+        {videoSrc ? (
+          <div className="relative w-full max-w-xl aspect-video z-10 rounded-2xl overflow-hidden shadow-2xl border border-border/50">
+            <video
+              src={videoSrc}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="relative w-full max-w-xl aspect-[4/3] z-10 drop-shadow-xl dark:drop-shadow-[0_20px_50px_rgba(255,255,255,0.05)]">
+            <Image
+              src={illustration}
+              alt={illustrationAlt}
+              fill
+              className="object-contain hover:scale-[1.02] transition-transform duration-500"
+              priority
+            />
+          </div>
+        )}
 
         {/* Background glow effects for the theme */}
         <div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px] pointer-events-none" />

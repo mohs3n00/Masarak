@@ -58,6 +58,10 @@ export class UsersService {
   }
 
   async updateStudentProfile(userId: string, dto: UpdateStudentProfileDto) {
+    const user = await this.repository.findById(userId);
+    if (user?.studentProfile?.grade) {
+      delete (dto as any).grade;
+    }
     const updated = await this.repository.updateStudentProfile(userId, dto);
     this.eventEmitter.emit(
       'user.profile.updated',
