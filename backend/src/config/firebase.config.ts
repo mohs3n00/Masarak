@@ -1,8 +1,9 @@
 import { registerAs } from '@nestjs/config';
 
 const getPrivateKey = () => {
-  if (process.env.FIREBASE_PRIVATE_KEY) {
-    return process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+  const pk = process.env.FIREBASE_PRIVATE_KEY;
+  if (pk && !pk.includes('...')) {
+    return pk.replace(/\\n/g, '\n');
   }
   const parts = [
     process.env.FIREBASE_PRIVATE_KEY_1,
