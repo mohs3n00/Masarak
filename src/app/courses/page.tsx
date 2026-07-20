@@ -6,6 +6,7 @@ import { CourseSortSelect } from "@/features/marketing/components/filters/Course
 import { AppPagination } from "@/shared/components/molecules/AppPagination";
 import { fetchPublicCourses, fetchPublicSubjects } from "@/lib/api/public";
 import { cookies } from "next/headers";
+import { CourseListContainer } from '@/features/marketing/components/CourseListContainer';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -75,20 +76,9 @@ export default async function CoursesPage(props: { searchParams: Promise<{ [key:
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               
-              {/* Toolbar */}
-              <CourseSortSelect count={totalItems} />
-
               {/* Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {courses && courses.length > 0 ? (
-                  courses.map((course: any) => (
-                    <CoursePreviewCard key={course.id} course={course} />
-                  ))
-                ) : (
-                  <div className="col-span-full py-12 text-center text-muted-foreground">
-                    لا توجد دورات تطابق معايير البحث
-                  </div>
-                )}
+                <CourseListContainer initialCourses={courses || []} />
               </div>
 
               {/* Pagination */}
