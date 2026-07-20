@@ -5,6 +5,7 @@ import { AppContainer, Section } from '@/shared/layouts/Containers';
 import Image from 'next/image';
 import { Star, Users, Clock, PlayCircle, BookOpen } from 'lucide-react';
 import { CourseActionButtons } from '@/features/marketing/components/CourseActionButtons';
+import { CourseRatingSection } from '@/features/marketing/components/CourseRatingSection';
 
 export default async function CourseDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
@@ -159,6 +160,13 @@ export default async function CourseDetailsPage({ params }: { params: Promise<{ 
                </div>
              )}
            </div>
+
+           {/* Student Ratings & Review Form */}
+           <CourseRatingSection 
+             courseId={course.id}
+             initialAverageRating={course.averageRating}
+             initialReviewCount={course.reviewCount || course._count?.reviews || 0}
+           />
          </Section>
       </AppContainer>
     </div>

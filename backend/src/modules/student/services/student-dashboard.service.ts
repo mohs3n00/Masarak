@@ -384,9 +384,24 @@ export class StudentDashboardService {
     return { isEnrolled: !!enrollment };
   }
 
-  async rateCourse(userId: string, courseId: string, rating: number, comment?: string) {
+  async rateCourse(userId: string, courseIdInput: string, rating: number, comment?: string) {
+    let targetCourseId = courseIdInput;
+    const courseObj = await this.prisma.course.findFirst({
+      where: {
+        OR: [
+          { id: courseIdInput },
+          { slug: courseIdInput },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (courseObj) {
+      targetCourseId = courseObj.id;
+    }
+
     const enrollment = await this.prisma.enrollment.findFirst({
-      where: { userId, courseId, status: EnrollmentStatus.ACTIVE },
+      where: { userId, courseId: targetCourseId, status: EnrollmentStatus.ACTIVE },
     });
     if (!enrollment) {
       throw new ForbiddenException('يمكنك تقييم الكورس فقط بعد الاشتراك فيه');
@@ -399,7 +414,7 @@ export class StudentDashboardService {
     const review = await this.prisma.review.upsert({
       where: {
         courseId_studentId: {
-          courseId,
+          courseId: targetCourseId,
           studentId: userId,
         },
       },
@@ -408,7 +423,7 @@ export class StudentDashboardService {
         comment,
       },
       create: {
-        courseId,
+        courseId: targetCourseId,
         studentId: userId,
         rating,
         comment,
@@ -416,7 +431,7 @@ export class StudentDashboardService {
     });
 
     const aggregate = await this.prisma.review.aggregate({
-      where: { courseId },
+      where: { courseId: targetCourseId },
       _avg: { rating: true },
       _count: { rating: true },
     });
@@ -425,7 +440,7 @@ export class StudentDashboardService {
     const reviewCount = aggregate._count.rating || 0;
 
     await this.prisma.course.update({
-      where: { id: courseId },
+      where: { id: targetCourseId },
       data: {
         averageRating,
         reviewCount,
@@ -433,7 +448,7 @@ export class StudentDashboardService {
     });
 
     const ownerInstructor = await this.prisma.courseInstructor.findFirst({
-      where: { courseId, isOwner: true },
+      where: { courseId: targetCourseId, isOwner: true },
       include: { teacher: true },
     });
 
@@ -465,7 +480,13 @@ export class StudentDashboardService {
       });
     }
 
-    return review;
+    return {
+      success: true,
+      review,
+      averageRating,
+      reviewCount,
+      message: 'تم حفظ تقييمك بنجاح',
+    };
   }
 
 }
