@@ -158,9 +158,24 @@ export class StudentDashboardService {
 
     const where: any = {
       status: CourseStatus.PUBLISHED,
-      // Filter by grade if student has a grade set
-      ...(profile?.grade && { grades: { has: profile.grade } }),
     };
+
+    if (profile?.grade) {
+      const normalizeGrade = (g: string) =>
+        g.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي');
+      const normalizedStudentGrade = normalizeGrade(profile.grade!);
+      // Student sees courses for their grade OR general courses (grades: [])
+      where.OR = [
+        { grades: { isEmpty: true } },
+        { grades: { has: profile.grade } },
+        ...(['أ', 'إ', 'آ', 'ا'].map(vowel => ({
+          grades: { has: profile.grade!.replace(/[أإآا]/g, vowel) }
+        }))),
+        ...(['ى', 'ي'].map(vowel => ({
+          grades: { has: normalizedStudentGrade.replace(/ي$/g, vowel) }
+        }))),
+      ];
+    }
 
     const [courses, total] = await Promise.all([
       this.prisma.course.findMany({

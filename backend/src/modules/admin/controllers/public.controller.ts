@@ -100,6 +100,9 @@ export class PublicController {
   ) {
     const where: any = { status: CourseStatus.PUBLISHED, isPublished: true };
 
+    // Track whether student grade filter is applied (prevents ?grade= param bypass)
+    let studentGradeApplied = false;
+
     if (user?.role === 'TEACHER') {
       const profile = await this.prisma.teacherProfile.findUnique({
         where: { userId: user.id }
@@ -112,15 +115,44 @@ export class PublicController {
         where: { userId: user.id }
       });
       if (profile && profile.grade) {
-        where.grades = { has: profile.grade };
+        // Normalize hamza variants so any Arabic spelling of the grade matches.
+        // e.g. "الصف الأول" and "الصف الاول" must both match the DB value.
+        const normalizeGrade = (g: string) =>
+          g.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي');
+
+        const normalizedStudentGrade = normalizeGrade(profile.grade!);
+
+        // Student sees:
+        //  1. Courses explicitly tagged for their grade (with hamza normalization)
+        //  2. Courses with NO grade restriction (grades = [] → available to all)
+        where.OR = [
+          { grades: { isEmpty: true } },
+          { grades: { has: profile.grade } },
+          // Also match hamza-normalized variants stored in DB
+          ...(['أ', 'إ', 'آ', 'ا'].map(vowel => ({
+            grades: { has: profile.grade!.replace(/[أإآا]/g, vowel) }
+          }))),
+          ...(['ى', 'ي'].map(vowel => ({
+            grades: { has: normalizedStudentGrade.replace(/ي$/g, vowel) }
+          }))),
+        ];
+        studentGradeApplied = true;
       }
     }
 
     if (q) {
-      where.OR = [
+      // Merge OR search with existing OR (student grade) or create fresh OR
+      const searchOr = [
         { title: { contains: q, mode: 'insensitive' } },
         { description: { contains: q, mode: 'insensitive' } },
       ];
+      if (where.OR) {
+        // Wrap: (grade filter) AND (search match)
+        where.AND = [{ OR: where.OR }, { OR: searchOr }];
+        delete where.OR;
+      } else {
+        where.OR = searchOr;
+      }
     }
     const selectedSubject = subject || category;
     if (selectedSubject) {
@@ -131,11 +163,12 @@ export class PublicController {
         ]
       };
     }
-    if (grade) {
+    // Only apply ?grade= param for non-students or unauthenticated requests.
+    // Authenticated students MUST be scoped to their registered grade only.
+    if (grade && !studentGradeApplied) {
       const gradesToMatch = [grade];
       if (grade.endsWith('ي')) gradesToMatch.push(grade.replace(/ي$/, 'ى'));
       else if (grade.endsWith('ى')) gradesToMatch.push(grade.replace(/ى$/, 'ي'));
-      
       where.grades = { hasSome: gradesToMatch };
     }
 
@@ -381,19 +414,32 @@ export class PublicController {
         throw new ForbiddenException('غير مسموح للمعلمين باستعراض حسابات أو كورسات المعلمين الآخرين');
       }
     }
-    let studentGrade = null;
+    let courseGradeFilter: any = null;
     if (reqUser?.role === 'STUDENT') {
       const profile = await this.prisma.studentProfile.findUnique({
         where: { userId: reqUser.id }
       });
       if (profile && profile.grade) {
-        studentGrade = profile.grade;
+        const normalizeGrade = (g: string) =>
+          g.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي');
+        const normalizedStudentGrade = normalizeGrade(profile.grade!);
+        // Student sees courses for their grade OR general courses (grades: [])
+        courseGradeFilter = [
+          { grades: { isEmpty: true } },
+          { grades: { has: profile.grade } },
+          ...(['أ', 'إ', 'آ', 'ا'].map(vowel => ({
+            grades: { has: profile.grade!.replace(/[أإآا]/g, vowel) }
+          }))),
+          ...(['ى', 'ي'].map(vowel => ({
+            grades: { has: normalizedStudentGrade.replace(/ي$/g, vowel) }
+          }))),
+        ];
       }
     }
 
     const courseWhereClause: any = { status: CourseStatus.PUBLISHED, isPublished: true };
-    if (studentGrade) {
-      courseWhereClause.grades = { has: studentGrade };
+    if (courseGradeFilter) {
+      courseWhereClause.OR = courseGradeFilter;
     }
 
     const user = await this.prisma.user.findFirst({
