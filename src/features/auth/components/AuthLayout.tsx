@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Logo } from '@/shared/components/atoms/Logo';
+import { TransparentVideo } from '@/shared/components/atoms/TransparentVideo';
 import { cn } from '@/lib/utils';
 import signInImage from '@/assets/images/sgin in.png';
 
@@ -88,14 +89,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
         {/* Illustration or Video */}
         {videoSrc ? (
-          <div className="relative w-full max-w-2xl aspect-[4/3] z-10 flex items-center justify-center p-2">
-            <video
+          <div className="relative w-full max-w-xl aspect-[4/3] z-10 flex items-center justify-center p-2">
+            <TransparentVideo
               src={videoSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-contain mix-blend-multiply dark:invert dark:mix-blend-screen hover:scale-[1.02] transition-transform duration-500"
+              className="w-full h-full max-w-xl aspect-[4/3] hover:scale-[1.02] transition-transform duration-500"
             />
           </div>
         ) : (
