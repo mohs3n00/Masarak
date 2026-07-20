@@ -115,26 +115,27 @@ export class PublicController {
         where: { userId: user.id }
       });
       if (profile && profile.grade) {
-        // Normalize hamza variants so any Arabic spelling of the grade matches.
-        // e.g. "الصف الأول" and "الصف الاول" must both match the DB value.
-        const normalizeGrade = (g: string) =>
-          g.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي');
+        const getGradeVariants = (grade: string): string[] => {
+          if (!grade) return [];
+          const normalized = grade.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي').trim();
+          const set = new Set<string>([grade, normalized]);
+          const knownVariants = [
+            'الصف الأول الثانوي', 'الصف الاول الثانوي', 'الصف الأول الثانوى', 'الصف الاول الثانوى',
+            'الصف الثاني الثانوي', 'الصف الثاني الثانوى', 'الصف الثانى الثانوي', 'الصف الثانى الثانوى',
+            'الصف الثالث الثانوي', 'الصف الثالث الثانوى'
+          ];
+          for (const v of knownVariants) {
+            if (v.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي') === normalized) {
+              set.add(v);
+            }
+          }
+          return Array.from(set);
+        };
 
-        const normalizedStudentGrade = normalizeGrade(profile.grade!);
-
-        // Student sees:
-        //  1. Courses explicitly tagged for their grade (with hamza normalization)
-        //  2. Courses with NO grade restriction (grades = [] → available to all)
+        const matchingGrades = getGradeVariants(profile.grade);
         where.OR = [
           { grades: { isEmpty: true } },
-          { grades: { has: profile.grade } },
-          // Also match hamza-normalized variants stored in DB
-          ...(['أ', 'إ', 'آ', 'ا'].map(vowel => ({
-            grades: { has: profile.grade!.replace(/[أإآا]/g, vowel) }
-          }))),
-          ...(['ى', 'ي'].map(vowel => ({
-            grades: { has: normalizedStudentGrade.replace(/ي$/g, vowel) }
-          }))),
+          { grades: { hasSome: matchingGrades } },
         ];
         studentGradeApplied = true;
       }
@@ -420,19 +421,27 @@ export class PublicController {
         where: { userId: reqUser.id }
       });
       if (profile && profile.grade) {
-        const normalizeGrade = (g: string) =>
-          g.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي');
-        const normalizedStudentGrade = normalizeGrade(profile.grade!);
-        // Student sees courses for their grade OR general courses (grades: [])
+        const getGradeVariants = (grade: string): string[] => {
+          if (!grade) return [];
+          const normalized = grade.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي').trim();
+          const set = new Set<string>([grade, normalized]);
+          const knownVariants = [
+            'الصف الأول الثانوي', 'الصف الاول الثانوي', 'الصف الأول الثانوى', 'الصف الاول الثانوى',
+            'الصف الثاني الثانوي', 'الصف الثاني الثانوى', 'الصف الثانى الثانوي', 'الصف الثانى الثانوى',
+            'الصف الثالث الثانوي', 'الصف الثالث الثانوى'
+          ];
+          for (const v of knownVariants) {
+            if (v.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي') === normalized) {
+              set.add(v);
+            }
+          }
+          return Array.from(set);
+        };
+
+        const matchingGrades = getGradeVariants(profile.grade);
         courseGradeFilter = [
           { grades: { isEmpty: true } },
-          { grades: { has: profile.grade } },
-          ...(['أ', 'إ', 'آ', 'ا'].map(vowel => ({
-            grades: { has: profile.grade!.replace(/[أإآا]/g, vowel) }
-          }))),
-          ...(['ى', 'ي'].map(vowel => ({
-            grades: { has: normalizedStudentGrade.replace(/ي$/g, vowel) }
-          }))),
+          { grades: { hasSome: matchingGrades } },
         ];
       }
     }
