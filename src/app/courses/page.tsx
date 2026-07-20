@@ -19,12 +19,12 @@ const mockLevels = [
 export default async function CoursesPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const searchParams = await props.searchParams;
   const cookieStore = await cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const token = cookieStore.get('accessToken')?.value || cookieStore.get('access_token')?.value;
   
   const subjectSlug = typeof searchParams.subject === 'string' ? searchParams.subject : (typeof searchParams.category === 'string' ? searchParams.category : undefined);
   const query = typeof searchParams.q === 'string' ? searchParams.q.toLowerCase() : undefined;
   const levels = Array.isArray(searchParams.level) ? searchParams.level : (typeof searchParams.level === 'string' ? [searchParams.level] : []);
-  const gradeSlug = token && levels.length > 0 ? levels[0] : undefined;
+  const gradeSlug = levels.length > 0 ? levels[0] : undefined;
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : undefined;
   const page = typeof searchParams.page === 'string' ? Math.max(1, parseInt(searchParams.page) || 1) : 1;
 

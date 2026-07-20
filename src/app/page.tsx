@@ -35,7 +35,7 @@ import { cookies } from 'next/headers';
 
 export default async function LandingPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const token = cookieStore.get('accessToken')?.value || cookieStore.get('access_token')?.value;
 
   // Fetch everything in parallel
   const [popularCoursesResult, newestCoursesResult, teachersResult] = await Promise.all([

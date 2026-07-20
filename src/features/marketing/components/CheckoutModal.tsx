@@ -6,7 +6,7 @@ import { Input } from '@/shared/components/atoms/Input';
 import { apiClient } from '@/shared/api/api.client';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { X, CheckCircle2, Ticket } from 'lucide-react';
+import { X, CheckCircle2, Ticket, AlertCircle } from 'lucide-react';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -52,6 +52,11 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
   };
 
   const handleEnroll = async () => {
+    if (finalPrice > 0) {
+      toast.error('بوابة الدفع الإلكتروني مغلقة حالياً. يجب استخدام كود خصم 100% من معلمك للالتحاق بهذا الكورس.');
+      return;
+    }
+
     try {
       setIsEnrolling(true);
       const res = await apiClient.post('/student/checkout/enroll', { 
@@ -89,7 +94,16 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
 
         {/* Content */}
         <div className="p-6 flex flex-col gap-6">
-          
+          {finalPrice > 0 && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 text-amber-700 dark:text-amber-300 text-xs font-medium leading-relaxed flex items-start gap-2.5">
+              <AlertCircle className="w-5 h-5 shrink-0 text-amber-500 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm mb-0.5">بوابة الدفع الإلكتروني مغلقة حالياً</p>
+                <p>يلزم الحصول على كود خصم بنسبة 100% من معلمك للاشتراك في هذا الكورس لحين توافر بوابة الدفع، ولا يمكن التجاوز بدون الكود.</p>
+              </div>
+            </div>
+          )}
+
           <div className="bg-muted/50 p-4 rounded-xl border border-border">
             <div className="flex justify-between items-center mb-2">
               <span className="text-muted-foreground">السعر الأصلي:</span>
@@ -112,11 +126,11 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold flex items-center gap-2">
               <Ticket className="w-4 h-4 text-muted-foreground" />
-              هل لديك كود خصم؟
+              هل لديك كود خصم من معلمك؟
             </label>
             <div className="flex gap-2">
               <Input 
-                placeholder="أدخل الكود هنا" 
+                placeholder="أدخل كود الخصم هنا" 
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
                 disabled={!!validatedCoupon || isApplying}
@@ -155,7 +169,7 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
             onClick={handleEnroll}
             disabled={isEnrolling}
           >
-            {isEnrolling ? 'جاري الانضمام...' : (finalPrice === 0 ? 'إتمام الاشتراك مجاناً' : 'متابعة الدفع')}
+            {isEnrolling ? 'جاري الانضمام...' : (finalPrice === 0 ? 'إتمام الاشتراك مجاناً (كود 100%)' : 'احصل على كود خصم 100% من معلمك')}
           </Button>
         </div>
       </div>

@@ -108,6 +108,9 @@ apiClient.interceptors.response.use(
           // Only clear auth if we get a definitive authentication error from the server
           if (err.response && (err.response.status === 401 || err.response.status === 403)) {
             useAuthStore.getState().clearAuth();
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+              window.location.href = '/login?expired=1';
+            }
           }
           return Promise.reject(err);
         }

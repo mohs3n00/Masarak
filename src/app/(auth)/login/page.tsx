@@ -71,6 +71,12 @@ export default function LoginPage() {
             description="مرحباً بعودتك! يرجى إدخال بياناتك للمتابعة."
           />
 
+          {searchParams.get('expired') === '1' && (
+            <div className="mb-4 p-3.5 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-sm rounded-xl border border-amber-500/20 text-center font-medium">
+              تم إنهاء الجلسة أو إزالة الحساب من النظام. يرجى تسجيل الدخول مجدداً.
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 p-3 bg-error/8 text-error text-sm rounded-xl border border-error/20 text-center">
               {error}

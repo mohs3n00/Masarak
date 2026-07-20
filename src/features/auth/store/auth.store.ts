@@ -31,7 +31,11 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       ...initialState,
 
-      setAuth: (user, tokens) =>
+      setAuth: (user, tokens) => {
+        if (typeof window !== 'undefined' && tokens?.accessToken) {
+          document.cookie = `accessToken=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+        }
         set({
           user,
           role: user.role,
@@ -39,7 +43,8 @@ export const useAuthStore = create<AuthStore>()(
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
           error: null,
-        }),
+        });
+      },
 
       updateUser: (updatedUser) =>
         set((state) => ({
@@ -47,11 +52,16 @@ export const useAuthStore = create<AuthStore>()(
           role: updatedUser.role ?? state.role,
         })),
 
-      setTokens: (tokens) =>
+      setTokens: (tokens) => {
+        if (typeof window !== 'undefined' && tokens?.accessToken) {
+          document.cookie = `accessToken=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+        }
         set({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
-        }),
+        });
+      },
 
       clearAuth: () => {
         set({
@@ -59,6 +69,10 @@ export const useAuthStore = create<AuthStore>()(
         });
         if (typeof window !== 'undefined') {
           window.localStorage.clear();
+          document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
       },
 
