@@ -305,17 +305,55 @@ export class PublicController {
 
   // ── Approved Teachers ───────────────────────────────────────────────
   @Get('teachers')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'List approved teachers for public browsing' })
   @ApiQuery({ name: 'take', required: false, type: Number })
   @ApiQuery({ name: 'skip', required: false, type: Number })
   @ApiQuery({ name: 'q', required: false })
   @ApiQuery({ name: 'subjectId', required: false })
   async getTeachers(
+    @CurrentUser() reqUser: any,
     @Query('take', new DefaultValuePipe(20), ParseIntPipe) take: number,
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number,
     @Query('q') q?: string,
     @Query('subjectId') subjectId?: string,
   ) {
+    let courseGradeFilter: any = null;
+    if (reqUser?.role === 'STUDENT') {
+      const profile = await this.prisma.studentProfile.findUnique({
+        where: { userId: reqUser.id }
+      });
+      if (profile && profile.grade) {
+        const getGradeVariants = (grade: string): string[] => {
+          if (!grade) return [];
+          const normalized = grade.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي').trim();
+          const set = new Set<string>([grade, normalized]);
+          const knownVariants = [
+            'الصف الأول الثانوي', 'الصف الاول الثانوي', 'الصف الأول الثانوى', 'الصف الاول الثانوى',
+            'الصف الثاني الثانوي', 'الصف الثاني الثانوى', 'الصف الثانى الثانوي', 'الصف الثانى الثانوى',
+            'الصف الثالث الثانوي', 'الصف الثالث الثانوى'
+          ];
+          for (const v of knownVariants) {
+            if (v.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي') === normalized) {
+              set.add(v);
+            }
+          }
+          return Array.from(set);
+        };
+
+        const matchingGrades = getGradeVariants(profile.grade);
+        courseGradeFilter = [
+          { grades: { isEmpty: true } },
+          { grades: { hasSome: matchingGrades } },
+        ];
+      }
+    }
+
+    const courseWhereClause: any = { status: CourseStatus.PUBLISHED, isPublished: true };
+    if (courseGradeFilter) {
+      courseWhereClause.OR = courseGradeFilter;
+    }
+
     const where: any = {
       role: 'TEACHER',
       isActive: true,
@@ -372,22 +410,34 @@ export class PublicController {
 
     const dataWithStudentsCount = await Promise.all(
       data.map(async (u: any) => {
-        const studentsCount = u.teacherProfile
-          ? await this.prisma.enrollment.count({
-              where: {
-                course: {
-                  instructors: { some: { teacherId: u.teacherProfile.id } },
+        const [studentsCount, coursesCount] = u.teacherProfile
+          ? await Promise.all([
+              this.prisma.enrollment.count({
+                where: {
+                  course: {
+                    status: CourseStatus.PUBLISHED,
+                    isPublished: true,
+                    instructors: { some: { teacherId: u.teacherProfile.id } },
+                  },
                 },
-              },
-            })
-          : 0;
+              }),
+              this.prisma.courseInstructor.count({
+                where: {
+                  teacherId: u.teacherProfile.id,
+                  isOwner: true,
+                  course: courseWhereClause,
+                },
+              }),
+            ])
+          : [0, 0];
+
         return {
           id: u.id,
           name: u.name,
           avatar: u.avatar,
           bio: u.bio,
           specializations: u.teacherProfile?.subjects?.map((s: any) => s.name) ?? [],
-          coursesCount: u.teacherProfile?._count?.courseInstructors ?? 0,
+          coursesCount,
           studentsCount,
           createdAt: u.createdAt,
         };
