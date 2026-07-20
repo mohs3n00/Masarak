@@ -12,9 +12,14 @@ export function TopNav() {
   React.useEffect(() => {
     setMounted(true);
     const storedTheme = localStorage.getItem("theme");
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialDark = storedTheme === "dark" || (!storedTheme && systemPrefersDark) || document.documentElement.classList.contains('dark');
+    const initialDark = storedTheme === "dark";
     setIsDark(initialDark);
+
+    if (initialDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, []);
 
   React.useEffect(() => {
