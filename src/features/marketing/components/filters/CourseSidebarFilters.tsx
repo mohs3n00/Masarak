@@ -98,41 +98,6 @@ export function CourseSidebarFilters({ categories, totalCourses = 0, levels }: C
           })}
         </div>
       </div>
-
-      <div>
-        <h3 className="font-bold text-lg mb-4 text-foreground">مستوى الدورة</h3>
-        <div className="flex flex-col gap-3">
-          {levels.map((level, idx) => {
-            const isChecked = currentLevels.includes(level.slug);
-            return (
-              <label key={idx} className="flex items-center gap-3 cursor-pointer group">
-                <div 
-                  className={cn(
-                    "w-5 h-5 rounded border flex items-center justify-center transition-colors",
-                    isChecked ? "bg-primary border-primary" : "border-border group-hover:border-primary"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLevelToggle(level.slug);
-                  }}
-                >
-                  {isChecked && (
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <span className={cn(
-                  "text-sm font-medium transition-colors",
-                  isChecked ? "text-foreground font-bold" : "text-muted-foreground group-hover:text-foreground"
-                )}>
-                  {level.name}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
     </aside>
   );
 }

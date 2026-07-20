@@ -99,29 +99,8 @@ export function Navbar() {
             />
           </div>
 
-          {/* Center Navigation — Desktop */}
-          <nav className="hidden lg:flex items-center justify-center gap-1 flex-1" aria-label="القائمة الرئيسية">
-            {MainNavigation.map((route) => {
-              const isActive = pathname === route.href
-              return (
-                <Link
-                  key={route.href}
-                  href={route.href}
-                  className={cn(
-                    "relative flex items-center justify-center px-4 h-9 rounded-lg",
-                    "text-[15px] font-semibold transition-colors duration-200",
-                    "outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                    isActive
-                      ? "text-primary bg-primary/8"
-                      : "text-text-secondary hover:text-foreground hover:bg-muted"
-                  )}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {route.label}
-                </Link>
-              )
-            })}
-          </nav>
+          {/* Spacer */}
+          <div className="flex-1" />
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 shrink-0">
