@@ -458,7 +458,7 @@ export class PublicController {
           include: { 
             subjects: true,
             courseInstructors: {
-              where: { isOwner: true, course: { status: CourseStatus.PUBLISHED, isPublished: true } },
+              where: { isOwner: true, course: courseWhereClause },
               include: {
                 course: {
                   include: {
