@@ -28,6 +28,7 @@ import {
   Shield,
   Megaphone,
   Image,
+  X,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -68,7 +69,12 @@ const NAV_GROUPS = [
   },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
@@ -84,73 +90,99 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="fixed top-0 start-0 h-screen w-64 bg-background border-e border-border flex flex-col z-50 shadow-sm" dir="rtl">
-      {/* Logo */}
-      <div className="h-[68px] px-5 flex items-center shrink-0 border-b border-border">
-        <Logo width={100} height={28} />
-        <span className="ms-2 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-          ADMIN
-        </span>
-      </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden transition-opacity"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label}>
-            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-              {group.label}
-            </p>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const isActive = 'exact' in item && item.exact
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href) && item.href !== '/dashboard/admin';
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-text-secondary hover:bg-muted hover:text-foreground'
-                    )}
-                  >
-                    <item.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-primary' : 'text-text-muted')} />
-                    <span>{item.label}</span>
-                    {isActive && <ChevronLeft className="w-3 h-3 ms-auto text-primary" />}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </nav>
-
-      {/* User Footer */}
-      <div className="p-3 border-t border-border shrink-0">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-muted/50">
-          {user?.avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0">
-              {userInitials}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">{user?.name}</p>
-            <p className="text-[10px] text-text-muted">{user?.role === 'SUPER_ADMIN' ? 'مدير عام' : 'مسؤول'}</p>
+      <aside
+        className={cn(
+          "fixed top-0 start-0 h-screen w-64 bg-background border-e border-border flex flex-col z-50 shadow-lg transition-transform duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
+        )}
+        dir="rtl"
+      >
+        {/* Logo Header */}
+        <div className="h-[68px] px-5 flex items-center justify-between shrink-0 border-b border-border">
+          <div className="flex items-center">
+            <Logo width={100} height={28} />
+            <span className="ms-2 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              ADMIN
+            </span>
           </div>
           <button
-            onClick={handleLogout}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-error hover:bg-error/10 transition-colors"
-            aria-label="تسجيل الخروج"
+            onClick={onClose}
+            className="md:hidden p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-muted transition-colors"
+            aria-label="إغلاق القائمة"
           >
-            <LogOut className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
-      </div>
-    </aside>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = 'exact' in item && item.exact
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href) && item.href !== '/dashboard/admin';
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-text-secondary hover:bg-muted hover:text-foreground'
+                      )}
+                    >
+                      <item.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-primary' : 'text-text-muted')} />
+                      <span>{item.label}</span>
+                      {isActive && <ChevronLeft className="w-3 h-3 ms-auto text-primary" />}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* User Footer */}
+        <div className="p-3 border-t border-border shrink-0">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-muted/50">
+            {user?.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0">
+                {userInitials}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-foreground truncate">{user?.name}</p>
+              <p className="text-[10px] text-text-muted">{user?.role === 'SUPER_ADMIN' ? 'مدير عام' : 'مسؤول'}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-error hover:bg-error/10 transition-colors"
+              aria-label="تسجيل الخروج"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

@@ -75,6 +75,8 @@ export class CheckoutController {
 
     return {
       success: true,
+      isValid: true,
+      is_valid: true,
       coupon: {
         code: coupon.code,
         type: coupon.type,
@@ -82,7 +84,10 @@ export class CheckoutController {
       },
       originalPrice: course.price,
       discountAmount,
-      finalPrice
+      discount: discountAmount,
+      finalPrice,
+      newPrice: finalPrice,
+      new_price: finalPrice
     };
   }
 

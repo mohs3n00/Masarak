@@ -34,7 +34,7 @@ export function FloatingDock() {
 
   return (
     <div 
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] transition-all duration-300 animate-in fade-in slide-in-from-bottom-5"
+      className="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] transition-all duration-300 animate-in fade-in slide-in-from-bottom-5"
       aria-label="شريط الملاحة العائم"
     >
       <nav className="flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-full bg-card/85 dark:bg-slate-900/85 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-2xl shadow-black/20 ring-1 ring-black/5">
