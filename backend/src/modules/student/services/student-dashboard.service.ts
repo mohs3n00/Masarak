@@ -378,12 +378,13 @@ export class StudentDashboardService {
   }
 
   async checkEnrollment(userId: string, courseIdInput: string) {
-    let targetCourseId = courseIdInput;
+    const decodedInput = decodeURIComponent(courseIdInput);
+    let targetCourseId = decodedInput;
     const courseObj = await this.prisma.course.findFirst({
       where: {
         OR: [
-          { id: courseIdInput },
-          { slug: courseIdInput },
+          { id: decodedInput },
+          { slug: decodedInput },
         ],
       },
       select: { id: true },

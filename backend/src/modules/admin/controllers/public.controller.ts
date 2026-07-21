@@ -236,11 +236,13 @@ export class PublicController {
   // ── Single Course ───────────────────────────────────────────────────
   @Get('courses/:slug')
   @ApiOperation({ summary: 'Get a single published course by slug' })
-  async getCourse(@Param('slug') slug: string) {
+  async getCourse(@Param('slug') rawSlug: string) {
+    const slug = decodeURIComponent(rawSlug);
     const course = await this.prisma.course.findFirst({
       where: {
         OR: [
           { slug },
+          { id: slug },
           ...(slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? [{ id: slug }] : [])
         ],
         status: CourseStatus.PUBLISHED 
