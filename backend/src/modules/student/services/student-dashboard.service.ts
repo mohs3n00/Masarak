@@ -377,9 +377,24 @@ export class StudentDashboardService {
     });
   }
 
-  async checkEnrollment(userId: string, courseId: string) {
+  async checkEnrollment(userId: string, courseIdInput: string) {
+    let targetCourseId = courseIdInput;
+    const courseObj = await this.prisma.course.findFirst({
+      where: {
+        OR: [
+          { id: courseIdInput },
+          { slug: courseIdInput },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (courseObj) {
+      targetCourseId = courseObj.id;
+    }
+
     const enrollment = await this.prisma.enrollment.findFirst({
-      where: { userId, courseId, status: EnrollmentStatus.ACTIVE },
+      where: { userId, courseId: targetCourseId, status: EnrollmentStatus.ACTIVE },
     });
     return { isEnrolled: !!enrollment };
   }
