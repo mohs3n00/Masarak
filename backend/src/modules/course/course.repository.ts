@@ -114,6 +114,14 @@ export class CourseRepository {
     });
   }
 
+  async incrementStudentWatchTime(userId: string, seconds: number) {
+    return this.prisma.studentStatistics.upsert({
+      where: { userId },
+      update: { totalSecondsWatched: { increment: Math.floor(seconds) } },
+      create: { userId, totalSecondsWatched: Math.floor(seconds) },
+    });
+  }
+
   async markLessonCompleted(userId: string, lessonId: string) {
     return this.prisma.lessonProgress.upsert({
       where: { userId_lessonId: { userId, lessonId } },

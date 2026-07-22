@@ -74,6 +74,43 @@ export function MasarakPlayer({
   const [isBuffering, setIsBuffering] = useState(true);
   const [showControls, setShowControls] = useState(true);
 
+  // Statistics Tracking
+  const unSyncedSeconds = useRef(0);
+  const lastProgressTime = useRef<number | null>(null);
+  
+  const syncProgress = useCallback(async (isCompleted = false) => {
+    if ((unSyncedSeconds.current <= 0 && !isCompleted) || !videoId) return;
+
+    const deltaSeconds = unSyncedSeconds.current;
+    const currentPosition = playerRef.current?.getCurrentTime() || currentTime;
+    unSyncedSeconds.current = 0; // Reset immediately
+
+    try {
+      await apiClient.post('/student/progress/sync', {
+        progress: [{
+          videoId,
+          deltaSeconds,
+          currentPosition,
+          isCompleted,
+        }]
+      });
+    } catch (e) {
+      console.error('Failed to sync progress', e);
+      unSyncedSeconds.current += deltaSeconds; // Restore on failure
+    }
+  }, [videoId, currentTime]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (unSyncedSeconds.current > 0) syncProgress();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (unSyncedSeconds.current > 0) syncProgress(); // Sync on unmount
+    };
+  }, [syncProgress]);
+
   const controlsTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   const resetControlsTimeout = useCallback(() => {
@@ -206,10 +243,25 @@ export function MasarakPlayer({
 
   const handleProgress = useCallback((state: OnProgressProps) => {
     setCurrentTime(state.playedSeconds);
+    
+    // Accumulate actual watch time
+    if (lastProgressTime.current !== null && isPlaying) {
+      const delta = state.playedSeconds - lastProgressTime.current;
+      if (delta > 0 && delta < 2) {
+        unSyncedSeconds.current += delta;
+      }
+    }
+    lastProgressTime.current = state.playedSeconds;
+
+    // Sync every 30 seconds of playback
+    if (unSyncedSeconds.current >= 30) {
+      syncProgress();
+    }
+
     if (duration > 0 && onProgress) {
       onProgress({ playedSeconds: state.playedSeconds, playedPercentage: state.played * 100 });
     }
-  }, [duration, onProgress]);
+  }, [duration, onProgress, isPlaying, syncProgress]);
 
   return (
     <div
@@ -289,12 +341,14 @@ export function MasarakPlayer({
             onPause={() => {
               setIsPlaying(false);
               if (session) mediaSecurity.sendHeartbeat(session.sessionId, currentTime, 'paused');
+              syncProgress(); // Sync when paused
             }}
             onEnded={() => {
               setIsPlaying(false);
               setShowControls(true);
               onEnded?.();
               if (session) mediaSecurity.sendHeartbeat(session.sessionId, duration, 'ended');
+              syncProgress(true); // Sync when ended and mark completed
             }}
             onProgress={handleProgress}
             onDuration={(dur: number) => {

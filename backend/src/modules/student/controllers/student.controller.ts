@@ -13,6 +13,7 @@ import { StudentDashboardService } from '../services/student-dashboard.service';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { LearningEngineService } from '../../course/services/learning-engine.service';
 import { EnrollmentStatus } from '@prisma/client';
+import { SyncProgressBatchDto } from '../dto/sync-progress.dto';
 
 @ApiTags('Student')
 @ApiBearerAuth()
@@ -224,6 +225,23 @@ export class StudentController {
     @Body('comment') comment?: string,
   ) {
     return this.studentService.rateCourse(userId, courseId, rating, comment);
+  }
+
+  @Post('progress/sync')
+  @Roles(Role.STUDENT, Role.TEACHER, Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Sync batched video progress (client-side aggregation)' })
+  async syncProgressBatch(
+    @CurrentUser('id') userId: string,
+    @Body() dto: SyncProgressBatchDto,
+  ) {
+    // Process each progress update
+    for (const update of dto.progress) {
+      if (update.deltaSeconds > 0 || update.isCompleted !== undefined) {
+        // We call the existing learning engine service to handle database logic
+        await this.learningEngineService.syncVideoProgress(userId, update.videoId, update.deltaSeconds, update.currentPosition || 0, update.isCompleted || false);
+      }
+    }
+    return { success: true, syncedCount: dto.progress.length };
   }
 }
 

@@ -208,6 +208,15 @@ export class TeacherController {
     return this.teacherService.getMyStudents(userId, { take, skip });
   }
 
+  @Get('students/:studentId/statistics')
+  @ApiOperation({ summary: 'Get statistics for a specific student (limited to teacher courses)' })
+  getStudentStatistics(
+    @CurrentUser('id') userId: string,
+    @Param('studentId') studentId: string,
+  ) {
+    return this.teacherService.getStudentStatistics(userId, studentId);
+  }
+
   @Delete('enrollments/:enrollmentId')
   @ApiOperation({ summary: 'Cancel a student subscription from a paid course' })
   cancelStudentSubscription(

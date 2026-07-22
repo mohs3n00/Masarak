@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/shared/api/api.client';
-import { Users, Search, Loader2, Phone, Book } from 'lucide-react';
+import { Users, Search, Loader2, Phone, Book, BarChart, Clock, CheckCircle, Activity, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface StudentData {
@@ -29,6 +29,34 @@ export default function TeacherStudentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  // Statistics State
+  const [selectedStudentForStats, setSelectedStudentForStats] = useState<StudentData | null>(null);
+  const [studentStats, setStudentStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  const fetchStudentStats = async (studentId: string) => {
+    setLoadingStats(true);
+    setStudentStats(null);
+    try {
+      const { data } = await apiClient.get(`/teacher/students/${studentId}/statistics`);
+      setStudentStats(data);
+    } catch (error) {
+      toast.error('فشل تحميل إحصائيات الطالب');
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  const openStatsModal = (student: StudentData) => {
+    setSelectedStudentForStats(student);
+    fetchStudentStats(student.student.id);
+  };
+
+  const closeStatsModal = () => {
+    setSelectedStudentForStats(null);
+    setStudentStats(null);
+  };
 
   const fetchStudents = () => {
     apiClient.get('/teacher/students')
@@ -146,15 +174,24 @@ export default function TeacherStudentsPage() {
                       {new Date(item.enrolledAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {(item.course.accessType === 'PAID' || item.course.price > 0) && (
+                      <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => handleCancelSubscription(item.enrollmentId)}
-                          disabled={cancellingId === item.enrollmentId}
-                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => openStatsModal(item)}
+                          className="px-3 py-1.5 flex items-center gap-1 text-xs font-bold rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
                         >
-                          {cancellingId === item.enrollmentId ? 'جاري الإلغاء...' : 'إلغاء الاشتراك'}
+                          <BarChart className="w-3.5 h-3.5" />
+                          الإحصائيات
                         </button>
-                      )}
+                        {(item.course.accessType === 'PAID' || item.course.price > 0) && (
+                          <button
+                            onClick={() => handleCancelSubscription(item.enrollmentId)}
+                            disabled={cancellingId === item.enrollmentId}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {cancellingId === item.enrollmentId ? 'جاري الإلغاء...' : 'إلغاء الاشتراك'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -163,6 +200,77 @@ export default function TeacherStudentsPage() {
           </div>
         )}
       </div>
+
+      {/* Premium Statistics Modal */}
+      {selectedStudentForStats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-border flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-border bg-muted/30 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black overflow-hidden shrink-0">
+                  {selectedStudentForStats.student.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={selectedStudentForStats.student.avatar} alt={selectedStudentForStats.student.name} className="w-full h-full object-cover" />
+                  ) : selectedStudentForStats.student.name?.[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-black text-lg text-foreground">{selectedStudentForStats.student.name}</h3>
+                  <p className="text-text-muted text-sm">{selectedStudentForStats.course.title}</p>
+                </div>
+              </div>
+              <button 
+                onClick={closeStatsModal}
+                className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-text-muted hover:bg-destructive hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {loadingStats ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+                  <p className="text-text-muted font-semibold">جاري جلب الإحصائيات...</p>
+                </div>
+              ) : studentStats ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+                    <Clock className="w-8 h-8 text-primary mb-3" />
+                    <span className="text-2xl font-black text-foreground mb-1">
+                      {Math.floor(studentStats.totalSecondsWatched / 3600)}h {Math.floor((studentStats.totalSecondsWatched % 3600) / 60)}m
+                    </span>
+                    <span className="text-sm font-semibold text-text-muted">إجمالي وقت المشاهدة</span>
+                  </div>
+                  
+                  <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+                    <CheckCircle className="w-8 h-8 text-green-500 mb-3" />
+                    <span className="text-2xl font-black text-foreground mb-1">
+                      {studentStats.completedLessons}
+                    </span>
+                    <span className="text-sm font-semibold text-text-muted">الدروس المكتملة</span>
+                  </div>
+                  
+                  <div className="col-span-2 bg-blue-500/5 border border-blue-500/20 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                      <Activity className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-foreground mb-1">آخر تسجيل دخول</h4>
+                      <p className="text-text-muted font-medium text-sm">
+                        {studentStats.lastLoginAt 
+                          ? new Date(studentStats.lastLoginAt).toLocaleString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                          : 'لم يقم بتسجيل الدخول بعد'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-10 text-text-muted font-bold">لا توجد بيانات متاحة.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

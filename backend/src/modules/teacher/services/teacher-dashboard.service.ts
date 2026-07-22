@@ -548,6 +548,53 @@ export class TeacherDashboardService {
   }
 
   // ── My Students ────────────────────────────────────────────────────────
+  async getStudentStatistics(userId: string, studentId: string) {
+    const profile = await this.getTeacherProfile(userId);
+
+    // Verify the student is enrolled in at least one of this teacher's courses
+    const isEnrolled = await this.prisma.enrollment.findFirst({
+      where: {
+        userId: studentId,
+        status: 'ACTIVE',
+        course: { instructors: { some: { teacherId: profile.id } } },
+      },
+    });
+
+    if (!isEnrolled) {
+      throw new ForbiddenException('يمكنك فقط عرض إحصائيات طلابك المشتركين في دوراتك.');
+    }
+
+    // Get statistics for the teacher's courses ONLY
+    const progress = await this.prisma.videoProgress.findMany({
+      where: {
+        userId: studentId,
+        video: { lesson: { section: { course: { instructors: { some: { teacherId: profile.id } } } } } }
+      },
+    });
+
+    const lessonProgress = await this.prisma.lessonProgress.findMany({
+      where: {
+        userId: studentId,
+        lesson: { section: { course: { instructors: { some: { teacherId: profile.id } } } } }
+      }
+    });
+
+    const totalSecondsWatched = progress.reduce((acc, p) => acc + p.watchedSeconds, 0);
+    const completedLessons = lessonProgress.filter(lp => lp.isCompleted).length;
+
+    const lastLogin = await this.prisma.activityLog.findFirst({
+      where: { userId: studentId, action: 'LOGIN' },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+
+    return {
+      totalSecondsWatched,
+      completedLessons,
+      lastLoginAt: lastLogin?.createdAt || null,
+    };
+  }
+
   async getMyStudents(userId: string, opts: { take?: number; skip?: number }) {
     const profile = await this.getTeacherProfile(userId);
     const { take = 20, skip = 0 } = opts;

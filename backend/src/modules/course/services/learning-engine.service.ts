@@ -12,13 +12,17 @@ export class LearningEngineService {
   async syncVideoProgress(
     userId: string,
     videoId: string,
-    seconds: number,
+    deltaSeconds: number,
+    currentPosition: number,
     isCompleted: boolean,
   ) {
+    if (deltaSeconds > 0) {
+      await this.repo.incrementStudentWatchTime(userId, deltaSeconds);
+    }
     const progress = await this.repo.updateVideoProgress(
       userId,
       videoId,
-      seconds,
+      currentPosition,
       isCompleted,
     );
     
