@@ -80,6 +80,10 @@ apiClient.interceptors.response.use(
             localData = rawLocal ? JSON.parse(rawLocal) : null;
           } catch {}
 
+          if (!refreshToken) {
+            throw new Error('No refresh token available');
+          }
+
           const requestBody = { refreshToken };
           console.log('[DEBUG REFRESH] Before POST /auth/refresh:', {
             storeRefreshToken: refreshToken,

@@ -48,7 +48,7 @@ export default function TeacherCouponsPage() {
       setCourses(coursesRes.data?.data || []);
     } catch (error) {
       toast.error('حدث خطأ أثناء جلب البيانات');
-    } fontally {
+    } finally {
       setIsLoading(false);
     }
   };

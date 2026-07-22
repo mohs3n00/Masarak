@@ -17,6 +17,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkSession = async () => {
       console.log('[AuthProvider] checkSession START');
+      
+      const { accessToken, refreshToken } = useAuthStore.getState();
+      
+      // If we don't have tokens, don't attempt to fetch user (prevents 401 and global redirect)
+      if (!accessToken && !refreshToken) {
+        console.log('[AuthProvider] No tokens found, starting as guest');
+        setLoading(false);
+        setIsReady(true);
+        return;
+      }
+
       setLoading(true);
       try {
         const { data: user } = await apiClient.get('/users/me');
