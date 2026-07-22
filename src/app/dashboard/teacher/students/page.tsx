@@ -189,7 +189,6 @@ export default function TeacherStudentsPage() {
                                 تسجيل: {new Date(enr.enrolledAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
                               </span>
                             </div>
-                            </div>
                           </div>
                         ))}
                       </div>
