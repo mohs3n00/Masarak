@@ -46,24 +46,53 @@ export class ExamService {
   async startSession(userId: string, dto: StartExamSessionDto) {
     const template = await this.prisma.examTemplate.findUnique({
       where: { id: dto.examTemplateId },
+      include: {
+        lesson: {
+          include: {
+            section: {
+              include: {
+                course: {
+                  include: {
+                    instructors: {
+                      include: {
+                        teacher: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     if (!template) {
       throw new NotFoundException('Exam template not found');
     }
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+    
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+    const isTeacherOfCourse = template.lesson?.section?.course?.instructors.some(
+      (inst) => inst.teacher?.userId === userId
+    );
+    const hasPrivilege = isAdmin || isTeacherOfCourse;
+
     // 1. Check Visibility
-    if (template.status !== 'PUBLISHED') {
-      // Check if user is the teacher of this course (optional enhancement, but keeping it simple as per requirements: only published exams available to students)
+    if (!hasPrivilege && template.status !== 'PUBLISHED') {
       throw new ForbiddenException('هذا الاختبار غير متاح حالياً للطلاب');
     }
 
     // 2. Check Availability Dates
     const now = new Date();
-    if (template.availableFrom && now < template.availableFrom) {
+    if (!hasPrivilege && template.availableFrom && now < template.availableFrom) {
       throw new ForbiddenException(`يبدأ الاختبار في: ${template.availableFrom.toLocaleString('ar-EG')}`);
     }
-    if (template.availableUntil && now > template.availableUntil) {
+    if (!hasPrivilege && template.availableUntil && now > template.availableUntil) {
       throw new ForbiddenException(`انتهى وقت إتاحة الاختبار في: ${template.availableUntil.toLocaleString('ar-EG')}`);
     }
 
@@ -95,7 +124,7 @@ export class ExamService {
         });
       } else {
         // 3. Check Attempts Limit
-        if (template.attemptsLimit > 0) {
+        if (!hasPrivilege && template.attemptsLimit > 0) {
           const completedAttemptsCount = await this.prisma.examSession.count({
             where: {
               examId: template.id,
