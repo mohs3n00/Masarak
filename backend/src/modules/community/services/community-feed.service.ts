@@ -25,11 +25,22 @@ export class CommunityFeedService {
     return this.repo.addComment(userId, postId, content);
   }
 
+  async updatePost(userId: string, userRole: string, postId: string, content: string) {
+    const post = await this.repo.getPostById(postId);
+    if (!post) throw new Error('Post not found');
+
+    if (post.authorId !== userId && userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
+      throw new Error('Forbidden: You can only edit your own posts');
+    }
+
+    return this.repo.updatePost(postId, content);
+  }
+
   async deletePost(userId: string, userRole: string, postId: string) {
     const post = await this.repo.getPostById(postId);
     if (!post) throw new Error('Post not found');
 
-    if (post.authorId !== userId && userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN' && userRole !== 'TEACHER') {
+    if (post.authorId !== userId && userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
       throw new Error('Forbidden: You can only delete your own posts');
     }
 

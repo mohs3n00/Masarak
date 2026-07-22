@@ -9,6 +9,13 @@ export class CommunityRepository {
     return this.prisma.communityPost.create({ data });
   }
 
+  async updatePost(postId: string, content: string) {
+    return this.prisma.communityPost.update({
+      where: { id: postId },
+      data: { content },
+    });
+  }
+
   async getFeed(page: number, limit: number) {
     return this.prisma.communityPost.findMany({
       skip: (page - 1) * limit,

@@ -5,8 +5,9 @@ import { AppContainer } from "@/shared/layouts/Containers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/atoms/Avatar";
 import { Button } from "@/shared/components/atoms/Button";
 import { Input } from "@/shared/components/atoms/Input";
-import { Heart, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Edit2, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { apiClient } from '@/shared/api/api.client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { toast } from 'sonner';
@@ -17,6 +18,9 @@ export default function CommunityPage() {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchPosts = async () => {
     try {
@@ -53,6 +57,33 @@ export default function CommunityPage() {
       toast.error('حدث خطأ أثناء النشر');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditPost = async (postId: string) => {
+    if (!editContent.trim()) return;
+    setIsEditing(true);
+    try {
+      await apiClient.patch(`/community/posts/${postId}`, { content: editContent });
+      setEditingPostId(null);
+      setEditContent('');
+      toast.success('تم التعديل بنجاح');
+      fetchPosts();
+    } catch (error) {
+      toast.error('حدث خطأ أثناء التعديل');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المنشور؟')) return;
+    try {
+      await apiClient.delete(`/community/posts/${postId}`);
+      toast.success('تم الحذف بنجاح');
+      fetchPosts();
+    } catch (error) {
+      toast.error('حدث خطأ أثناء الحذف');
     }
   };
 
@@ -190,16 +221,55 @@ export default function CommunityPage() {
                       </p>
                     </div>
                   </div>
-                  {(post.authorId === user?.id || user?.role === 'ADMIN') && (
-                    <Button variant="ghost" size="icon" className="text-muted-foreground rounded-full w-8 h-8">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </Button>
+                  {(post.authorId === user?.id || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground rounded-full w-8 h-8">
+                          <MoreHorizontal className="w-5 h-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 rounded-xl">
+                        {(post.authorId === user?.id) && (
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setEditingPostId(post.id);
+                              setEditContent(post.content);
+                            }}
+                            className="font-bold cursor-pointer"
+                          >
+                            <Edit2 className="w-4 h-4 mr-2" />
+                            تعديل
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-red-500 focus:text-red-500 font-bold cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          حذف
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
                 
-                <p className="text-[15px] text-foreground/90 leading-relaxed mb-4 whitespace-pre-wrap">
-                  {post.content}
-                </p>
+                {editingPostId === post.id ? (
+                  <div className="mb-4">
+                    <textarea 
+                      className="w-full bg-muted/20 border border-border/50 rounded-xl p-3 text-[15px] outline-none focus:border-primary transition-colors min-h-[100px]"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-2 mt-2">
+                      <Button variant="ghost" size="sm" onClick={() => setEditingPostId(null)}>إلغاء</Button>
+                      <Button size="sm" onClick={() => handleEditPost(post.id)} disabled={isEditing || !editContent.trim()}>حفظ</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[15px] text-foreground/90 leading-relaxed mb-4 whitespace-pre-wrap">
+                    {post.content}
+                  </p>
+                )}
 
                 <div className="flex items-center gap-6 pt-4 border-t border-border/40 text-muted-foreground">
                   <button 

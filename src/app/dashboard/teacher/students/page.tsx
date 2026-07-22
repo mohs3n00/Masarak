@@ -189,15 +189,7 @@ export default function TeacherStudentsPage() {
                                 تسجيل: {new Date(enr.enrolledAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
                               </span>
                             </div>
-                            {(enr.course.accessType === 'PAID' || enr.course.price > 0) && (
-                              <button
-                                onClick={() => handleCancelSubscription(enr.enrollmentId)}
-                                disabled={cancellingId === enr.enrollmentId}
-                                className="px-2 py-1 text-[11px] font-bold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {cancellingId === enr.enrollmentId ? 'جاري الإلغاء...' : 'إلغاء'}
-                              </button>
-                            )}
+                            </div>
                           </div>
                         ))}
                       </div>
