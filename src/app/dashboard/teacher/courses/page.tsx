@@ -150,7 +150,7 @@ export default function TeacherCoursesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {courses.map((course) => (
               <div key={course.id} className="bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all group flex flex-col">
-                <Link href={`/course/${course.slug}/player?courseId=${course.id}`} className="flex flex-col flex-1">
+                <Link href={`/dashboard/student/course/${course.slug}`} className="flex flex-col flex-1">
                   {/* Thumbnail */}
                   <div className="aspect-video bg-muted relative overflow-hidden">
                     {course.thumbnailUrl ? (
