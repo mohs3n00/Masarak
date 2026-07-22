@@ -586,15 +586,55 @@ export class PublicController {
 
   // ── Subjects ────────────────────────────────────────────────────────
   @Get('subjects')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'List all subjects' })
-  async getSubjects() {
+  async getSubjects(@CurrentUser() user?: any) {
+    let courseFilter: any = { status: CourseStatus.PUBLISHED, isPublished: true };
+
+    if (user?.role === 'TEACHER') {
+      const profile = await this.prisma.teacherProfile.findUnique({
+        where: { userId: user.id }
+      });
+      if (profile) {
+        courseFilter.instructors = { some: { teacherId: profile.id } };
+      }
+    } else if (user?.role === 'STUDENT') {
+      const profile = await this.prisma.studentProfile.findUnique({
+        where: { userId: user.id }
+      });
+      if (profile && profile.grade) {
+        const getGradeVariants = (grade: string): string[] => {
+          if (!grade) return [];
+          const normalized = grade.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي').trim();
+          const set = new Set<string>([grade, normalized]);
+          const knownVariants = [
+            'الصف الأول الثانوي', 'الصف الاول الثانوي', 'الصف الأول الثانوى', 'الصف الاول الثانوى',
+            'الصف الثاني الثانوي', 'الصف الثاني الثانوى', 'الصف الثانى الثانوي', 'الصف الثانى الثانوى',
+            'الصف الثالث الثانوي', 'الصف الثالث الثانوى'
+          ];
+          for (const v of knownVariants) {
+            if (v.replace(/[أإآا]/g, 'ا').replace(/[ىي]/g, 'ي') === normalized) {
+              set.add(v);
+            }
+          }
+          return Array.from(set);
+        };
+
+        const matchingGrades = getGradeVariants(profile.grade);
+        courseFilter.OR = [
+          { grades: { isEmpty: true } },
+          { grades: { hasSome: matchingGrades } },
+        ];
+      }
+    }
+
     const subjects = await this.prisma.subject.findMany({
       where: { deletedAt: null },
       orderBy: { name: 'asc' },
       include: {
         _count: {
           select: {
-            courses: { where: { status: CourseStatus.PUBLISHED, isPublished: true } },
+            courses: { where: courseFilter },
           },
         },
       },
