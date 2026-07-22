@@ -223,10 +223,8 @@ export default function CommunityPage() {
                   </div>
                   {(post.authorId === user?.id || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground rounded-full w-8 h-8">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </Button>
+                      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full w-8 h-8 text-muted-foreground hover:bg-accent transition-colors outline-none">
+                        <MoreHorizontal className="w-5 h-5" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40 rounded-xl">
                         {(post.authorId === user?.id) && (
