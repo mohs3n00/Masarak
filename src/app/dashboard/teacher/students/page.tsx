@@ -89,6 +89,18 @@ export default function TeacherStudentsPage() {
     s.student.phone?.includes(search)
   );
 
+  const groupedStudents = React.useMemo(() => {
+    const map = new Map<string, { student: StudentData['student'], enrollments: StudentData[] }>();
+    filteredStudents.forEach(item => {
+      const studentId = item.student.id;
+      if (!map.has(studentId)) {
+        map.set(studentId, { student: item.student, enrollments: [] });
+      }
+      map.get(studentId)!.enrollments.push(item);
+    });
+    return Array.from(map.values());
+  }, [filteredStudents]);
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -142,55 +154,66 @@ export default function TeacherStudentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50 font-medium">
-                {filteredStudents.map((item) => (
-                  <tr key={item.enrollmentId} className="hover:bg-muted/30 transition-colors">
+                {groupedStudents.map((group) => (
+                  <tr key={group.student.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black overflow-hidden shrink-0">
-                          {item.student.avatar ? (
+                          {group.student.avatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={item.student.avatar} alt={item.student.name} className="w-full h-full object-cover" />
-                          ) : item.student.name?.[0]?.toUpperCase()}
+                            <img src={group.student.avatar} alt={group.student.name} className="w-full h-full object-cover" />
+                          ) : group.student.name?.[0]?.toUpperCase()}
                         </div>
-                        <span className="font-bold text-foreground">{item.student.name}</span>
+                        <span className="font-bold text-foreground">{group.student.name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-text-muted">
                         <Phone className="w-4 h-4" />
-                        <span dir="ltr">{item.student.phone}</span>
+                        <span dir="ltr">{group.student.phone}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-text-muted">
-                      {item.student.grade || '-'} {item.student.track ? `(${item.student.track})` : ''}
+                      {group.student.grade || '-'} {group.student.track ? `(${group.student.track})` : ''}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Book className="w-4 h-4 text-primary" />
-                        <span className="font-semibold">{item.course.title}</span>
+                      <div className="flex flex-col gap-2">
+                        {group.enrollments.map(enr => (
+                          <div key={enr.enrollmentId} className="flex items-center justify-between gap-3 bg-muted/20 p-2 rounded-lg border border-border/50">
+                            <div className="flex flex-col items-start">
+                              <div className="flex items-center gap-2">
+                                <Book className="w-4 h-4 text-primary" />
+                                <span className="font-semibold">{enr.course.title}</span>
+                              </div>
+                              <span className="text-[11px] text-text-muted mt-1 mr-6">
+                                تسجيل: {new Date(enr.enrolledAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                            {(enr.course.accessType === 'PAID' || enr.course.price > 0) && (
+                              <button
+                                onClick={() => handleCancelSubscription(enr.enrollmentId)}
+                                disabled={cancellingId === enr.enrollmentId}
+                                className="px-2 py-1 text-[11px] font-bold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {cancellingId === enr.enrollmentId ? 'جاري الإلغاء...' : 'إلغاء'}
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-text-muted whitespace-nowrap">
-                      {new Date(item.enrolledAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {group.enrollments.length} اشتراك
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => openStatsModal(item)}
+                          onClick={() => openStatsModal(group.enrollments[0])}
                           className="px-3 py-1.5 flex items-center gap-1 text-xs font-bold rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
                         >
                           <BarChart className="w-3.5 h-3.5" />
                           الإحصائيات
                         </button>
-                        {(item.course.accessType === 'PAID' || item.course.price > 0) && (
-                          <button
-                            onClick={() => handleCancelSubscription(item.enrollmentId)}
-                            disabled={cancellingId === item.enrollmentId}
-                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {cancellingId === item.enrollmentId ? 'جاري الإلغاء...' : 'إلغاء الاشتراك'}
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
