@@ -94,7 +94,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       {/* Mobile Backdrop Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden transition-opacity"
           onClick={onClose}
         />
       )}
@@ -102,7 +102,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       <aside
         className={cn(
           "fixed top-0 start-0 h-screen w-64 bg-background border-e border-border flex flex-col z-50 shadow-lg transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
+          isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}
         dir="rtl"
       >
@@ -116,7 +116,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           </div>
           <button
             onClick={onClose}
-            className="md:hidden p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-muted transition-colors"
+            className="lg:hidden p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-muted transition-colors"
             aria-label="إغلاق القائمة"
           >
             <X className="w-5 h-5" />

@@ -16,13 +16,13 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         {/* Main content — offset by sidebar width */}
-        <div className="flex flex-col md:pe-0 md:ps-64 min-h-screen">
+        <div className="flex flex-col lg:pe-0 lg:ps-64 min-h-screen">
           {/* Top Bar */}
           <header className="sticky top-0 z-40 h-[68px] bg-background border-b border-border px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0">
             <div className="flex items-center gap-3 flex-1 max-w-sm">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="md:hidden p-2 rounded-xl text-foreground hover:bg-muted transition-colors border border-border"
+                className="lg:hidden p-2 rounded-xl text-foreground hover:bg-muted transition-colors border border-border"
                 aria-label="فتح القائمة الجانبية"
               >
                 <Menu className="w-5 h-5" />
