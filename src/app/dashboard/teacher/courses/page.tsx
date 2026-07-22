@@ -149,35 +149,41 @@ export default function TeacherCoursesPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {courses.map((course) => (
-              <div key={course.id} className="bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all group">
-                {/* Thumbnail */}
-                <div className="aspect-video bg-muted relative overflow-hidden">
-                  {course.thumbnailUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <BookOpen className="w-10 h-10 text-text-muted" />
+              <div key={course.id} className="bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all group flex flex-col">
+                <Link href={`/player/${course.slug}?courseId=${course.id}`} className="flex flex-col flex-1">
+                  {/* Thumbnail */}
+                  <div className="aspect-video bg-muted relative overflow-hidden">
+                    {course.thumbnailUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <BookOpen className="w-10 h-10 text-text-muted" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 start-2">
+                      <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm', STATUS_COLORS[course.status])}>
+                        {STATUS_LABELS[course.status]}
+                      </span>
                     </div>
-                  )}
-                  <div className="absolute top-2 start-2">
-                    <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm', STATUS_COLORS[course.status])}>
-                      {STATUS_LABELS[course.status]}
-                    </span>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-bold text-foreground line-clamp-2 mb-2">{course.title}</h3>
-                  <div className="flex items-center gap-3 text-xs text-text-muted mb-4">
-                    {course.grade && <span>{course.grade}</span>}
-                    {course.category && <span>{course.category}</span>}
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3 h-3" /> {course.enrollmentCount}
-                    </span>
+                  {/* Content */}
+                  <div className="p-4 flex-1">
+                    <h3 className="font-bold text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">{course.title}</h3>
+                    <div className="flex items-center gap-3 text-xs text-text-muted mb-4">
+                      {course.grade && <span>{course.grade}</span>}
+                      {course.category && <span>{course.category}</span>}
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" /> {course.enrollmentCount}
+                      </span>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 mt-4">
+                </Link>
+
+                {/* Actions */}
+                <div className="p-4 pt-0">
+                  <div className="grid grid-cols-2 gap-2 mt-2">
                     <Link
                       href={`/dashboard/teacher/courses/${course.id}/edit`}
                       className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-colors"
