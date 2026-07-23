@@ -184,7 +184,7 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
               
               {validatedCoupon && (
                 <Button 
-                  variant="destructive" 
+                  variant="danger" 
                   onClick={() => {
                     setValidatedCoupon(null);
                     setCouponCode('');
