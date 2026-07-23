@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { Button } from '@/shared/components/atoms/Button';
 import { X, Printer, Download, Sparkles, CheckCircle2, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
 
 interface CouponItem {
   id: string;
@@ -46,6 +47,28 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success(`تم نسخ الكود ${code} بنجاح!`);
+  };
+
+  const handleDownloadImage = async (elementId: string, code: string) => {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    try {
+      const canvas = await html2canvas(element, { 
+        backgroundColor: null,
+        scale: 2, 
+        useCORS: true 
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `coupon-${code}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success('تم تنزيل الكارت بنجاح!');
+    } catch (error) {
+      console.error(error);
+      toast.error('حدث خطأ أثناء تنزيل الصورة');
+    }
   };
 
   return (
@@ -121,6 +144,7 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
               return (
                 <div
                   key={coupon.id}
+                  id={`coupon-card-${coupon.id}`}
                   className="relative group bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border border-indigo-500/30 text-white rounded-3xl p-6 shadow-xl hover:shadow-2xl hover:border-primary/60 transition-all duration-300 overflow-hidden flex flex-col justify-between"
                 >
                   {/* Glass Background Shapes */}
@@ -128,18 +152,19 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
                   <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
                   {/* Header Row: Platform Brand & Teacher Info */}
-                  <div className="flex items-start justify-between border-b border-white/10 pb-4 relative z-10">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-4 relative z-10">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg text-lg">
-                        م
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-widest text-indigo-300 font-bold">
-                          منصة مسارك التعليمية
-                        </div>
-                        <div className="font-bold text-sm text-slate-200">
-                          أ/ {coupon.teacherName || 'معلم المادة'}
-                        </div>
+                      <img
+                        src="/logo/Artboard 1.png"
+                        alt="مسارك"
+                        className="h-8 object-contain rounded-lg"
+                        onError={(e) => {
+                          // Fallback if logo path varies
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                      <div className="font-bold text-sm text-slate-200">
+                        أ/ {coupon.teacherName || 'معلم المادة'}
                       </div>
                     </div>
                     <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold rounded-full flex items-center gap-1 shadow-inner">
@@ -189,14 +214,25 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
                         {coupon.code}
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleCopyCode(coupon.code)}
-                      variant="outline"
-                      className="no-print bg-white/10 hover:bg-white/20 border-white/20 text-white text-xs rounded-xl"
-                    >
-                      نسخ الكود
-                    </Button>
+                    <div className="flex gap-2 no-print">
+                      <Button
+                        size="icon"
+                        onClick={() => handleDownloadImage(`coupon-card-${coupon.id}`, coupon.code)}
+                        variant="outline"
+                        className="bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-xl w-8 h-8"
+                        title="تحميل كصورة"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleCopyCode(coupon.code)}
+                        variant="outline"
+                        className="bg-white/10 hover:bg-white/20 border-white/20 text-white text-xs rounded-xl"
+                      >
+                        نسخ
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );

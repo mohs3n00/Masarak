@@ -6,7 +6,8 @@ import { Input } from '@/shared/components/atoms/Input';
 import { apiClient } from '@/shared/api/api.client';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { X, CheckCircle2, Ticket, AlertCircle } from 'lucide-react';
+import { X, CheckCircle2, Ticket, AlertCircle, QrCode } from 'lucide-react';
+import jsQR from 'jsqr';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -27,14 +28,14 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
 
   if (!isOpen) return null;
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode) return;
+  const handleApplyCoupon = async (code: string) => {
+    if (!code) return;
     
     try {
       setIsApplying(true);
       const res = await apiClient.post('/student/checkout/apply-coupon', {
         courseId,
-        code: couponCode,
+        code,
       });
 
       if (res.data?.success) {
@@ -46,9 +47,44 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
       toast.error(error.message || 'كود الخصم غير صحيح أو منتهي الصلاحية');
       setValidatedCoupon(null);
       setFinalPrice(originalPrice);
+      setCouponCode('');
     } finally {
       setIsApplying(false);
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code && code.data) {
+          setCouponCode(code.data);
+          handleApplyCoupon(code.data);
+        } else {
+          toast.error('لم يتم التعرف على QR Code في الصورة، تأكد من وضوح الصورة');
+          setCouponCode('');
+        }
+      };
+      if (typeof event.target?.result === 'string') {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset file input so same file can be uploaded again if needed
+    e.target.value = '';
   };
 
   const handleEnroll = async () => {
@@ -125,23 +161,30 @@ export function CheckoutModal({ isOpen, onClose, courseId, originalPrice }: Chec
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-muted-foreground" />
-              هل لديك كود خصم من معلمك؟
+              <QrCode className="w-4 h-4 text-muted-foreground" />
+              قم برفع صورة الـ QR للكوبون
             </label>
-            <div className="flex gap-2">
-              <Input 
-                placeholder="أدخل كود الخصم هنا" 
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                disabled={!!validatedCoupon || isApplying}
-              />
-              {!validatedCoupon ? (
-                <Button onClick={handleApplyCoupon} disabled={!couponCode || isApplying}>
-                  {isApplying ? 'جاري...' : 'تطبيق'}
-                </Button>
-              ) : (
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={!!validatedCoupon || isApplying}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                />
                 <Button 
                   variant="outline" 
+                  className={`w-full flex gap-2 ${!!validatedCoupon || isApplying ? 'opacity-50' : ''}`}
+                >
+                  <QrCode className="w-4 h-4" />
+                  {isApplying ? 'جاري معالجة الصورة...' : 'اختر صورة الكوبون'}
+                </Button>
+              </div>
+              
+              {validatedCoupon && (
+                <Button 
+                  variant="destructive" 
                   onClick={() => {
                     setValidatedCoupon(null);
                     setCouponCode('');
