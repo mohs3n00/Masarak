@@ -44,35 +44,45 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
     window.print();
   };
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    toast.success(`تم نسخ الكود ${code} بنجاح!`);
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success(`تم نسخ الكود ${code} بنجاح!`);
+    } catch (err) {
+      toast.error('لم نتمكن من نسخ الكود، يرجى النسخ يدوياً.');
+    }
   };
 
   const handleDownloadImage = async (elementId: string, code: string) => {
     const element = document.getElementById(elementId);
     if (!element) return;
     
+    // Add loading toast since generation might take a moment
+    const loadingToastId = toast.loading('جاري تجهيز الصورة للتحميل...');
+    
     try {
+      // Small timeout to allow toast to render
+      await new Promise(r => setTimeout(r, 50));
+      
       const canvas = await html2canvas(element, { 
         backgroundColor: null,
         scale: 2, 
-        useCORS: true 
+        useCORS: true,
+        logging: false
       });
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `coupon-${code}.png`;
       link.href = dataUrl;
       link.click();
-      toast.success('تم تنزيل الكارت بنجاح!');
+      toast.success('تم تنزيل الكارت بنجاح!', { id: loadingToastId });
     } catch (error) {
       console.error(error);
-      toast.error('حدث خطأ أثناء تنزيل الصورة');
+      toast.error('حدث خطأ أثناء تنزيل الصورة', { id: loadingToastId });
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto print-reset">
       {/* Print-specific style override */}
       <style jsx global>{`
         @media print {
@@ -94,13 +104,29 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
             background: white !important;
             color: black !important;
           }
+          .print-reset {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: transparent !important;
+          }
+          .print-reset-inner {
+            max-height: none !important;
+            overflow: visible !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+          }
           .no-print {
             display: none !important;
           }
         }
       `}</style>
 
-      <div className="relative w-full max-w-4xl bg-card border border-border rounded-3xl shadow-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-4xl bg-card border border-border rounded-3xl shadow-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col print-reset-inner">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border bg-muted/40 no-print">
           <div className="flex items-center gap-3">
