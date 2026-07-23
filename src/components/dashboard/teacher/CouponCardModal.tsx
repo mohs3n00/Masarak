@@ -4,7 +4,7 @@ import React, { useRef } from 'react';
 import { Button } from '@/shared/components/atoms/Button';
 import { X, Printer, Download, Sparkles, CheckCircle2, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 
 interface CouponItem {
   id: string;
@@ -64,13 +64,18 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
       // Small timeout to allow toast to render
       await new Promise(r => setTimeout(r, 50));
       
-      const canvas = await html2canvas(element, { 
-        backgroundColor: null,
-        scale: 2, 
-        useCORS: true,
-        logging: false
+      const scale = 2;
+      const dataUrl = await domtoimage.toPng(element, {
+        height: element.offsetHeight * scale,
+        width: element.offsetWidth * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          width: `${element.offsetWidth}px`,
+          height: `${element.offsetHeight}px`,
+        },
       });
-      const dataUrl = canvas.toDataURL('image/png');
+      
       const link = document.createElement('a');
       link.download = `coupon-${code}.png`;
       link.href = dataUrl;
