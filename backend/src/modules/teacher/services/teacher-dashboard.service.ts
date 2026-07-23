@@ -116,6 +116,7 @@ export class TeacherDashboardService {
       categoryId?: string;
       subjectId?: string;
       price?: number;
+      originalPrice?: number;
       accessType?: CourseAccessType;
       type?: CourseType;
       difficulty?: Difficulty;
@@ -164,6 +165,7 @@ export class TeacherDashboardService {
         grades: courseGrades,
         subjectId: assignedSubjectId,
         price: dto.price ?? 0,
+        originalPrice: dto.originalPrice ?? null,
         accessType: dto.accessType ?? CourseAccessType.PAID,
         type: dto.type ?? CourseType.RECORDED,
         difficulty: dto.difficulty,
