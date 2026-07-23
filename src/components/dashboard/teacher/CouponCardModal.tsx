@@ -82,6 +82,7 @@ export const CouponCardModal: React.FC<CouponCardModalProps> = ({
     }
   };
 
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto print-reset">
       {/* Print-specific style override */}
       <style jsx global>{`
