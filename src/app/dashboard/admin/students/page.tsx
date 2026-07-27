@@ -10,6 +10,7 @@ interface Student {
   id: string;
   name: string;
   phone: string;
+  parentPhone?: string;
   email: string;
   avatar?: string;
   isActive: boolean;
@@ -144,7 +145,16 @@ export default function AdminStudentsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs">{student.phone}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-mono text-xs text-foreground">{student.phone}</span>
+                        {student.parentPhone && (
+                          <span className="text-[11px] text-text-muted" title="رقم ولي الأمر">
+                            ولي الأمر: <span className="font-mono">{student.parentPhone}</span>
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted rounded-lg text-xs font-bold text-foreground">
                         {student.grade || 'غير محدد'} {student.track ? `(${student.track})` : ''}

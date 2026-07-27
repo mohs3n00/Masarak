@@ -12,6 +12,7 @@ interface StudentData {
     id: string;
     name: string;
     phone: string;
+    parentPhone?: string | null;
     avatar: string | null;
     grade: string | null;
     track: string | null;
@@ -86,7 +87,8 @@ export default function TeacherStudentsPage() {
 
   const filteredStudents = students.filter(s => 
     s.student.name?.toLowerCase().includes(search.toLowerCase()) || 
-    s.student.phone?.includes(search)
+    s.student.phone?.includes(search) ||
+    (s.student.parentPhone && s.student.parentPhone.includes(search))
   );
 
   const groupedStudents = React.useMemo(() => {
@@ -168,9 +170,17 @@ export default function TeacherStudentsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-text-muted">
-                        <Phone className="w-4 h-4" />
-                        <span dir="ltr">{group.student.phone}</span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-text-muted">
+                          <Phone className="w-4 h-4 text-primary" />
+                          <span dir="ltr">{group.student.phone}</span>
+                        </div>
+                        {group.student.parentPhone && (
+                          <div className="flex items-center gap-2 text-xs text-text-muted" title="رقم ولي الأمر">
+                            <span className="font-semibold text-text-muted/80">ولي الأمر:</span>
+                            <span dir="ltr" className="font-mono">{group.student.parentPhone}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-text-muted">

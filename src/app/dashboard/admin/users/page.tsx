@@ -14,6 +14,7 @@ interface UserRow {
   id: string;
   name: string;
   phone: string;
+  parentPhone?: string;
   email?: string;
   avatar?: string;
   role: UserRole;
@@ -220,7 +221,16 @@ export default function AdminUsersPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-text-secondary font-mono text-xs">{user.phone}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-mono text-xs text-text-secondary">{user.phone}</span>
+                          {user.parentPhone && (
+                            <span className="text-[11px] text-text-muted" title="رقم ولي الأمر">
+                              ولي الأمر: <span className="font-mono">{user.parentPhone}</span>
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold', ROLE_COLORS[user.role])}>
                           {user.role === 'STUDENT' ? <UserCheck className="w-3 h-3" /> : <GraduationCap className="w-3 h-3" />}
