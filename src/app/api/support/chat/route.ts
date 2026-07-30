@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   // 1. Basic Origin / Referer validation for security
   const referer = req.headers.get('referer') || req.headers.get('origin');
-  if (referer && !referer.includes('localhost') && !referer.includes('masarak.com') && !referer.includes('vercel.app')) {
+  if (referer && !referer.includes('localhost') && !referer.includes('masarak.com') && !referer.includes('masarak.tech') && !referer.includes('vercel.app')) {
     return NextResponse.json({ error: 'Unauthorized origin' }, { status: 403 });
   }
 
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'HTTP-Referer': 'https://masarak.com',
+            'HTTP-Referer': 'https://masarak.tech',
             'X-Title': 'Masarak AI Support',
           },
           body: JSON.stringify({
