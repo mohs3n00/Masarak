@@ -240,9 +240,10 @@ async function main() {
     }
 
     // 4. Start Backend
-    backendProcess = startProcess('npm run start:prod', backendDir, 'Backend', prodEnv);
+    const backendEnv = { ...prodEnv, NODE_ENV: 'production', DIRECT_URL: prodEnv.DATABASE_URL };
+    backendProcess = startProcess('node dist/src/main', backendDir, 'Backend', backendEnv);
     log('Waiting for Backend to start...');
-    const isBackendUp = await checkServerReady(`${API_URL}/docs`);
+    const isBackendUp = await checkServerReady(`${API_URL}/not-found-route`);
     if (!isBackendUp) dumpLogsAndExit('Backend Startup', new Error('Backend did not respond in time.'));
     successMsg('Backend Started & API Reachable');
 
