@@ -67,6 +67,12 @@ const NAV_GROUPS = [
       { href: '/dashboard/admin/notifications', label: 'الإشعارات', icon: Bell },
     ],
   },
+  {
+    label: 'الدعم والمتابعة',
+    items: [
+      { href: '/dashboard/admin/academic-conversations', label: 'مراقبة المحادثات', icon: MessageSquare },
+    ],
+  },
 ];
 
 interface AdminSidebarProps {

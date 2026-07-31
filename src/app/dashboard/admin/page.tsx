@@ -60,36 +60,34 @@ function StatCard({
   );
 }
 
+import { useQuery } from '@tanstack/react-query';
+
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
-  const [stats, setStats] = React.useState<DashboardStats | null>(null);
-  const [recentTeachers, setRecentTeachers] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, teachersRes] = await Promise.all([
-          apiClient.get('/admin/stats').catch(() => ({ data: null })),
-          apiClient.get('/admin/teachers?take=5&status=PENDING').catch(() => ({ data: [] })),
-        ]);
-        setStats(statsRes.data || {
+  const { data: dashboardData, isLoading: loading } = useQuery({
+    queryKey: ['adminDashboard'],
+    queryFn: async () => {
+      const [statsRes, teachersRes] = await Promise.all([
+        apiClient.get('/admin/stats').catch(() => ({ data: null })),
+        apiClient.get('/admin/teachers?take=5&status=PENDING').catch(() => ({ data: [] })),
+      ]);
+      return {
+        stats: statsRes.data || {
           totalStudents: 0,
           totalTeachers: 0,
           totalCourses: 0,
           pendingTeachers: 0,
           totalOrders: 0,
           openTickets: 0,
-        });
-        setRecentTeachers(teachersRes.data?.data || teachersRes.data || []);
-      } catch {
-        /* use empty defaults */
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+        },
+        recentTeachers: teachersRes.data?.data || teachersRes.data || [],
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const stats = dashboardData?.stats;
+  const recentTeachers = dashboardData?.recentTeachers || [];
 
   const greeting = (() => {
     const h = new Date().getHours();

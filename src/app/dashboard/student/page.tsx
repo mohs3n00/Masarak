@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/shared/api/api.client';
-import { cn } from '@/lib/utils';
+import { cn, optimizeImage } from '@/lib/utils';
 import {
   BookOpen, Flame, Clock, Award, Target,
   ArrowLeft, ChevronLeft, Bell, Trophy,
@@ -31,16 +31,17 @@ interface DashboardData {
   }>;
 }
 
-export default function StudentDashboardPage() {
-  const [data, setData] = React.useState<DashboardData | null>(null);
-  const [loading, setLoading] = React.useState(true);
+import { useQuery } from '@tanstack/react-query';
 
-  React.useEffect(() => {
-    apiClient.get('/student/dashboard')
-      .then((res) => setData(res.data))
-      .catch(() => {/* show empty state */})
-      .finally(() => setLoading(false));
-  }, []);
+export default function StudentDashboardPage() {
+  const { data, isLoading: loading } = useQuery<DashboardData>({
+    queryKey: ['studentDashboard'],
+    queryFn: async () => {
+      const res = await apiClient.get('/student/dashboard');
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -188,7 +189,7 @@ export default function StudentDashboardPage() {
                 >
                   {item.course.thumbnailUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.course.thumbnailUrl} alt={item.course.title} className="w-16 h-12 rounded-xl object-cover shrink-0" />
+                    <img src={optimizeImage(item.course.thumbnailUrl)} alt={item.course.title} className="w-16 h-12 rounded-xl object-cover shrink-0" />
                   ) : (
                     <div className="w-16 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <BookOpen className="w-6 h-6 text-primary" />

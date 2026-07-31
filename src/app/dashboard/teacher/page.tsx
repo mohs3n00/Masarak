@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/shared/api/api.client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { cn } from '@/lib/utils';
+import { cn, optimizeImage } from '@/lib/utils';
 import {
   BookOpen, Users, Star, Wallet, TrendingUp,
   Plus, ArrowLeft, BarChart2, Eye,
@@ -44,29 +44,27 @@ const STATUS_COLORS: Record<string, string> = {
   ARCHIVED: 'bg-error/10 text-error',
 };
 
+import { useQuery } from '@tanstack/react-query';
+
 export default function TeacherDashboardPage() {
   const { user } = useAuthStore();
-  const [stats, setStats] = React.useState<TeacherStats | null>(null);
-  const [courses, setCourses] = React.useState<RecentCourse[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const { data: dashboardData, isLoading: loading } = useQuery({
+    queryKey: ['teacherDashboard'],
+    queryFn: async () => {
+      const [statsRes, coursesRes] = await Promise.all([
+        apiClient.get('/teacher/dashboard').catch(() => ({ data: null })),
+        apiClient.get('/teacher/courses?take=5').catch(() => ({ data: { data: [] } })),
+      ]);
+      return {
+        stats: statsRes.data as TeacherStats | null,
+        courses: (coursesRes.data?.data || []) as RecentCourse[],
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, coursesRes] = await Promise.all([
-          apiClient.get('/teacher/dashboard'),
-          apiClient.get('/teacher/courses?take=5'),
-        ]);
-        setStats(statsRes.data);
-        setCourses(coursesRes.data?.data || []);
-      } catch {
-        /* ignore */
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const stats = dashboardData?.stats || null;
+  const courses = dashboardData?.courses || [];
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -189,7 +187,7 @@ export default function TeacherDashboardPage() {
               <div key={course.id} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
                 {course.thumbnailUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={course.thumbnailUrl} alt={course.title} className="w-14 h-10 rounded-lg object-cover shrink-0" />
+                  <img src={optimizeImage(course.thumbnailUrl)} alt={course.title} className="w-14 h-10 rounded-lg object-cover shrink-0" />
                 ) : (
                   <div className="w-14 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <BookOpen className="w-5 h-5 text-primary" />

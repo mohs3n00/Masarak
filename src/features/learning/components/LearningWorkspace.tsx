@@ -9,6 +9,7 @@ import { CourseAccordion } from '@/features/learning/components/CourseAccordion'
 import { LessonTabs } from '@/features/learning/components/LessonTabs';
 import { MasarakPlayer } from '@/features/media/components/VideoPlayer/MasarakPlayer';
 import { ExamPlayer } from '@/features/learning/components/ExamPlayer';
+import { AskTeacherButton } from '@/features/academic-conversations/components/AskTeacherButton';
 import { ArrowRight, Star } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -38,8 +39,10 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
   const [activeLesson, setActiveLesson] = useState<WorkspaceLesson | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoLoading, setVideoLoading] = useState(false);
+  const [currentVideoTime, setCurrentVideoTime] = useState<number>(0);
 
   const [courseId, setCourseId] = useState<string>('');
+  const [teacherId, setTeacherId] = useState<string>('');
   const [userRating, setUserRating] = useState<number>(0);
   const [ratingComment, setRatingComment] = useState<string>('');
   const [ratingHover, setRatingHover] = useState<number>(0);
@@ -73,6 +76,7 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
     
     setVideoLoading(true);
     setVideoUrl(null);
+    setCurrentVideoTime(0); // Reset timestamp when video changes
     apiClient.get(`/student/video/${videoResource.videoId}/stream`)
       .then((res) => setVideoUrl(res.data.videoUrl))
       .catch(() => setVideoUrl(null))
@@ -115,6 +119,7 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
         const data = res.data;
         setCourseTitle(data.course.title);
         setCourseId(data.course.id);
+        setTeacherId(data.course.teacherId || '');
         if (data.userRating) {
           setUserRating(data.userRating.rating);
           setRatingComment(data.userRating.comment || '');
@@ -299,7 +304,7 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
                   lessonId={String(activeLesson.id)}
                   videoId={String(videoResource?.videoId)}
                   initialDuration={videoResource?.durationSeconds || 0}
-                  onProgress={(progress) => {}}
+                  onProgress={(progress) => setCurrentVideoTime(progress.playedSeconds)}
                   onDurationReady={handleDurationReady}
                 />
               ) : (
@@ -349,6 +354,17 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
             </div>
             
             <div className="flex items-center gap-3">
+              {teacherId && (
+                <AskTeacherButton
+                  courseId={courseId}
+                  lessonId={String(activeLesson.id)}
+                  teacherId={teacherId}
+                  contextType={activeLesson.type === 'video' ? 'VIDEO' : activeLesson.type === 'pdf' ? 'PDF' : activeLesson.type === 'exam' ? 'QUIZ' : 'LESSON'}
+                  getCurrentTimestamp={
+                    activeLesson.type === 'video' ? () => currentVideoTime : undefined
+                  }
+                />
+              )}
               {activeLesson.completed && (
                 <span className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                   <span>مكتمل</span>

@@ -28,10 +28,10 @@ export function CourseCard({ title, image, instructor, price, rating, studentsCo
         <h3 className="font-bold text-lg line-clamp-2 mb-2">{title}</h3>
         <div className="flex items-center gap-2 mb-4">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={instructor.avatar} />
-            <AvatarFallback>{instructor.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={instructor?.avatar} />
+            <AvatarFallback>{instructor?.name?.charAt(0) || 'م'}</AvatarFallback>
           </Avatar>
-          <span className="text-sm text-muted-foreground">{instructor.name}</span>
+          <span className="text-sm text-muted-foreground">{instructor?.name || ''}</span>
         </div>
         <div className="flex items-center justify-between mt-auto pt-2 border-t">
           <div className="flex items-center gap-1 text-sm font-medium">

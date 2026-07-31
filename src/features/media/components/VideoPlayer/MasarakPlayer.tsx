@@ -258,7 +258,7 @@ export function MasarakPlayer({
       syncProgress();
     }
 
-    if (duration > 0 && onProgress) {
+    if (onProgress) {
       onProgress({ playedSeconds: state.playedSeconds, playedPercentage: state.played * 100 });
     }
   }, [duration, onProgress, isPlaying, syncProgress]);

@@ -1,6 +1,9 @@
 import { StudentDashboardService } from '../modules/student/services/student-dashboard.service';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PrismaService } from '../database/prisma/prisma.service';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PlatformBrandingService } from '../modules/admin/services/platform-branding.service';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PublicController } from '../modules/admin/controllers/public.controller';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
@@ -12,8 +15,13 @@ async function main() {
 
   const studentUserId = '4508147a-a802-4c38-bdd1-eb985ec0c3cd'; // student
 
-  console.log(`Calling studentService.getMyCourses for student: ${studentUserId}`);
-  const result = await studentService.getMyCourses(studentUserId, { take: 20, skip: 0 });
+  console.log(
+    `Calling studentService.getMyCourses for student: ${studentUserId}`,
+  );
+  const result = await studentService.getMyCourses(studentUserId, {
+    take: 20,
+    skip: 0,
+  });
   console.log('Result payload JSON:');
   console.log(JSON.stringify(result, null, 2));
 

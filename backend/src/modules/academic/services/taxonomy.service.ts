@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AcademicRepository } from '../academic.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -8,8 +9,6 @@ export class TaxonomyService {
     private readonly repo: AcademicRepository,
     private readonly eventEmitter: EventEmitter2,
   ) {}
-
-
 
   async createTag(name: string, slug: string) {
     const tag = await this.repo.createTag({ name, slug });

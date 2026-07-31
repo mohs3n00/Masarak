@@ -10,18 +10,23 @@ export class EmailService {
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      this.logger.warn('RESEND_API_KEY is not defined. Emails will be logged instead of sent.');
+      this.logger.warn(
+        'RESEND_API_KEY is not defined. Emails will be logged instead of sent.',
+      );
     }
     this.resend = new Resend(apiKey || 'dummy');
   }
 
   async sendPasswordResetEmail(email: string, code: string) {
     if (!process.env.RESEND_API_KEY) {
-      this.logger.log(`[SIMULATED EMAIL] Password reset code for ${email}: ${code}`);
+      this.logger.log(
+        `[SIMULATED EMAIL] Password reset code for ${email}: ${code}`,
+      );
       return;
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { data, error } = await this.resend.emails.send({
         from: this.defaultFrom,
         to: [email],
@@ -52,7 +57,10 @@ export class EmailService {
       });
 
       if (error) {
-        this.logger.error(`Failed to send password reset email to ${email}:`, error);
+        this.logger.error(
+          `Failed to send password reset email to ${email}:`,
+          error,
+        );
       }
     } catch (err) {
       this.logger.error(`Error sending email to ${email}`, err);

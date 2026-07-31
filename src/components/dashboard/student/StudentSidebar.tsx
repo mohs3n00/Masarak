@@ -14,6 +14,7 @@ import {
   LogOut,
   Heart,
   FileText,
+  MessageCircle,
 } from 'lucide-react';
 import { Logo } from "@/shared/components/atoms/Logo"
 import { cn } from '@/lib/utils';
@@ -25,6 +26,7 @@ const sidebarSections = [
     items: [
       { name: 'لوحة التحكم', icon: LayoutDashboard, href: '/dashboard/student' },
       { name: 'كورساتي', icon: Library, href: '/dashboard/student/courses' },
+      { name: 'المحادثات', icon: MessageCircle, href: '/dashboard/student/inbox' },
     ]
   },
   {

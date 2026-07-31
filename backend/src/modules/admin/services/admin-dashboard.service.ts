@@ -1,13 +1,19 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { Role, CourseStatus } from '@prisma/client';
 import { CleanupService } from '../../../shared/cloudinary/cleanup.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class AdminDashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cleanupService: CleanupService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getPlatformStats() {
@@ -22,7 +28,9 @@ export class AdminDashboardService {
       this.prisma.user.count({ where: { role: Role.STUDENT } }),
       this.prisma.user.count({ where: { role: Role.TEACHER } }),
       this.prisma.course.count({ where: { status: CourseStatus.PUBLISHED } }),
-      this.prisma.teacherProfile.count({ where: { verificationStatus: 'PENDING' } }),
+      this.prisma.teacherProfile.count({
+        where: { verificationStatus: 'PENDING' },
+      }),
       this.prisma.order.count(),
       this.prisma.enrollment.count(),
     ]);
@@ -37,7 +45,12 @@ export class AdminDashboardService {
     };
   }
 
-  async getTeachers(opts: { take?: number; skip?: number; status?: string; search?: string }) {
+  async getTeachers(opts: {
+    take?: number;
+    skip?: number;
+    status?: string;
+    search?: string;
+  }) {
     const { take = 20, skip = 0, status, search } = opts;
 
     const where: any = { role: Role.TEACHER };
@@ -66,7 +79,9 @@ export class AdminDashboardService {
 
     // Filter by verification status after join (since it's on teacherProfile)
     const filtered = status
-      ? data.filter((u) => u.teacherProfile?.verificationStatus === status.toUpperCase())
+      ? data.filter(
+          (u) => u.teacherProfile?.verificationStatus === status.toUpperCase(),
+        )
       : data;
 
     return {
@@ -79,7 +94,7 @@ export class AdminDashboardService {
         isActive: u.isActive,
         createdAt: u.createdAt,
         verificationStatus: u.teacherProfile?.verificationStatus ?? 'PENDING',
-        teachingSubjects: u.teacherProfile?.subjects?.map(s => s.name) ?? [],
+        teachingSubjects: u.teacherProfile?.subjects?.map((s) => s.name) ?? [],
         nationalId: u.teacherProfile?.nationalId,
       })),
       total,
@@ -165,67 +180,119 @@ export class AdminDashboardService {
     });
   }
 
-  async deleteUser(userId: string) {
-    // 1. Pre-fetch related resources to clean up Cloudinary
+  async deleteUser(userId: string, transferToTeacherId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
         teacherProfile: {
           include: {
-            courseInstructors: {
-              include: {
-                course: {
-                  include: {
-                    sections: {
-                      include: {
-                        lessons: {
-                          include: { attachments: true, videos: true }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+            courseInstructors: true,
+          },
         },
-        submissions: true,
-      }
+      },
     });
 
     if (!user) return;
 
-    const urlsToDelete: (string | null)[] = [];
-    urlsToDelete.push(user.avatar);
+    // Handle Teacher constraints
+    if (user.role === Role.TEACHER && user.teacherProfile) {
+      const hasCourses = user.teacherProfile.courseInstructors.length > 0;
 
-    if (user.teacherProfile) {
-      for (const ci of user.teacherProfile.courseInstructors) {
-        urlsToDelete.push(ci.course.thumbnailUrl);
-        for (const section of ci.course.sections) {
-          for (const lesson of section.lessons) {
-            for (const v of lesson.videos) urlsToDelete.push(v.videoUrl);
-            for (const att of lesson.attachments) urlsToDelete.push(att.fileUrl);
-          }
+      if (hasCourses) {
+        if (!transferToTeacherId) {
+          throw new BadRequestException(
+            'Cannot delete a teacher who owns courses. Provide a transferToTeacherId to transfer ownership.',
+          );
+        }
+
+        // Verify the new teacher exists
+        const newTeacher = await this.prisma.user.findUnique({
+          where: { id: transferToTeacherId },
+          include: { teacherProfile: true },
+        });
+
+        if (
+          !newTeacher ||
+          newTeacher.role !== Role.TEACHER ||
+          !newTeacher.teacherProfile
+        ) {
+          throw new BadRequestException('Invalid transferToTeacherId provided.');
         }
       }
     }
 
-    if (user.submissions) {
-      for (const sub of user.submissions) urlsToDelete.push(sub.fileUrl);
-    }
+    // Execute in a single transaction
+    await this.prisma.$transaction(async (tx) => {
+      // Transfer courses if needed
+      if (
+        user.role === Role.TEACHER &&
+        user.teacherProfile &&
+        transferToTeacherId
+      ) {
+        const courseIds = user.teacherProfile.courseInstructors.map(
+          (ci) => ci.courseId,
+        );
 
-    // 2. Delete the user (cascades all DB records)
-    const deletedUser = await this.prisma.user.delete({
-      where: { id: userId },
+        const newTeacherProfileId = await tx.teacherProfile
+          .findUnique({ where: { userId: transferToTeacherId } })
+          .then((p) => p?.id);
+
+        if (courseIds.length > 0 && newTeacherProfileId) {
+          // Delete old instructor records for this teacher
+          await tx.courseInstructor.deleteMany({
+            where: {
+              teacherId: user.teacherProfile.id,
+              courseId: { in: courseIds },
+            },
+          });
+
+          // Insert new instructor records (using upsert or createMany depending on uniqueness)
+          // To be safe, we'll create them one by one or ignore duplicates.
+          for (const courseId of courseIds) {
+            const existing = await tx.courseInstructor.findUnique({
+              where: {
+                courseId_teacherId: {
+                  courseId,
+                  teacherId: newTeacherProfileId,
+                },
+              },
+            });
+            if (!existing) {
+              await tx.courseInstructor.create({
+                data: {
+                  courseId,
+                  teacherId: newTeacherProfileId,
+                  isOwner: true, // assume owner if they were transferred
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // Delete the user (cascades all DB records)
+      await tx.user.delete({
+        where: { id: userId },
+      });
     });
 
-    // 3. Delete from Cloudinary asynchronously to avoid blocking the response
-    this.cleanupService.deleteFilesByUrls(urlsToDelete);
+    // Notify gateways to disconnect the user
+    this.eventEmitter.emit('user.account.deleted', { userId });
 
-    return deletedUser;
+    // Try to cleanup their avatar asynchronously
+    if (user.avatar) {
+      this.cleanupService.deleteFilesByUrls([user.avatar]);
+    }
+
+    return { message: 'User deleted successfully' };
   }
 
-  async getCourses(opts: { take?: number; skip?: number; status?: string; search?: string }) {
+  async getCourses(opts: {
+    take?: number;
+    skip?: number;
+    status?: string;
+    search?: string;
+  }) {
     const { take = 20, skip = 0, status, search } = opts;
 
     const where: any = {};
@@ -245,7 +312,9 @@ export class AdminDashboardService {
         orderBy: { createdAt: 'desc' },
         include: {
           instructors: {
-            include: { teacher: { include: { user: { select: { name: true } } } } },
+            include: {
+              teacher: { include: { user: { select: { name: true } } } },
+            },
             where: { isOwner: true },
           },
           subject: { select: { name: true } },
@@ -299,17 +368,17 @@ export class AdminDashboardService {
       include: {
         sections: {
           include: {
-            lessons: { include: { attachments: true, videos: true } }
-          }
-        }
-      }
+            lessons: { include: { attachments: true, videos: true } },
+          },
+        },
+      },
     });
 
     if (!course) return;
 
     const urlsToDelete: (string | null)[] = [];
     urlsToDelete.push(course.thumbnailUrl);
-    
+
     for (const section of course.sections) {
       for (const lesson of section.lessons) {
         for (const v of lesson.videos) urlsToDelete.push(v.videoUrl);
@@ -329,10 +398,7 @@ export class AdminDashboardService {
   async getCourseBySlug(slug: string) {
     const course = await this.prisma.course.findFirst({
       where: {
-        OR: [
-          { slug: slug },
-          { id: slug }
-        ]
+        OR: [{ slug: slug }, { id: slug }],
       },
       include: {
         subject: true,
@@ -347,7 +413,9 @@ export class AdminDashboardService {
         instructors: {
           include: {
             teacher: {
-              include: { user: { select: { id: true, name: true, avatar: true } } },
+              include: {
+                user: { select: { id: true, name: true, avatar: true } },
+              },
             },
           },
         },
@@ -371,6 +439,7 @@ export class AdminDashboardService {
 
   // ── Notifications ───────────────────────────────────────────────────────
   async sendNotification(dto: {
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     target: 'ALL' | 'STUDENTS' | 'TEACHERS' | string;
     title: string;
     message: string;
@@ -381,10 +450,16 @@ export class AdminDashboardService {
       const users = await this.prisma.user.findMany({ select: { id: true } });
       userIds = users.map((u) => u.id);
     } else if (dto.target === 'STUDENTS') {
-      const users = await this.prisma.user.findMany({ where: { role: 'STUDENT' }, select: { id: true } });
+      const users = await this.prisma.user.findMany({
+        where: { role: 'STUDENT' },
+        select: { id: true },
+      });
       userIds = users.map((u) => u.id);
     } else if (dto.target === 'TEACHERS') {
-      const users = await this.prisma.user.findMany({ where: { role: 'TEACHER' }, select: { id: true } });
+      const users = await this.prisma.user.findMany({
+        where: { role: 'TEACHER' },
+        select: { id: true },
+      });
       userIds = users.map((u) => u.id);
     } else {
       // specific user id
@@ -423,7 +498,7 @@ export class AdminDashboardService {
   async createCoupon(dto: any) {
     // Check if code exists
     const existing = await this.prisma.coupon.findUnique({
-      where: { code: dto.code.toUpperCase() }
+      where: { code: dto.code.toUpperCase() },
     });
 
     if (existing) {
@@ -439,7 +514,7 @@ export class AdminDashboardService {
         validFrom: new Date(dto.validFrom),
         validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
         courseId: dto.courseId || null,
-      }
+      },
     });
   }
 

@@ -1,5 +1,4 @@
 export * from "./categories";
-export * from "./community";
 export * from "./courses";
 export * from "./faq";
 export * from "./features";

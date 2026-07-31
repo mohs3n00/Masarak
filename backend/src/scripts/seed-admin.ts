@@ -30,8 +30,10 @@ async function main() {
 
   const nameParts = name.split(' ');
   const firstName = nameParts[0] || 'Super';
-  const familyName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : 'Admin';
+  const familyName =
+    nameParts.length > 1 ? nameParts[nameParts.length - 1] : 'Admin';
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const admin = await prisma.user.create({
     data: {
       email,
@@ -59,7 +61,9 @@ async function main() {
     console.log('Password:', plainPassword);
     console.log('====================================');
   } else {
-    console.log('Super Admin Created Successfully. Credentials are hidden in production.');
+    console.log(
+      'Super Admin Created Successfully. Credentials are hidden in production.',
+    );
   }
 }
 

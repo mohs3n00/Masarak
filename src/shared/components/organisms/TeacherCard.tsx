@@ -43,12 +43,12 @@ export function TeacherCard({
       <CardContent className="px-5 pb-6 pt-0 relative flex flex-col items-center">
         <div className="flex justify-center -mt-12 mb-3">
           <Avatar className="h-24 w-24 border-4 border-background shadow-sm bg-surface">
-            <AvatarImage src={avatar} alt={name} className="object-cover" />
-            <AvatarFallback className="text-2xl font-bold text-primary">{name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={avatar} alt={name || ''} className="object-cover" />
+            <AvatarFallback className="text-2xl font-bold text-primary">{name?.charAt(0) || 'م'}</AvatarFallback>
           </Avatar>
         </div>
         
-        <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{name}</h3>
+        <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{name || 'معلم'}</h3>
         <p className="text-primary text-sm font-medium mb-3">{subject}</p>
         
         <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">

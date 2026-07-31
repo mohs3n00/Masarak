@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { redisStore, redisInsStore } from 'cache-manager-redis-yet';
 import { CacheService } from './cache.service';
 
@@ -16,26 +17,34 @@ import { CacheService } from './cache.service';
 
         let store;
         try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           const { createClient } = require('redis');
           const client = createClient({
             socket: {
               host,
               port,
-              tls: process.env.NODE_ENV === 'production' || host?.includes('upstash'),
+              tls:
+                process.env.NODE_ENV === 'production' ||
+                host?.includes('upstash'),
               reconnectStrategy: (retries: number) => {
                 if (retries > 3) {
                   return new Error('Redis connection failed');
                 }
                 return Math.min(retries * 50, 500);
-              }
+              },
             },
             password: password || undefined,
           });
-          client.on('error', (err: any) => console.log('Redis Client Error:', err.message));
+          client.on('error', (err: any) =>
+            console.log('Redis Client Error:', err.message),
+          );
           await client.connect();
           store = redisInsStore(client, { ttl: 60000 });
         } catch (e) {
-          console.log('Falling back to memory cache due to redis error:', e.message);
+          console.log(
+            'Falling back to memory cache due to redis error:',
+            e.message,
+          );
           store = 'memory';
         }
 

@@ -171,16 +171,6 @@ export interface Notification {
   createdAt: string;
 }
 
-export interface CommunityPost {
-  id: ID;
-  authorId: ID;
-  content: string;
-  likesCount: number;
-  commentsCount: number;
-  tags: string[];
-  createdAt: string;
-}
-
 export interface PlatformStatistics {
   totalStudents: number;
   totalTeachers: number;

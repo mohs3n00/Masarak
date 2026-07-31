@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayoutWrapper } from "@/shared/components/AppLayoutWrapper";
@@ -7,6 +7,7 @@ import { Footer } from "@/shared/components/organisms/Footer";
 import "./globals.css";
 import { ApiProvider } from '@/lib/providers/ApiProvider';
 import { AuthProvider } from '@/lib/providers/AuthProvider';
+import { ReactQueryProvider } from '@/lib/providers/ReactQueryProvider';
 import { SupportChatWidget } from '@/features/support/components/SupportChatWidget';
 
 const cairo = Cairo({
@@ -33,14 +34,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
-        <ApiProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <AppLayoutWrapper navbar={<Navbar />} footer={<Footer />}>{children}</AppLayoutWrapper>
-              <SupportChatWidget />
-            </TooltipProvider>
-          </AuthProvider>
-        </ApiProvider>
+        <ReactQueryProvider>
+          <ApiProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <AppLayoutWrapper navbar={<Navbar />} footer={<Footer />}>{children}</AppLayoutWrapper>
+                <SupportChatWidget />
+              </TooltipProvider>
+            </AuthProvider>
+          </ApiProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

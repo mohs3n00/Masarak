@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, Users, BarChart2,
   Wallet, User, Settings, LogOut, ChevronLeft,
-  Bell, Star, Calendar, Ticket, PenTool, X
+  Bell, Star, Calendar, Ticket, PenTool, X, MessageCircle
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/teacher/coupons', label: 'الكوبونات', icon: Ticket },
   { href: '/dashboard/teacher/question-designer', label: 'مصمم الأسئلة', icon: PenTool },
   { href: '/dashboard/teacher/notifications', label: 'الإشعارات', icon: Bell },
+  { href: '/dashboard/teacher/inbox', label: 'المحادثات', icon: MessageCircle },
   { href: '/dashboard/teacher/profile', label: 'الملف الشخصي', icon: User },
 ];
 

@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ApiError } from './error.models';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 
-const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 const baseURL = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
@@ -81,7 +81,11 @@ apiClient.interceptors.response.use(
           } catch {}
 
           if (!refreshToken) {
-            throw new Error('No refresh token available');
+            useAuthStore.getState().clearAuth();
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+              window.location.href = '/login?expired=1';
+            }
+            return Promise.reject(new Error('No refresh token available'));
           }
 
           const requestBody = { refreshToken };
