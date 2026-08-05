@@ -3,7 +3,7 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { 
   Play, Pause, Volume2, VolumeX, Maximize, Minimize, 
-  RotateCcw, RotateCw, Loader2, PictureInPicture
+  RotateCcw, RotateCw, Loader2, PictureInPicture, Settings
 } from 'lucide-react';
 import { formatTime } from '@/features/media/utils/formatTime';
 import { cn } from '@/lib/utils';
@@ -54,20 +54,25 @@ export function PlayerControls({
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const timelineRef = useRef<HTMLDivElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
+  const qualityMenuRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hoverPercent, setHoverPercent] = useState<number | null>(null);
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
+  const [isQualityMenuOpen, setIsQualityMenuOpen] = useState(false);
 
-  // Close speed menu when clicking outside
+  // Close menus when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (speedMenuRef.current && !speedMenuRef.current.contains(event.target as Node)) {
         setIsSpeedMenuOpen(false);
       }
+      if (qualityMenuRef.current && !qualityMenuRef.current.contains(event.target as Node)) {
+        setIsQualityMenuOpen(false);
+      }
     };
-    if (isSpeedMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    if (isSpeedMenuOpen || isQualityMenuOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isSpeedMenuOpen]);
+  }, [isSpeedMenuOpen, isQualityMenuOpen]);
 
   // Compute seek position from a clientX value, always LTR
   const getSeekPercent = useCallback((clientX: number): number => {
@@ -130,10 +135,10 @@ export function PlayerControls({
   return (
     <div 
       className={cn(
-        "absolute inset-0 flex flex-col justify-end transition-opacity duration-300 z-40",
+        "absolute inset-0 flex flex-col justify-end transition-opacity duration-300 z-40 pointer-events-none",
         // Background gradient only at the bottom
         "bg-gradient-to-t from-black/90 via-black/50 to-transparent",
-        showControls || isBuffering ? "opacity-100" : "opacity-0 pointer-events-none"
+        showControls || isBuffering ? "opacity-100" : "opacity-0"
       )}
       dir="ltr"
     >
@@ -283,6 +288,42 @@ export function PlayerControls({
                     >
                       <span dir="ltr">{rate}x</span>
                       {playbackRate === rate && <span className="text-primary text-xs">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quality Settings (Dummy for YouTube iframe limitation) */}
+            <div className="relative" ref={qualityMenuRef}>
+              <button 
+                onClick={() => setIsQualityMenuOpen(!isQualityMenuOpen)}
+                className={cn(
+                  "p-2 transition-colors rounded hover:bg-white/10 touch-manipulation",
+                  isQualityMenuOpen ? "bg-white/20 text-white" : "text-white/90 hover:text-primary"
+                )}
+                aria-label="جودة الفيديو"
+                title="جودة الفيديو"
+              >
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+
+              {isQualityMenuOpen && (
+                <div className="absolute bottom-full mb-2 right-0 w-36 py-1 bg-black/95 border border-white/10 rounded-lg text-white backdrop-blur-md shadow-xl flex flex-col z-50">
+                  <div className="px-3 py-2 text-xs text-white/50 border-b border-white/10 mb-1 text-center font-bold">
+                    جودة الفيديو (تلقائي)
+                  </div>
+                  {['1080p', '720p', '480p', '360p', 'تلقائي (Auto)'].map((q) => (
+                    <button 
+                      key={q} 
+                      onClick={() => setIsQualityMenuOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between w-full px-3 py-2 text-sm text-right cursor-pointer hover:bg-white/10 transition-colors",
+                        q === 'تلقائي (Auto)' ? "text-primary font-bold bg-white/5" : "text-white/90"
+                      )}
+                    >
+                      <span dir="ltr">{q}</span>
+                      {q === 'تلقائي (Auto)' && <span className="text-primary text-xs">✓</span>}
                     </button>
                   ))}
                 </div>

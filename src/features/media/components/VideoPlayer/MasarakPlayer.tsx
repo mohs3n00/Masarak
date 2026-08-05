@@ -373,6 +373,7 @@ export function MasarakPlayer({
                   modestbranding: 1,
                   iv_load_policy: 3,
                   disablekb: 1,
+                  cc_load_policy: 0,
                 }
               },
               file: {
