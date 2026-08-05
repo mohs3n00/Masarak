@@ -27,6 +27,9 @@ interface PlayerControlsProps {
   onSkip: (amount: number) => void;
   onVolumeChange: (vol: number) => void;
   onRateChange: (rate: number) => void;
+  currentQuality: string;
+  availableQualities: string[];
+  onQualityChange: (quality: string) => void;
 }
 
 const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -50,6 +53,9 @@ export function PlayerControls({
   onSkip,
   onVolumeChange,
   onRateChange,
+  currentQuality,
+  availableQualities,
+  onQualityChange,
 }: PlayerControlsProps) {
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -294,38 +300,45 @@ export function PlayerControls({
               )}
             </div>
 
-            {/* Quality Settings (Dummy for YouTube iframe limitation) */}
+            {/* Quality Settings */}
             <div className="relative" ref={qualityMenuRef}>
               <button 
                 onClick={() => setIsQualityMenuOpen(!isQualityMenuOpen)}
                 className={cn(
-                  "p-2 transition-colors rounded hover:bg-white/10 touch-manipulation",
+                  "px-2 py-1.5 transition-colors text-xs sm:text-sm font-bold tabular-nums rounded hover:bg-white/10 touch-manipulation",
                   isQualityMenuOpen ? "bg-white/20 text-white" : "text-white/90 hover:text-primary"
                 )}
                 aria-label="جودة الفيديو"
                 title="جودة الفيديو"
               >
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                {currentQuality === 'auto' ? 'تلقائي' : currentQuality}
+                <Settings className="w-3 h-3 inline-block ml-1 opacity-70" />
               </button>
 
               {isQualityMenuOpen && (
                 <div className="absolute bottom-full mb-2 right-0 w-36 py-1 bg-black/95 border border-white/10 rounded-lg text-white backdrop-blur-md shadow-xl flex flex-col z-50">
                   <div className="px-3 py-2 text-xs text-white/50 border-b border-white/10 mb-1 text-center font-bold">
-                    جودة الفيديو (تلقائي)
+                    جودة الفيديو
                   </div>
-                  {['1080p', '720p', '480p', '360p', 'تلقائي (Auto)'].map((q) => (
-                    <button 
-                      key={q} 
-                      onClick={() => setIsQualityMenuOpen(false)}
-                      className={cn(
-                        "flex items-center justify-between w-full px-3 py-2 text-sm text-right cursor-pointer hover:bg-white/10 transition-colors",
-                        q === 'تلقائي (Auto)' ? "text-primary font-bold bg-white/5" : "text-white/90"
-                      )}
-                    >
-                      <span dir="ltr">{q}</span>
-                      {q === 'تلقائي (Auto)' && <span className="text-primary text-xs">✓</span>}
-                    </button>
-                  ))}
+                  {availableQualities.map((q) => {
+                    const displayLabel = q === 'auto' ? 'تلقائي (Auto)' : q;
+                    return (
+                      <button 
+                        key={q} 
+                        onClick={() => {
+                          onQualityChange(q);
+                          setIsQualityMenuOpen(false);
+                        }}
+                        className={cn(
+                          "flex items-center justify-between w-full px-3 py-2 text-sm text-right cursor-pointer hover:bg-white/10 transition-colors",
+                          currentQuality === q ? "text-primary font-bold bg-white/5" : "text-white/90"
+                        )}
+                      >
+                        <span dir="ltr">{displayLabel}</span>
+                        {currentQuality === q && <span className="text-primary text-xs">✓</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

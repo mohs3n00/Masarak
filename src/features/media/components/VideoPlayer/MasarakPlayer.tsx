@@ -77,6 +77,8 @@ export function MasarakPlayer({
   const [isPiP, setIsPiP] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [showControls, setShowControls] = useState(true);
+  const [currentQuality, setCurrentQuality] = useState<string>('auto');
+  const [availableQualities, setAvailableQualities] = useState<string[]>(['auto', '1080p', '720p', '480p', '360p']);
 
   // Statistics Tracking
   const unSyncedSeconds = useRef(0);
@@ -263,6 +265,40 @@ export function MasarakPlayer({
     }
   }, [duration, onProgress, isPlaying, syncProgress]);
 
+  const handleReady = useCallback((player: any) => {
+    setIsBuffering(false);
+    
+    try {
+      const internalPlayer = player.getInternalPlayer();
+      if (internalPlayer?.getAvailableQualityLevels) {
+        const levels = internalPlayer.getAvailableQualityLevels();
+        if (levels && levels.length > 0) {
+          setAvailableQualities(['auto', ...levels.filter((l: string) => l !== 'auto')]);
+        }
+      }
+    } catch (err) {
+      // Ignore if not a YouTube player
+    }
+
+    if (autoPlay) {
+      setIsPlaying(true);
+      setShowControls(false); // hide controls on autoplay initially
+    }
+  }, [autoPlay]);
+
+  const handleQualityChange = useCallback((quality: string) => {
+    setCurrentQuality(quality);
+    try {
+      const internalPlayer = playerRef.current?.getInternalPlayer();
+      if (internalPlayer?.setPlaybackQuality) {
+        // 'default' is YouTube's 'auto' equivalent for setPlaybackQuality
+        internalPlayer.setPlaybackQuality(quality === 'auto' ? 'default' : quality);
+      }
+    } catch (err) {
+      // Ignore error
+    }
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -338,7 +374,7 @@ export function MasarakPlayer({
             playbackRate={playbackRate}
             pip={isPiP}
             progressInterval={500}
-            onReady={() => setIsBuffering(false)}
+            onReady={handleReady}
             onBuffer={() => setIsBuffering(true)}
             onBufferEnd={() => setIsBuffering(false)}
             onPlay={() => setIsPlaying(true)}
@@ -373,7 +409,6 @@ export function MasarakPlayer({
                   modestbranding: 1,
                   iv_load_policy: 3,
                   disablekb: 1,
-                  cc_load_policy: 0,
                 }
               },
               file: {
@@ -409,6 +444,9 @@ export function MasarakPlayer({
         onSkip={skipAmount}
         onVolumeChange={(vol) => { setVolume(vol); setIsMuted(vol === 0); }}
         onRateChange={changeRate}
+        currentQuality={currentQuality}
+        availableQualities={availableQualities}
+        onQualityChange={handleQualityChange}
       />
     </div>
   );
