@@ -29,12 +29,16 @@ class MediaSecurityService {
   async requestPlaybackSession(context: PlaybackContext, originalMediaUrl: string): Promise<PlaybackSession> {
     try {
       // Always attempt to fetch from authenticated backend session first
-      const { data } = await apiClient.post<PlaybackSession>('/media/playback-session', {
-        lessonId: context.lessonId,
-        courseId: context.courseId,
-        deviceToken: context.deviceToken,
-        originalMediaUrl,
-      });
+      const { data } = await apiClient.post<PlaybackSession>(
+        '/media/playback-session',
+        {
+          lessonId: context.lessonId,
+          courseId: context.courseId,
+          deviceToken: context.deviceToken,
+          originalMediaUrl,
+        },
+        { timeout: 2000 } // Fail fast to avoid long requests when opening videos
+      );
       if (data && data.sessionId && data.studentId) {
         return data;
       }
@@ -69,7 +73,7 @@ class MediaSecurityService {
    */
   async sendHeartbeat(sessionId: string, currentTime: number, event: 'playing' | 'paused' | 'buffering' | 'ended' = 'playing') {
     try {
-      await apiClient.post('/media/heartbeat', { sessionId, currentTime: Math.round(currentTime), event }).catch(() => {});
+      await apiClient.post('/media/heartbeat', { sessionId, currentTime: Math.round(currentTime), event }, { timeout: 2000 }).catch(() => {});
     } catch {}
   }
 
