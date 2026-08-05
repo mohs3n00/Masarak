@@ -276,6 +276,14 @@ export function MasarakPlayer({
           setAvailableQualities(['auto', ...levels.filter((l: string) => l !== 'auto')]);
         }
       }
+      // Forcibly disable captions if it's a YouTube player
+      if (internalPlayer?.unloadModule) {
+        internalPlayer.unloadModule('captions');
+        internalPlayer.unloadModule('cc');
+      }
+      if (internalPlayer?.setOption) {
+        internalPlayer.setOption('captions', 'track', {});
+      }
     } catch (err) {
       // Ignore if not a YouTube player
     }
