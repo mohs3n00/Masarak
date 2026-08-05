@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Logo } from '@/shared/components/atoms/Logo';
+
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { apiClient } from '@/shared/api/api.client';
 import { useRouter } from 'next/navigation';
@@ -57,17 +57,16 @@ export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps)
 
       <aside
         className={cn(
-          "fixed top-0 start-0 h-screen w-64 bg-background border-e border-border flex flex-col z-50 shadow-lg transition-transform duration-300 ease-in-out",
+          "fixed top-0 start-0 h-screen w-64 bg-card border-e border-border/40 flex flex-col z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}
         dir="rtl"
       >
-        {/* Logo Header */}
-        <div className="h-[68px] px-5 flex items-center justify-between shrink-0 border-b border-border">
+        {/* Header */}
+        <div className="h-[68px] px-5 flex items-center justify-between shrink-0 border-b border-border/40">
           <div className="flex items-center">
-            <Logo width={100} height={28} />
-            <span className="ms-2 text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
-              مدرس
+            <span className="text-sm font-bold text-success bg-success/10 px-3 py-1 rounded-full">
+              لوحة تحكم المدرس
             </span>
           </div>
           <button
@@ -106,8 +105,8 @@ export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps)
         </nav>
 
         {/* User Footer */}
-        <div className="p-3 border-t border-border shrink-0">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-muted/50">
+        <div className="p-3 border-t border-border/40 shrink-0">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-muted/50 border border-border/40 shadow-sm">
             {user?.avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />

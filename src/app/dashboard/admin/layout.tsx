@@ -12,13 +12,13 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
 
   return (
     <RoleGuard allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
-      <div className="min-h-screen bg-surface" dir="rtl">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950" dir="rtl">
         <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         {/* Main content — offset by sidebar width */}
         <div className="flex flex-col lg:pe-0 lg:ps-64 min-h-screen">
           {/* Top Bar */}
-          <header className="sticky top-0 z-40 h-[68px] bg-background border-b border-border px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0">
+          <header className="sticky top-0 z-40 h-[68px] bg-background/80 backdrop-blur-md border-b border-border/40 px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0">
             <div className="flex items-center gap-3 flex-1 max-w-sm">
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -41,7 +41,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             <div className="flex items-center gap-2">
               <Link
                 href="/"
-                className="px-3 sm:px-4 py-2 bg-muted text-foreground text-xs sm:text-sm font-bold rounded-lg hover:bg-muted/80 transition-colors"
+                className="px-3 sm:px-4 py-2 bg-muted text-foreground text-xs sm:text-sm font-bold rounded-xl hover:bg-muted/80 transition-colors"
               >
                 الرئيسية
               </Link>

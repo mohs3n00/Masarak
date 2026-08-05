@@ -4,6 +4,9 @@ import React from 'react';
 import { ThumbsUp, ThumbsDown, Copy, Check, BotMessageSquare } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { ChatMessage as ChatMessageType } from '../types';
 import { cn } from '@/lib/utils';
 
@@ -48,7 +51,10 @@ export function ChatMessageBubble({ message, onFeedback }: ChatMessageProps) {
             <TypingDots />
           ) : (
             <div className={cn('prose prose-sm max-w-none', isUser ? 'prose-invert' : 'dark:prose-invert')}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm, remarkMath]} 
+                rehypePlugins={[rehypeKatex]}
+              >
                 {message.content}
               </ReactMarkdown>
             </div>

@@ -128,6 +128,24 @@ async function runSmokeTests() {
   const testEmail = `test_${Date.now()}@example.com`;
   let accessToken = '';
 
+  // Test 0A: Health Check Endpoint
+  try {
+    const rHealth = await fetchApi('/health');
+    if (rHealth.status !== 200 || rHealth.data?.status !== 'ok') {
+      throw new Error(`Expected /health status 200 with status "ok", got status ${rHealth.status} data: ${JSON.stringify(rHealth.data)}`);
+    }
+    successMsg(`GET /health (status: ${rHealth.data.status}, env: ${rHealth.data.environment}, uptime: ${rHealth.data.uptime}s)`);
+  } catch(e) { dumpLogsAndExit('GET /health Check', e); }
+
+  // Test 0B: Readiness Endpoint
+  try {
+    const rReady = await fetchApi('/ready');
+    if (rReady.status !== 200 || !rReady.data?.ready) {
+      throw new Error(`Expected /ready status 200 with ready true, got status ${rReady.status} data: ${JSON.stringify(rReady.data)}`);
+    }
+    successMsg(`GET /ready (ready: ${rReady.data.ready}, checks: ${JSON.stringify(rReady.data.checks)})`);
+  } catch(e) { dumpLogsAndExit('GET /ready Check', e); }
+
   // Test 1: 404 Handling
   try {
     const r404 = await fetchApi('/not-found-route');
@@ -221,8 +239,10 @@ async function main() {
     await runCommand('npm run build', backendDir);
     successMsg('Backend Build');
 
-    // 3. Prisma Setup
-    const prodEnv = { ...process.env, NODE_ENV: 'production' };
+    // 3. Prisma Setup & Environment Population
+    const dotenv = require('dotenv');
+    const envParsed = dotenv.parse(fs.readFileSync(path.join(backendDir, '.env.production')));
+    const prodEnv = { ...process.env, ...envParsed, PORT: '4000', NODE_ENV: 'production' };
     
     // For local testing, we might have port 5432 blocked by ISP, let's fallback to 6543 if needed
     // But we just use prodEnv
@@ -240,10 +260,10 @@ async function main() {
     }
 
     // 4. Start Backend
-    const backendEnv = { ...prodEnv, NODE_ENV: 'production', DIRECT_URL: prodEnv.DATABASE_URL };
+    const backendEnv = { ...prodEnv, PORT: '4000', NODE_ENV: 'production', DIRECT_URL: prodEnv.DATABASE_URL };
     backendProcess = startProcess('node dist/src/main', backendDir, 'Backend', backendEnv);
     log('Waiting for Backend to start...');
-    const isBackendUp = await checkServerReady(`${API_URL}/not-found-route`);
+    const isBackendUp = await checkServerReady('http://localhost:4000/health');
     if (!isBackendUp) dumpLogsAndExit('Backend Startup', new Error('Backend did not respond in time.'));
     successMsg('Backend Started & API Reachable');
 

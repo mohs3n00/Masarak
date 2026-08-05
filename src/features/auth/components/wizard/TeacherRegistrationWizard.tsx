@@ -118,8 +118,8 @@ export function TeacherRegistrationWizard() {
     <AuthWizard
       currentStep={step}
       totalSteps={2}
-      title="إنشاء حساب معلم"
-      description={step === 0 ? "أدخل بياناتك الشخصية للبدء" : "أكمل بياناتك المهنية"}
+      title="طلب انشاء حساب :"
+      description="ادخل بياناتك بشكل صحيح وسيتم مراجعة طلبك، وتقدر تسجل دخول ابتداءً من يوم 8/2"
     >
       {error && (
         <div className="mb-6 p-3 bg-error/10 text-error text-sm font-medium rounded-lg border border-error/20 text-center">

@@ -29,6 +29,8 @@ const SUPPORTED_PLATFORMS = [
   { id: 'Phone', icon: Phone, color: 'text-gray-500' },
 ];
 
+import { revalidateBranding } from '@/app/actions/revalidate-branding';
+
 export function PlatformBrandingCard() {
   const [configs, setConfigs] = useState<Record<string, BrandingConfig>>(() => {
     const initialMap: Record<string, BrandingConfig> = {};
@@ -94,6 +96,7 @@ export function PlatformBrandingCard() {
         showInFooter: config.showInFooter,
         showInExport: config.showInExport,
       });
+      await revalidateBranding();
       toast.success(`تم حفظ إعدادات ${platform} بنجاح`);
     } catch (error) {
       toast.error(`فشل حفظ إعدادات ${platform}`);

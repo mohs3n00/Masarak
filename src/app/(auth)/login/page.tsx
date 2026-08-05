@@ -20,7 +20,7 @@ import { RememberMe } from '@/features/auth/components/RememberMe';
 
 import { ApiError } from '@/shared/api/error.models';
 
-import signInImage from '@/assets/images/sgin in.png';
+import signInImage from '@/assets/images/login.jpg';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
@@ -64,11 +64,12 @@ export default function LoginPage() {
         title="مرحباً بعودتك إلى مسارك"
         subtitle="سعداء برؤيتك مجدداً، واصل مسيرتك التعليمية."
         videoSrc="/assets/video/login-video.webm"
+        illustration={signInImage}
       >
         <AuthCard>
           <AuthHeader
-            title="تسجيل الدخول إلى حسابك"
-            description="مرحباً بعودتك! يرجى إدخال بياناتك للمتابعة."
+            title="أهلاً تاني! جاهز للمذاكرة؟"
+            description="ادخل علي حسابك بإدخال رقم الهاتف و كلمة المرور المسجل بهم من قبل."
           />
 
           {searchParams.get('expired') === '1' && (

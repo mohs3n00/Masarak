@@ -6,29 +6,47 @@ import { apiClient } from '@/shared/api/api.client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { cn, optimizeImage } from '@/lib/utils';
 import {
-  BookOpen, Users, Star, Wallet, TrendingUp,
-  Plus, ArrowLeft, BarChart2, Eye,
+  BookOpen, Users, PlayCircle, Star, Wallet, TrendingUp,
+  Plus, ArrowLeft, BarChart2, Eye, MessageSquare, Layers, Activity, CheckCircle
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
-interface TeacherStats {
-  totalCourses: number;
-  publishedCourses: number;
-  draftCourses: number;
-  totalStudents: number;
-  averageRating: number;
-  totalReviews: number;
-  walletBalance: number;
-  totalEarned: number;
-  invitationCode: string;
-  verificationStatus: string;
+function StatCard({
+  title, value, subtitle, icon: Icon, colorClass, highlight
+}: {
+  title: string;
+  value: number | string;
+  subtitle?: string;
+  icon: React.ElementType;
+  colorClass: string;
+  highlight?: string;
+}) {
+  return (
+    <div className="bg-card border border-border/60 rounded-2xl p-6 hover:border-primary/30 hover:shadow-md transition-all duration-200">
+      <div className="flex justify-between items-start mb-4">
+        <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', colorClass)}>
+          <Icon className="w-6 h-6" />
+        </div>
+      </div>
+      <p className="text-3xl font-black text-foreground tracking-tight">{value.toLocaleString()}</p>
+      <p className="text-sm font-semibold text-text-muted mt-1">{title}</p>
+      {(subtitle || highlight) && (
+        <div className="mt-3 flex items-center gap-2 text-xs font-semibold">
+          {highlight && <span className="text-primary bg-primary/10 px-2 py-1 rounded-md">{highlight}</span>}
+          {subtitle && <span className="text-text-muted">{subtitle}</span>}
+        </div>
+      )}
+    </div>
+  );
 }
 
-interface RecentCourse {
-  id: string;
-  title: string;
-  thumbnailUrl?: string;
-  status: string;
-  enrollmentCount: number;
+function SectionHeader({ title, icon: Icon }: { title: string; icon: React.ElementType }) {
+  return (
+    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2 mt-8">
+      <Icon className="w-5 h-5 text-primary" />
+      {title}
+    </h2>
+  );
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -44,27 +62,28 @@ const STATUS_COLORS: Record<string, string> = {
   ARCHIVED: 'bg-error/10 text-error',
 };
 
-import { useQuery } from '@tanstack/react-query';
-
 export default function TeacherDashboardPage() {
   const { user } = useAuthStore();
-  const { data: dashboardData, isLoading: loading } = useQuery({
-    queryKey: ['teacherDashboard'],
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['teacherAnalytics'],
     queryFn: async () => {
-      const [statsRes, coursesRes] = await Promise.all([
-        apiClient.get('/teacher/dashboard').catch(() => ({ data: null })),
-        apiClient.get('/teacher/courses?take=5').catch(() => ({ data: { data: [] } })),
+      const [overview, learning, conversations, courses] = await Promise.all([
+        apiClient.get('/teacher/analytics/overview').then(r => r.data).catch(() => null),
+        apiClient.get('/teacher/analytics/learning').then(r => r.data).catch(() => null),
+        apiClient.get('/teacher/analytics/conversations').then(r => r.data).catch(() => null),
+        apiClient.get('/teacher/analytics/courses').then(r => r.data).catch(() => []),
       ]);
       return {
-        stats: statsRes.data as TeacherStats | null,
-        courses: (coursesRes.data?.data || []) as RecentCourse[],
+        overview: overview || {},
+        learning: learning || {},
+        conversations: conversations || {},
+        courses: courses || [],
       };
     },
     staleTime: 1000 * 60 * 5,
   });
 
-  const stats = dashboardData?.stats || null;
-  const courses = dashboardData?.courses || [];
+  const { overview, learning, conversations, courses } = data || {};
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -74,10 +93,9 @@ export default function TeacherDashboardPage() {
   })();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8 pb-12">
       {/* Welcome */}
       <div className="relative overflow-hidden rounded-[2rem] border border-border/50 bg-card p-8 md:p-10 shadow-sm group">
-        {/* Decorative Background Mesh */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-success/5 opacity-50" />
         <div className="absolute -top-40 -end-40 w-[500px] h-[500px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
         <div className="absolute -bottom-40 -start-40 w-[500px] h-[500px] bg-success/10 blur-[100px] rounded-full pointer-events-none" />
@@ -89,127 +107,99 @@ export default function TeacherDashboardPage() {
               <span className="animate-wave origin-bottom-right inline-block">👋</span>
             </h1>
             <p className="text-muted-foreground text-[15px] max-w-xl leading-relaxed">
-              يسعدنا تواجدك معنا. إليك ملخص سريع لأداء كورساتك وتفاعلات طلابك لهذا الأسبوع.
+              يسعدنا تواجدك معنا. إليك ملخص سريع لأداء كورساتك وتفاعلات طلابك.
             </p>
-
-            {stats?.verificationStatus === 'PENDING' && (
-              <div className="inline-flex items-center gap-2 mt-4 px-4 py-2.5 bg-warning/10 text-warning-foreground border border-warning/20 rounded-xl text-sm font-semibold">
-                ⚠️ حسابك قيد المراجعة. لن تتمكن من نشر الكورسات حتى يتم الاعتماد.
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-3 w-full lg:w-auto">
-            {stats?.verificationStatus === 'APPROVED' ? (
-              <Link
-                href="/dashboard/teacher/courses/create"
-                className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                إنشاء كورس
-              </Link>
-            ) : (
-              <button
-                disabled
-                className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-muted text-muted-foreground rounded-xl text-sm font-bold cursor-not-allowed border border-border/50"
-              >
-                <Plus className="w-4 h-4" />
-                إنشاء كورس
-              </button>
-            )}
-            <Link
-              href="/dashboard/teacher/courses"
-              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-card border border-border hover:bg-muted text-foreground rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5"
-            >
-              <Eye className="w-4 h-4 text-muted-foreground" />
-              كورساتي
+            <Link href="/dashboard/teacher/courses/create" className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all">
+              <Plus className="w-4 h-4" /> إنشاء كورس
+            </Link>
+            <Link href="/dashboard/teacher/courses" className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-card border border-border hover:bg-muted text-foreground rounded-xl text-sm font-bold transition-all">
+              <Eye className="w-4 h-4 text-muted-foreground" /> كورساتي
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Stats */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-card border border-border/60 rounded-2xl p-5 animate-pulse">
-              <div className="w-10 h-10 rounded-xl bg-muted mb-3" />
-              <div className="h-7 w-16 bg-muted rounded mb-2" />
-              <div className="h-4 w-24 bg-muted rounded" />
-            </div>
+            <div key={i} className="bg-card border border-border/60 rounded-2xl p-6 h-32" />
           ))}
         </div>
-      ) : stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      ) : (
+        <>
+          {/* Section: Courses Overview */}
+          <SectionHeader title="نظرة عامة على الكورسات" icon={Layers} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard title="إجمالي الكورسات" value={overview?.totalCourses ?? 0} highlight={`${overview?.publishedCourses ?? 0} منشور`} icon={BookOpen} colorClass="bg-primary/10 text-primary" />
+            <StatCard title="كورسات قيد المسودة" value={overview?.draftCourses ?? 0} icon={BookOpen} colorClass="bg-muted text-text-muted" />
+            <StatCard title="إجمالي الطلاب" value={overview?.totalStudents ?? 0} icon={Users} colorClass="bg-info/10 text-info" />
+            <StatCard title="محفظة الأرباح (تقريبي)" value="--- ج" icon={Wallet} colorClass="bg-success/10 text-success" />
+          </div>
 
-          {[
-            { label: 'إجمالي الكورسات', value: stats.totalCourses, icon: BookOpen, color: 'bg-primary/10 text-primary', sub: `${stats.publishedCourses} منشور` },
-            { label: 'إجمالي الطلاب', value: stats.totalStudents, icon: Users, color: 'bg-info/10 text-info' },
-            { label: 'متوسط التقييم', value: stats.averageRating.toFixed(1), icon: Star, color: 'bg-warning/10 text-warning', sub: `${stats.totalReviews} تقييم` },
-            { label: 'رصيد المحفظة', value: `${stats.walletBalance} ج`, icon: Wallet, color: 'bg-success/10 text-success', sub: `إجمالي: ${stats.totalEarned} ج` },
-          ].map((item, i) => (
-            <div key={i} className="bg-card border border-border/60 rounded-2xl p-5 hover:border-primary/20 transition-colors">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3', item.color)}>
-                <item.icon className="w-5 h-5" />
+          {/* Section: Learning Progress & Conversations */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <SectionHeader title="تقدم الطلاب (التعلم)" icon={Activity} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <StatCard title="متوسط الإنجاز للكورسات" value={`${Math.round(learning?.averageCompletionRate ?? 0)}%`} icon={TrendingUp} colorClass="bg-primary/10 text-primary" />
+                <StatCard title="دروس تم إكمالها" value={learning?.lessonsCompleted ?? 0} icon={PlayCircle} colorClass="bg-success/10 text-success" />
               </div>
-              <p className="text-2xl font-black text-foreground">{item.value}</p>
-              <p className="text-sm font-semibold text-text-muted mt-0.5">{item.label}</p>
-              {item.sub && <p className="text-xs text-text-muted mt-1">{item.sub}</p>}
             </div>
-          ))}
-        </div>
+            <div>
+              <SectionHeader title="المحادثات الأكاديمية" icon={MessageSquare} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <StatCard title="أسئلة بانتظار ردك" value={conversations?.questionsWaiting ?? 0} highlight={conversations?.unread ? `${conversations.unread} رسالة غير مقروءة` : undefined} icon={MessageSquare} colorClass="bg-warning/10 text-warning" />
+                <StatCard title="تم الرد (اليوم)" value={conversations?.answeredToday ?? 0} icon={CheckCircle} colorClass="bg-indigo-500/10 text-indigo-500" />
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
-      {/* Recent Courses */}
-      <div className="bg-card border border-border/60 rounded-2xl p-6">
+      {/* Course Analytics List */}
+      <div className="bg-card border border-border/60 rounded-2xl p-6 mt-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-primary" />
-            آخر الكورسات
+            <BarChart2 className="w-5 h-5 text-primary" />
+            تحليلات الكورسات
           </h2>
-          <Link href="/dashboard/teacher/courses" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-            عرض الكل <ArrowLeft className="w-3 h-3" />
-          </Link>
         </div>
 
-        {courses.length === 0 ? (
+        {courses?.length === 0 ? (
           <div className="text-center py-12">
             <BookOpen className="w-12 h-12 text-text-muted mx-auto mb-3" />
             <p className="font-bold text-foreground">لا توجد كورسات بعد</p>
-            <p className="text-sm text-text-muted mt-1">ابدأ بإنشاء أول كورس لك</p>
-            <Link href="/dashboard/teacher/courses/create" className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold">
-              <Plus className="w-4 h-4" /> إنشاء كورس
-            </Link>
           </div>
         ) : (
           <div className="space-y-3">
-            {courses.map((course) => (
+            {courses?.map((course: any) => (
               <div key={course.id} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
-                {course.thumbnailUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={optimizeImage(course.thumbnailUrl)} alt={course.title} className="w-14 h-10 rounded-lg object-cover shrink-0" />
-                ) : (
-                  <div className="w-14 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <BookOpen className="w-5 h-5 text-primary" />
-                  </div>
-                )}
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-foreground truncate">{course.title}</p>
-                  <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-4 mt-2">
                     <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', STATUS_COLORS[course.status])}>
                       {STATUS_LABELS[course.status] || course.status}
                     </span>
-                    <span className="text-xs text-text-muted flex items-center gap-1">
-                      <Users className="w-3 h-3" /> {course.enrollmentCount} طالب
+                    <span className="text-xs font-semibold text-text-muted flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5" /> {course.enrollments} اشتراك
+                    </span>
+                    <span className="text-xs font-semibold text-text-muted flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5" /> {Math.round(course.completionRate)}% الإنجاز
+                    </span>
+                    <span className="text-xs font-semibold text-text-muted flex items-center gap-1">
+                      <MessageSquare className="w-3.5 h-3.5" /> {course.questions} سؤال
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/dashboard/teacher/courses/${course.id}/edit`} className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-colors">
-                    تعديل
-                  </Link>
-                  <Link href={`/dashboard/teacher/analytics?course=${course.id}`} className="p-1.5 rounded-lg bg-muted text-text-muted hover:text-foreground transition-colors">
-                    <BarChart2 className="w-4 h-4" />
+                  <Link href={`/dashboard/teacher/analytics?course=${course.id}`} className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-colors">
+                    تحليل مفصل
                   </Link>
                 </div>
               </div>

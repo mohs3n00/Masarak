@@ -93,6 +93,7 @@ export function SplitViewLayout({ conversation, onClose, renderChat, onDelete }:
               <div className="w-full h-auto max-h-[80vh] bg-black rounded-xl border border-neutral-800 shadow-2xl overflow-hidden flex items-center justify-center">
                 <MasarakPlayer 
                   src={videoUrl}
+                  courseName={conversation.course?.title}
                   initialDuration={conversation.videoTimestamp || 0}
                 />
               </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { CoursePreviewCard } from './cards/CourseCard';
+import { CourseCard } from '@/features/student-experience/components/CourseCard';
 
 interface CourseListContainerProps {
   initialCourses: any[];
@@ -45,7 +45,21 @@ export function CourseListContainer({ initialCourses }: CourseListContainerProps
   return (
     <>
       {filteredCourses.map((course: any) => (
-        <CoursePreviewCard key={course.id} course={course} />
+        <CourseCard 
+          key={course.id} 
+          id={course.id}
+          title={course.title}
+          teacher={course.teacher?.name || ''}
+          teacherAvatar={course.teacher?.avatar || ''}
+          thumbnail={course.thumbnailUrl || course.thumbnail || ''}
+          subject={course.category?.name || ''}
+          totalLessons={course.lessonsCount || 0}
+          rating={course.averageRating || course.rating}
+          studentsCount={course.enrollmentCount || course.studentsCount}
+          price={Number(course.price)}
+          originalPrice={course.originalPrice ? Number(course.originalPrice) : undefined}
+          isFree={!course.price || Number(course.price) === 0}
+        />
       ))}
     </>
   );

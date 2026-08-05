@@ -72,19 +72,7 @@ export function TopNav() {
         {/* Divider */}
         <div className="h-5 w-px bg-border/60 mx-1 hidden sm:block" />
 
-        {/* Avatar */}
-        <button className="flex items-center gap-2.5 rounded-full hover:bg-muted/60 py-1 px-2 pe-3 transition-colors">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            src={profile.avatar} 
-            alt={profile.name} 
-            className="h-7 w-7 rounded-full object-cover border border-border/60 shrink-0"
-          />
-          <div className="hidden md:flex flex-col items-start">
-            <span className="text-sm font-semibold leading-none">{profile.name}</span>
-            <span className="text-[10px] text-muted-foreground mt-0.5">طالب نشط</span>
-          </div>
-        </button>
+
       </div>
     </header>
   );

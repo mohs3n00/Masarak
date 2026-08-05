@@ -13,7 +13,7 @@ import * as React from "react"
 
 const badgeVariants = cva(
   [
-    "inline-flex items-center gap-1 rounded-md",
+    "inline-flex items-center gap-1 rounded-full",
     "text-xs font-semibold whitespace-nowrap",
     "px-2.5 py-0.5",
     "border transition-colors duration-200",
@@ -54,9 +54,9 @@ const badgeVariants = cva(
           "bg-foreground/80 text-background border-transparent",
       },
       size: {
-        sm: "text-[11px] px-2 py-0.5 rounded",
-        md: "text-xs px-2.5 py-0.5 rounded-md",
-        lg: "text-sm px-3 py-1 rounded-md",
+        sm: "text-[11px] px-2 py-0.5 rounded-full",
+        md: "text-xs px-2.5 py-0.5 rounded-full",
+        lg: "text-sm px-3 py-1 rounded-full",
       },
     },
     defaultVariants: {

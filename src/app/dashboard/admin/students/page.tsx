@@ -63,7 +63,7 @@ export default function AdminStudentsPage() {
     if (!window.confirm('هل أنت متأكد من حذف هذا الحساب نهائياً؟ لا يمكن التراجع عن هذه الخطوة.')) return;
     setActionLoading(id + '_delete');
     try {
-      await apiClient.post(`/admin/users/${id}/delete`);
+      await apiClient.delete(`/admin/users/${id}`);
       fetchStudents();
     } finally {
       setActionLoading(null);

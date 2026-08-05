@@ -5,6 +5,7 @@ import { AppLayoutWrapper } from "@/shared/components/AppLayoutWrapper";
 import { Navbar } from "@/shared/components/organisms/Navbar";
 import { Footer } from "@/shared/components/organisms/Footer";
 import "./globals.css";
+import 'katex/dist/katex.min.css';
 import { ApiProvider } from '@/lib/providers/ApiProvider';
 import { AuthProvider } from '@/lib/providers/AuthProvider';
 import { ReactQueryProvider } from '@/lib/providers/ReactQueryProvider';

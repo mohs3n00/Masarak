@@ -116,7 +116,7 @@ export default function AdminCoursesPage() {
         </div>
       </div>
 
-      <div className="bg-card border border-border/60 rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border/40 rounded-3xl overflow-hidden shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-start">
             <thead className="bg-muted/50 border-b border-border/60 text-text-muted font-bold">

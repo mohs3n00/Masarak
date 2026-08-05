@@ -23,11 +23,11 @@ const buttonVariants = cva(
     "inline-flex shrink-0 items-center justify-center gap-2",
     "font-semibold whitespace-nowrap select-none",
     "border border-transparent",
-    "transition-all duration-300 ease-out",
+    "smooth",
     // Focus
-    "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+    "outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2",
     // Active press
-    "active:scale-[0.98] active:shadow-none",
+    "active:scale-95 active:shadow-none",
     // Disabled
     "disabled:pointer-events-none disabled:opacity-50",
     // Icons inside button
@@ -38,19 +38,19 @@ const buttonVariants = cva(
       variant: {
         /** Primary — main actions */
         primary:
-          "bg-gradient-to-b from-primary to-primary-hover text-primary-foreground hover:from-primary/95 hover:to-primary/95 active:from-primary/90 active:to-primary/90 shadow-sm shadow-primary/20 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-[1px] border border-primary/20 ring-1 ring-inset ring-white/10",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80",
 
         /** Secondary — supporting actions */
         secondary:
-          "bg-secondary text-secondary-foreground border-border hover:bg-muted hover:border-border-strong hover:shadow-sm ring-1 ring-inset ring-white/50 dark:ring-white/5",
+          "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20",
 
         /** Outline — less emphasis */
         outline:
-          "bg-transparent text-foreground border-border hover:bg-muted hover:border-border-strong hover:shadow-sm",
+          "bg-transparent text-foreground border-border-strong hover:bg-muted/80",
 
         /** Ghost — least emphasis, navigation */
         ghost:
-          "bg-transparent text-foreground hover:bg-muted/80 border-transparent",
+          "bg-transparent text-foreground hover:bg-muted/50 border-transparent",
 
         /** Danger — destructive actions */
         danger:
@@ -68,12 +68,12 @@ const buttonVariants = cva(
           "bg-success text-success-foreground hover:bg-success/90 shadow-sm",
       },
       size: {
-        sm:      "h-10 px-4 text-sm rounded-lg [&_svg]:size-4",
-        md:      "h-12 px-5 text-[15px] rounded-lg [&_svg]:size-5",
-        lg:      "h-14 px-8 text-base rounded-xl [&_svg]:size-5",
-        "icon-sm":  "size-10 rounded-lg p-0 [&_svg]:size-4",
-        "icon":     "size-12 rounded-lg p-0 [&_svg]:size-5",
-        "icon-lg":  "size-14 rounded-xl p-0 [&_svg]:size-6",
+        sm:      "h-10 px-4 text-sm rounded-xl [&_svg]:size-4",
+        md:      "h-12 px-6 text-[15px] rounded-xl [&_svg]:size-5",
+        lg:      "h-14 px-10 text-base rounded-2xl [&_svg]:size-5",
+        "icon-sm":  "size-10 rounded-xl p-0 [&_svg]:size-4",
+        "icon":     "size-12 rounded-xl p-0 [&_svg]:size-5",
+        "icon-lg":  "size-14 rounded-2xl p-0 [&_svg]:size-6",
       },
     },
     defaultVariants: {

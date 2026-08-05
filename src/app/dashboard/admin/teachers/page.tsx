@@ -100,7 +100,7 @@ export default function AdminTeachersPage() {
     
     setActionLoading(id + '_delete');
     try {
-      await apiClient.post(`/admin/users/${id}/delete`);
+      await apiClient.delete(`/admin/users/${id}`);
       fetchTeachers();
     } finally {
       setActionLoading(null);
@@ -120,7 +120,7 @@ export default function AdminTeachersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-card border border-border/60 rounded-2xl p-4 flex flex-col sm:flex-row gap-3">
+      <div className="bg-card border border-border/40 rounded-3xl p-4 flex flex-col sm:flex-row gap-3 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
         <div className="relative flex-1">
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
@@ -149,7 +149,7 @@ export default function AdminTeachersPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border/60 rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border/40 rounded-3xl overflow-hidden shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
         {loading ? (
           <div className="space-y-0">
             {Array.from({ length: 5 }).map((_, i) => (

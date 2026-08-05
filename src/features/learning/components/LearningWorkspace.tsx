@@ -10,6 +10,7 @@ import { LessonTabs } from '@/features/learning/components/LessonTabs';
 import { MasarakPlayer } from '@/features/media/components/VideoPlayer/MasarakPlayer';
 import { ExamPlayer } from '@/features/learning/components/ExamPlayer';
 import { AskTeacherButton } from '@/features/academic-conversations/components/AskTeacherButton';
+// LessonSummaryDownloadButton removed - feature disabled
 import { ArrowRight, Star } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -303,6 +304,7 @@ export function LearningWorkspace({ slug }: { slug?: string }) {
                   poster={videoResource?.thumbnailUrl}
                   lessonId={String(activeLesson.id)}
                   videoId={String(videoResource?.videoId)}
+                  courseName={courseTitle}
                   initialDuration={videoResource?.durationSeconds || 0}
                   onProgress={(progress) => setCurrentVideoTime(progress.playedSeconds)}
                   onDurationReady={handleDurationReady}

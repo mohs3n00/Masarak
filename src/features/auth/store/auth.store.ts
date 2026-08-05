@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { AuthState, AuthTokens } from '../types/auth.types';
 import { User } from '@/types/models';
 import { AUTH_ROLES, AUTH_STORAGE_KEYS } from '../constants/auth.constants';
+import { useCommunityStore } from '@/features/community/store/community.store';
 
 interface AuthActions {
   setAuth: (user: User, tokens: AuthTokens) => void;
@@ -73,6 +74,7 @@ export const useAuthStore = create<AuthStore>()(
           document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           document.cookie = 'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          useCommunityStore.getState().setJoinedSpaces([]);
         }
       },
 

@@ -38,15 +38,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "px-4 text-[15px] text-foreground",
               "placeholder:text-text-muted",
               // Transitions
-              "transition-all duration-200",
+              "smooth",
               // Hover
-              "hover:border-border-strong",
+              "hover:border-primary/50",
               // Focus
-              "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10",
+              "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
               // Disabled
               "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
               // Error
-              error && "border-error focus-visible:border-error focus-visible:ring-error/20",
+              error && "border-error focus-visible:border-error focus-visible:ring-2 focus-visible:ring-error/20",
               // Icon padding
               startIcon && "pe-11",
               endIcon && "ps-11",
@@ -74,11 +74,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "border border-border/60 bg-input shadow-sm shadow-black/5",
           "px-4 text-[15px] text-foreground",
           "placeholder:text-text-muted",
-          "transition-all duration-200",
-          "hover:border-border-strong",
-          "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10",
+          "smooth",
+          "hover:border-primary/50",
+          "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
           "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
-          error && "border-error focus-visible:border-error focus-visible:ring-error/20",
+          error && "border-error focus-visible:border-error focus-visible:ring-2 focus-visible:ring-error/20",
           className
         )}
         {...props}

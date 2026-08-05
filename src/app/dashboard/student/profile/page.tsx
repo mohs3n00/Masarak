@@ -38,7 +38,7 @@ export default function StudentProfilePage() {
     <div className="flex flex-col gap-8 max-w-[1200px] mx-auto w-full pb-12" dir="rtl">
       
       {/* HEADER / HERO SECTION */}
-      <div className="bg-card rounded-3xl border border-border/60 p-8 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-8 relative overflow-hidden">
+      <div className="bg-card rounded-3xl border border-border/40 p-8 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] flex flex-col md:flex-row items-center md:items-start gap-8 relative overflow-hidden">
         <div className="absolute top-0 start-0 w-full h-32 bg-gradient-to-r from-primary/10 to-info/10 pointer-events-none" />
         
         {/* Avatar */}
@@ -86,22 +86,22 @@ export default function StudentProfilePage() {
           
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-card p-6 rounded-3xl border border-border/60 shadow-sm flex flex-col items-center text-center hover:border-info/30 transition-colors">
+            <div className="bg-card p-6 rounded-3xl border border-border/40 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] flex flex-col items-center text-center hover:border-info/30 transition-colors">
               <Clock className="w-8 h-8 text-info mb-3 opacity-80" />
               <span className="text-3xl font-black leading-none mb-1.5 text-foreground">0</span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ساعة</span>
             </div>
-            <div className="bg-card p-6 rounded-3xl border border-border/60 shadow-sm flex flex-col items-center text-center hover:border-success/30 transition-colors">
+            <div className="bg-card p-6 rounded-3xl border border-border/40 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] flex flex-col items-center text-center hover:border-success/30 transition-colors">
               <CheckCircle2 className="w-8 h-8 text-success mb-3 opacity-80" />
               <span className="text-3xl font-black leading-none mb-1.5 text-foreground">0</span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">درس</span>
             </div>
-            <div className="bg-card p-6 rounded-3xl border border-border/60 shadow-sm flex flex-col items-center text-center hover:border-warning/30 transition-colors">
+            <div className="bg-card p-6 rounded-3xl border border-border/40 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] flex flex-col items-center text-center hover:border-warning/30 transition-colors">
               <Flame className="w-8 h-8 text-warning mb-3 opacity-80" />
               <span className="text-3xl font-black leading-none mb-1.5 text-foreground">{streak}</span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">سلسلة الأيام</span>
             </div>
-            <div className="bg-card p-6 rounded-3xl border border-border/60 shadow-sm flex flex-col items-center text-center hover:border-primary/30 transition-colors">
+            <div className="bg-card p-6 rounded-3xl border border-border/40 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] flex flex-col items-center text-center hover:border-primary/30 transition-colors">
               <Award className="w-8 h-8 text-primary mb-3 opacity-80" />
               <span className="text-3xl font-black leading-none mb-1.5 text-foreground">0</span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">شهادة</span>
@@ -109,7 +109,7 @@ export default function StudentProfilePage() {
           </div>
 
           {/* Level Progress */}
-          <div className="bg-card rounded-3xl border border-border/60 p-6 shadow-sm flex flex-col">
+          <div className="bg-card rounded-3xl border border-border/40 p-6 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
                 <Target className="w-5 h-5 text-primary" /> تقدم المستوى
@@ -136,7 +136,7 @@ export default function StudentProfilePage() {
         <div className="md:col-span-2 flex flex-col gap-8">
           
           {/* Achievements Grid */}
-          <div className="bg-card rounded-3xl border border-border/60 p-6 sm:p-8 shadow-sm">
+          <div className="bg-card rounded-3xl border border-border/40 p-6 sm:p-8 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
             <h3 className="font-bold text-lg mb-6 flex items-center gap-2 text-foreground">
               <Trophy className="w-5 h-5 text-warning" /> الشارات والإنجازات
             </h3>
@@ -148,7 +148,7 @@ export default function StudentProfilePage() {
           </div>
 
           {/* Certificates Showcase */}
-          <div className="bg-card rounded-3xl border border-border/60 p-6 sm:p-8 shadow-sm">
+          <div className="bg-card rounded-3xl border border-border/40 p-6 sm:p-8 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
                 <Award className="w-5 h-5 text-success" /> الشهادات

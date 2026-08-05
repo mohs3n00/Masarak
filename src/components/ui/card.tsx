@@ -29,8 +29,8 @@ const Card = React.forwardRef<
       variant === "default" && "border-border shadow-sm",
       variant === "raised"  && "border-border shadow-md",
       interactive && [
-        "cursor-pointer transition-all duration-200",
-        "hover:shadow-md hover:-translate-y-0.5",
+        "cursor-pointer smooth",
+        "hover:shadow-xl hover:-translate-y-2 border-none",
         "active:scale-[0.99] active:shadow-sm",
       ],
       className

@@ -48,3 +48,16 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 .aider*
+
+# Strict security & temporary debug files ignore
+.env
+.env.*
+!.env.example
+*.txt
+temp_*
+curl_*
+test-*.js
+clear_*.js
+delete_*.js
+wipe-*.ts
+production-test.js

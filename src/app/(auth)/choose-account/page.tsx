@@ -9,7 +9,7 @@ import { AuthCard } from '@/features/auth/components/AuthCard';
 import { AuthHeader } from '@/features/auth/components/AuthHeader';
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { BookOpen, GraduationCap } from 'lucide-react';
-import signUpImage from '@/assets/images/sign up.png';
+import signUpImage from '@/assets/images/signup.jpg';
 
 export default function ChooseAccountPage() {
   return (
@@ -18,6 +18,7 @@ export default function ChooseAccountPage() {
         title="أهلاً بك في منصة مسارك"
         subtitle="انضم إلينا الآن وابدأ رحلتك نحو التفوق والنجاح."
         videoSrc="/assets/video/register-video.webm"
+        illustration={signUpImage}
       >
         <AuthCard>
           <AuthHeader

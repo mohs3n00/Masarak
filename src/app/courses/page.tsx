@@ -1,5 +1,5 @@
 import { AppContainer, Section } from "@/shared/layouts/Containers";
-import { CoursePreviewCard } from '@/features/marketing/components/cards/CourseCard';
+
 import { CourseSearchBar } from "@/features/marketing/components/filters/CourseSearchBar";
 import { CourseSidebarFilters } from "@/features/marketing/components/filters/CourseSidebarFilters";
 import { CourseSortSelect } from "@/features/marketing/components/filters/CourseSortSelect";
@@ -46,7 +46,7 @@ export default async function CoursesPage(props: { searchParams: Promise<{ [key:
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   return (
-    <div className="w-full bg-background min-h-screen pb-20">
+    <div className="w-full bg-background min-h-screen pt-28 md:pt-32 pb-20">
       {/* Search Header */}
       <div className="bg-card border-b border-border">
         <AppContainer>

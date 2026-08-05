@@ -17,27 +17,27 @@ export function AuthWizard({
   description,
   children
 }: AuthWizardProps) {
+  const progressPercentage = Math.round(((currentStep + 1) / totalSteps) * 100);
+  const stepTitles = ["الخطوة الأولى", "الخطوة الثانية", "الخطوة الثالثة", "الخطوة الرابعة"];
+  
   return (
     <div className="flex flex-col w-full">
-      <AuthHeader title={title} description={description} />
-      
-      {/* Progress Dots */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {Array.from({ length: totalSteps }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-1.5 rounded-full transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-              currentStep === i 
-                ? "w-8 bg-primary" 
-                : currentStep > i 
-                  ? "w-4 bg-primary/40" 
-                  : "w-4 bg-muted"
-            )}
+      {/* Progress Bar (Bassthalk style) */}
+      <div className="w-full mb-10 flex flex-col gap-2">
+        <div className="flex justify-between items-center text-sm font-bold text-foreground">
+          <span>{stepTitles[currentStep] || `الخطوة ${currentStep + 1}`}</span>
+          <span className="text-text-muted">{progressPercentage}%</span>
+        </div>
+        <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
+            style={{ width: `${progressPercentage}%` }}
           />
-        ))}
+        </div>
       </div>
 
+      <AuthHeader title={title} description={description} />
+      
       {children}
     </div>
   );

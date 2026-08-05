@@ -12,12 +12,12 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
 
   return (
     <RoleGuard allowedRoles={['TEACHER', 'ADMIN', 'SUPER_ADMIN']}>
-      <div className="min-h-screen bg-surface" dir="rtl">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950" dir="rtl">
         <TeacherSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         <div className="flex flex-col lg:ps-64 min-h-screen">
           {/* Top Bar */}
-          <header className="sticky top-0 z-40 h-[68px] bg-background border-b border-border px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0">
+          <header className="sticky top-0 z-40 h-[68px] bg-background/80 backdrop-blur-md border-b border-border/40 px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -31,7 +31,7 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/"
-                className="px-3 sm:px-4 py-2 bg-muted text-foreground text-xs sm:text-sm font-bold rounded-lg hover:bg-muted/80 transition-colors"
+                className="px-3 sm:px-4 py-2 bg-muted text-foreground text-xs sm:text-sm font-bold rounded-xl hover:bg-muted/80 transition-colors"
               >
                 الرئيسية
               </Link>

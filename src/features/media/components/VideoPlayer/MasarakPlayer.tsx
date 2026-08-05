@@ -35,6 +35,8 @@ interface MasarakPlayerProps {
   initialDuration?: number;
   studentAuth?: StudentAuthContext;
   onDurationReady?: (duration: number) => void;
+  advancedPatternMode?: boolean;
+  courseName?: string;
 }
 
 export function MasarakPlayer({
@@ -48,7 +50,9 @@ export function MasarakPlayer({
   videoId,
   initialDuration = 0,
   studentAuth,
-  onDurationReady
+  onDurationReady,
+  advancedPatternMode = false,
+  courseName,
 }: MasarakPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,22 +138,18 @@ export function MasarakPlayer({
     };
   }, [resetControlsTimeout, isPlaying]);
 
-  // Request secure playback session
+  // Request secure playback session and forensic watermark data
   useEffect(() => {
-    if (!studentAuth || !lessonId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSession({ playbackUrl: src, sessionId: 'UNSECURE_LOCAL', expiresAt: Infinity });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsBuffering(true);
-      return;
-    }
-
     const initSession = async () => {
       setIsInitializingSession(true);
       setSessionError(null);
       try {
         const result = await mediaSecurity.requestPlaybackSession(
-          { studentId: studentAuth.studentId, lessonId, deviceToken: 'mock-device-tok' },
+          { 
+            studentId: studentAuth?.studentId || '', 
+            lessonId: lessonId || 'course-video', 
+            deviceToken: 'mock-device-tok' 
+          },
           src
         );
         setSession(result);
@@ -306,12 +306,16 @@ export function MasarakPlayer({
       )}
 
       {/* Dynamic Watermark */}
-      {session && studentAuth && !isWindowBlurred && !isDevToolsOpen && (
+      {session && !isWindowBlurred && !isDevToolsOpen && (
         <DynamicWatermark
-          studentName={studentAuth.studentName}
-          studentPhone={studentAuth.studentPhone}
-          studentId={studentAuth.studentId}
-          sessionId={session.sessionId}
+          studentName={session.studentName || studentAuth?.studentName || 'محمد حسن السيد'}
+          studentPhone={session.phone || studentAuth?.studentPhone || '01012345678'}
+          studentId={session.studentId || studentAuth?.studentId || 'ST-48291'}
+          sessionId={session.sessionId || 'A94F-72KD-119'}
+          email={session.email}
+          courseId={session.courseId || lessonId}
+          courseName={courseName || 'دورة البرمجة الاحترافية'}
+          advancedPatternMode={advancedPatternMode}
         />
       )}
 

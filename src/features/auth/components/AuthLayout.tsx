@@ -26,100 +26,59 @@ interface AuthLayoutProps {
   className?: string;
 }
 
+import authIllustration from '@/assets/images/auth-illustration.png';
+
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
-  illustration = signInImage,
-  illustrationAlt = 'Masarak Platform',
-  videoSrc,
-  title,
-  subtitle = 'منصتك التعليمية الأفضل لتحقيق التفوق والنجاح بخطوات واثقة.',
   className,
+  illustration,
+  illustrationAlt = 'Masarak Auth Illustration',
 }) => {
   return (
-    <div className={cn("flex min-h-screen bg-background", className)} dir="rtl">
-
-      {/* Form Column (right side in RTL) */}
-      <main className="flex flex-col justify-center flex-1 w-full max-w-[480px] px-6 py-10 mx-auto lg:px-10 lg:mx-0 z-10 relative">
-        <div className="w-full">
-          {/* Mobile Logo */}
-          <div className="flex items-center justify-center mb-8 lg:hidden">
-            <Link href="/" className="focus-ring rounded-md">
-              <Logo width={110} height={30} href={null} />
-            </Link>
-          </div>
-
-          {/* Form Content */}
-          <div className="w-full">
-            {children}
-          </div>
-
-          {/* Footer note */}
-          <p className="mt-8 text-xs text-text-muted text-center">
-            © {new Date().getFullYear()} منصة مسارك. جميع الحقوق محفوظة.
-          </p>
-        </div>
-      </main>
-
-      {/* Illustration / Video Column (left side in RTL) — desktop only */}
-      <aside
-        className={cn(
-          "hidden lg:flex lg:flex-1 flex-col",
-          "bg-surface border-e border-border/50",
-          "items-center justify-center p-12",
-          "relative overflow-hidden"
-        )}
-        aria-hidden="true"
-      >
-        {/* Desktop Logo */}
-        <div className="absolute top-8 start-8 z-20">
-          <Link href="/" className="focus-ring rounded-md block">
-            <Logo width={120} height={32} href={null} />
+    <div className={cn("min-h-screen flex flex-col lg:flex-row bg-background pt-24 lg:pt-32", className)} dir="rtl">
+      
+      {/* Right Column (Form) */}
+      <div className="flex-1 flex flex-col items-center p-6 md:p-8 lg:p-12 z-10 relative">
+        
+        {/* Top bar (Back button) */}
+        <div className="w-full flex justify-end mb-8 md:mb-12">
+          <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold bg-muted/50 text-foreground hover:bg-muted rounded-full transition-colors">
+            الرجوع للرئيسية
+            <span className="text-xl leading-none -translate-y-0.5">&rarr;</span>
           </Link>
         </div>
 
-        {/* Text Above Illustration */}
-        <div className="z-10 text-center mb-8 mt-12 max-w-lg">
-          <h2 className="text-3xl font-extrabold text-foreground mb-4">
-            {title ?? 'أهلاً بك في منصة مسارك'}
-          </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            {subtitle}
-          </p>
-        </div>
-
-        {/* Illustration or Video */}
-        {videoSrc ? (
-          <div className="relative w-full max-w-xl aspect-[4/3] z-10 flex items-center justify-center p-2">
-            <TransparentVideo
-              src={videoSrc}
-              className="w-full h-full max-w-xl aspect-[4/3] hover:scale-[1.02] transition-transform duration-500"
-            />
+        <div className="w-full max-w-md flex flex-col items-center justify-center flex-1">
+          <div className="mb-8 w-full flex justify-center">
+            <Logo width={180} height={48} href={null} />
           </div>
-        ) : (
-          <div className="relative w-full max-w-xl aspect-[4/3] z-10 drop-shadow-xl dark:drop-shadow-[0_20px_50px_rgba(255,255,255,0.05)]">
+          
+          <div className="w-full flex justify-center">
+            {children}
+          </div>
+
+          <div className="mt-12 text-xs text-text-muted text-center w-full">
+            © {new Date().getFullYear()} منصة مسارك. جميع الحقوق محفوظة.
+          </div>
+        </div>
+      </div>
+
+      {/* Left Column (Illustration) */}
+      <div className="hidden lg:flex w-1/2 p-6 md:p-8 pb-12 bg-background sticky top-32 h-[calc(100vh-8rem)]">
+        <div className="relative w-full h-full rounded-[40px] overflow-hidden shadow-sm">
+          {illustration && (
             <Image
-              src={illustration}
+              src={illustration} 
               alt={illustrationAlt}
               fill
-              className="object-contain hover:scale-[1.02] transition-transform duration-500"
+              style={{ objectFit: 'cover' }}
+              className="z-10"
               priority
             />
-          </div>
-        )}
-
-        {/* Background glow effects for the theme */}
-        <div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-1/4 end-1/4 w-80 h-80 bg-blue-500/10 dark:bg-blue-400/5 rounded-full blur-[100px] pointer-events-none" />
-
-        {/* Bottom pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-      </aside>
+          )}
+        </div>
+      </div>
+      
     </div>
   );
 };

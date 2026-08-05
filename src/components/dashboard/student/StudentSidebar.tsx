@@ -16,7 +16,7 @@ import {
   FileText,
   MessageCircle,
 } from 'lucide-react';
-import { Logo } from "@/shared/components/atoms/Logo"
+
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -42,12 +42,12 @@ export function StudentSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed start-0 top-0 z-40 h-screen w-64 border-e border-border bg-surface transition-transform hidden md:flex flex-col">
-      {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-border">
-        <Link href="/dashboard/student" className="focus-ring rounded-md">
-          <Logo width={110} height={30} className="flex items-center transition-opacity hover:opacity-80" href={null} />
-        </Link>
+    <aside className="fixed start-0 top-0 z-40 h-screen w-64 border-e border-border/40 bg-card shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] transition-transform hidden md:flex flex-col">
+      {/* Header */}
+      <div className="h-[68px] flex items-center px-6 border-b border-border/40 shrink-0">
+        <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+          لوحة تحكم الطالب
+        </span>
       </div>
 
       {/* Navigation */}
@@ -67,10 +67,10 @@ export function StudentSidebar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "relative flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200 group focus-ring",
+                      "relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 group focus-ring",
                       isActive
                         ? "text-primary bg-primary/10"
-                        : "text-text-muted hover:text-foreground hover:bg-muted"
+                        : "text-text-secondary hover:text-foreground hover:bg-muted"
                     )}
                   >
                     {isActive && (
@@ -92,8 +92,8 @@ export function StudentSidebar() {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border">
-        <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-text-muted transition-colors duration-200 hover:text-error hover:bg-error/10 focus-ring">
+      <div className="p-4 border-t border-border/40">
+        <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-text-muted transition-colors duration-200 hover:text-error hover:bg-error/10 focus-ring">
           <LogOut className="size-5 shrink-0" />
           <span>تسجيل الخروج</span>
         </button>

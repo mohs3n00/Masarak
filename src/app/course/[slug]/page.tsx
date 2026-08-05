@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
+import Link from 'next/link';
 import { fetchPublicCourse, fetchTeacherCourseBySlug, fetchAdminCourseBySlug } from '@/lib/api/public';
 import { AppContainer, Section } from '@/shared/layouts/Containers';
 import Image from 'next/image';
@@ -104,6 +105,13 @@ export default async function CourseDetailsPage({ params }: { params: Promise<{ 
                    price={course.price} 
                    instructorUserId={course.instructors?.[0]?.teacher?.userId || course.instructors?.[0]?.teacher?.user?.id}
                  />
+
+                 <Link href="/community" className="w-full">
+                   <button className="w-full h-11 rounded-xl gap-2 font-bold border border-primary/30 text-primary hover:bg-primary/10 flex items-center justify-center transition-colors text-sm">
+                     <Users className="w-4 h-4" />
+                     دخول مجتمع المادة والنقاش الأكاديمي
+                   </button>
+                 </Link>
                  
                  <div className="space-y-4 pt-4 border-t border-border">
                    <h4 className="font-bold">يحتوي هذا الكورس على:</h4>

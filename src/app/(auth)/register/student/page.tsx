@@ -8,7 +8,7 @@ import { StudentRegistrationWizard } from '@/features/auth/components/wizard/Stu
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 
-import signUpImage from '@/assets/images/sign up.png';
+import signUpImage from '@/assets/images/signup.jpg';
 
 export default function StudentRegisterPage() {
   return (
@@ -17,6 +17,7 @@ export default function StudentRegisterPage() {
         title="أهلاً بك في منصة مسارك"
         subtitle="انضم إلينا الآن وابدأ رحلتك نحو التفوق والنجاح."
         videoSrc="/assets/video/register-video.webm"
+        illustration={signUpImage}
       >
         <AuthCard>
           <StudentRegistrationWizard />

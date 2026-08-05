@@ -160,7 +160,7 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
         {/* Form Area */}
         <div className="lg:col-span-1 space-y-6">
           {/* Section Addition Card */}
-          <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm">
+          <div className="bg-card border border-border/40 rounded-3xl p-6 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
             <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" /> إضافة قسم / وحدة
             </h2>
@@ -169,7 +169,7 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
                 type="text" 
                 id="newSectionInput"
                 placeholder="اسم القسم الجديد..." 
-                className="w-full px-4 py-2 rounded-xl border border-border bg-muted/50 focus:bg-background outline-none text-sm" 
+                className="w-full px-4 py-3 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm" 
               />
               <button 
                 type="button"
@@ -192,7 +192,7 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Lesson Addition Card */}
-          <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm sticky top-24">
+          <div className="bg-card border border-border/40 rounded-3xl p-6 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] sticky top-24">
             <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
               <Plus className="w-5 h-5 text-primary" /> إضافة محتوى جديد
             </h2>
@@ -203,7 +203,7 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
                 <select 
                   value={form.sectionName} 
                   onChange={(e) => setForm({ ...form, sectionName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-2xl border border-border bg-muted/50 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm"
                   required
                 >
                   <option value="">-- اختر القسم --</option>
@@ -214,9 +214,9 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
               </div>
               
               <div>
-                <label className="block text-sm font-bold text-foreground mb-2">نوع المحتوى *</label>
+                <label className="block text-sm font-bold text-foreground mb-2">نوع المحتوى <span className="text-error">*</span></label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  className="w-full px-4 py-3 rounded-2xl border border-border bg-muted/50 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all cursor-pointer">
+                  className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm cursor-pointer">
                   <option value="VIDEO">فيديو (شرح)</option>
                   <option value="PDF">ملف PDF / ملزمة</option>
                   <option value="EXAM">اختبار إلكتروني</option>
@@ -224,23 +224,23 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-foreground mb-2">عنوان الدرس *</label>
+                <label className="block text-sm font-bold text-foreground mb-2">عنوان الدرس <span className="text-error">*</span></label>
                 <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="اكتب العنوان هنا..." className="w-full px-4 py-3 rounded-2xl border border-border bg-muted/50 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all" />
+                  placeholder="اكتب العنوان هنا..." className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm" />
               </div>
 
               {/* Dynamic Fields based on Type */}
               {form.type === 'VIDEO' && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="block text-sm font-bold text-foreground mb-2">رابط الفيديو (YouTube) *</label>
+                  <label className="block text-sm font-bold text-foreground mb-2">رابط الفيديو (YouTube) <span className="text-error">*</span></label>
                   <input type="url" value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-                    placeholder="https://youtube.com/..." className="w-full px-4 py-3 rounded-2xl border border-border bg-muted/50 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm text-left transition-all" dir="ltr" />
+                    placeholder="https://youtube.com/..." className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:ring-4 focus:ring-primary/10 outline-none text-sm text-left transition-all shadow-sm" dir="ltr" />
                 </div>
               )}
 
               {form.type === 'PDF' && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="block text-sm font-bold text-foreground mb-2">ارفع الملف (PDF) *</label>
+                  <label className="block text-sm font-bold text-foreground mb-2">ارفع الملف (PDF) <span className="text-error">*</span></label>
                   <div className="relative">
                     <input 
                       type="file" 
@@ -279,7 +279,7 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
               <div>
                 <label className="block text-sm font-bold text-foreground mb-2">وصف مختصر (اختياري)</label>
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="ملاحظات للطلاب قبل البدء..." rows={3} className="w-full px-4 py-3 rounded-2xl border border-border bg-muted/50 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm resize-none transition-all" />
+                  placeholder="ملاحظات للطلاب قبل البدء..." rows={3} className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:ring-4 focus:ring-primary/10 outline-none text-sm resize-none transition-all shadow-sm" />
               </div>
 
               {error && (
@@ -301,7 +301,7 @@ export default function CourseLessonsPage({ params }: { params: Promise<{ id: st
             <div className="space-y-6">
               {course.sections.map((section: any) => {
                 return (
-                  <div key={section.id} className="bg-card border border-border/60 rounded-3xl overflow-hidden shadow-sm">
+                  <div key={section.id} className="bg-card border border-border/40 rounded-3xl overflow-hidden shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
                     <div className="bg-muted/30 px-6 py-4 border-b border-border/60 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-6 bg-primary rounded-full"></div>

@@ -4,10 +4,12 @@ import React, { useState } from 'react';
 import { studentMockData } from '@/lib/mock-data/student-dashboard';
 import { PlayCircle, CheckCircle2, Circle, Clock, FileText, Download, Bookmark, MessageSquare, ChevronLeft, Maximize, Settings, Volume2 } from 'lucide-react';
 import Link from 'next/link';
+import { MasarakPlayer } from '@/features/media/components/VideoPlayer/MasarakPlayer';
 
 export default function CoursePlayerPage() {
   const data = studentMockData.courseDetails;
   const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'downloads' | 'qa'>('overview');
+  const [advancedPatternMode, setAdvancedPatternMode] = useState(false);
 
   return (
     <div className="flex flex-col lg:flex-row h-screen max-h-screen bg-background overflow-hidden -m-6 sm:-m-8">
@@ -15,42 +17,33 @@ export default function CoursePlayerPage() {
       <div className="flex flex-col flex-1 h-full overflow-y-auto">
         
         {/* Top Navbar */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-card shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-card shrink-0 gap-3">
           <Link href={`/dashboard/student/course/${data.id}`} className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft className="w-5 h-5" /> Back to Course
           </Link>
-          <div className="text-sm font-bold truncate px-4">{data.title}</div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-bold hover:bg-primary/20 transition-colors">
-            <CheckCircle2 className="w-4 h-4" /> Mark Complete
-          </button>
+          <div className="text-sm font-bold truncate px-4 flex-1 text-center">{data.title}</div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setAdvancedPatternMode(!advancedPatternMode)}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-full text-xs font-semibold hover:bg-secondary/80 transition-colors"
+              title="تبديل وضع العلامة المائية التفاعل/الشبكي"
+            >
+              🛡️ {advancedPatternMode ? 'العلامة المائية: النمط الشبكي' : 'العلامة المائية: ديناميكية (نسخة واحدة متحركة)'}
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-bold hover:bg-primary/20 transition-colors">
+              <CheckCircle2 className="w-4 h-4" /> Mark Complete
+            </button>
+          </div>
         </div>
 
-        {/* Video Player Mock */}
-        <div className="w-full aspect-video bg-black relative flex items-center justify-center shrink-0 group">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          
-          <div className="w-20 h-20 bg-primary/90 rounded-full flex items-center justify-center text-primary-foreground shadow-xl cursor-pointer hover:scale-110 transition-transform">
-            <PlayCircle className="w-10 h-10 ml-1" />
-          </div>
-
-          {/* Player Controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="flex items-center gap-4">
-              <PlayCircle className="w-6 h-6 cursor-pointer hover:text-primary transition-colors" />
-              <Volume2 className="w-6 h-6 cursor-pointer hover:text-primary transition-colors" />
-              <span className="text-sm font-medium">04:20 / 25:10</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Settings className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" />
-              <Maximize className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" />
-            </div>
-          </div>
-          {/* Progress Bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-            <div className="h-full bg-primary relative" style={{ width: '15%' }}>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-sm scale-0 group-hover:scale-100 transition-transform" />
-            </div>
-          </div>
+        {/* Video Player */}
+        <div className="w-full aspect-video bg-black relative shrink-0">
+          <MasarakPlayer
+            src="https://www.youtube.com/watch?v=aqz-KE-bpKQ"
+            lessonId={String(data.id)}
+            courseName={data.title}
+            advancedPatternMode={advancedPatternMode}
+          />
         </div>
 
         {/* Player Tabs */}

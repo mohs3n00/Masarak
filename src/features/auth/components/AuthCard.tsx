@@ -9,7 +9,7 @@ interface AuthCardProps {
 export const AuthCard: React.FC<AuthCardProps> = ({ children, className = '' }) => {
   return (
     <div className={cn(
-      "w-full bg-card border border-border/50 rounded-[2rem] p-8 md:p-10 shadow-xl shadow-black/5 flex flex-col gap-6",
+      "w-full max-w-[480px] flex flex-col gap-6",
       className
     )}>
       {children}

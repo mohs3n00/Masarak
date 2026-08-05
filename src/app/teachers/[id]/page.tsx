@@ -2,7 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { AppContainer, Section } from '@/shared/layouts/Containers';
 import { TeacherHeroHeader } from '@/features/marketing/components/hero/TeacherHeroHeader';
-import { BundleCard } from '@/features/marketing/components/cards/BundleCard';
+import { CourseCard } from '@/features/student-experience/components/CourseCard';
 import { fetchPublicTeacher } from '@/lib/api/public';
 import { cookies } from 'next/headers';
 
@@ -53,19 +53,18 @@ export default async function TeachersIdPage({ params }: { params: Promise<{ id:
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {bundles.map((course: any) => (
-                <BundleCard 
+                <CourseCard 
                   key={course.id} 
-                  course={{
-                    ...course,
-                    thumbnail: course.thumbnailUrl || course.thumbnail,
-                    teacherId: teacher.id,
-                    categoryId: '',
-                    lessonsCount: 0,
-                    studentsCount: course.enrollmentCount,
-                    rating: course.averageRating
-                  }} 
-                  teacher={teacher} 
-                  isBundle={true} 
+                  id={course.id}
+                  title={course.title}
+                  teacher={teacher.name}
+                  teacherAvatar={teacher.avatar}
+                  thumbnail={course.thumbnailUrl || course.thumbnail || ''}
+                  subject={course.category?.name || teacher.specialization}
+                  grade={course.grade}
+                  price={course.price}
+                  originalPrice={course.originalPrice}
+                  totalLessons={course.lessonsCount || 0}
                 />
               ))}
             </div>
@@ -84,19 +83,18 @@ export default async function TeachersIdPage({ params }: { params: Promise<{ id:
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {individualCourses.map((course: any) => (
-                <BundleCard 
+                <CourseCard 
                   key={course.id} 
-                  course={{
-                    ...course,
-                    thumbnail: course.thumbnailUrl || course.thumbnail,
-                    teacherId: teacher.id,
-                    categoryId: '',
-                    lessonsCount: 0,
-                    studentsCount: course.enrollmentCount,
-                    rating: course.averageRating
-                  }} 
-                  teacher={teacher} 
-                  isBundle={false} 
+                  id={course.id}
+                  title={course.title}
+                  teacher={teacher.name}
+                  teacherAvatar={teacher.avatar}
+                  thumbnail={course.thumbnailUrl || course.thumbnail || ''}
+                  subject={course.category?.name || teacher.specialization}
+                  grade={course.grade}
+                  price={course.price}
+                  originalPrice={course.originalPrice}
+                  totalLessons={course.lessonsCount || 0}
                 />
               ))}
             </div>

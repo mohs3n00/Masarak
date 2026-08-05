@@ -106,15 +106,15 @@ export default function EditCoursePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
-          <BookOpen className="w-6 h-6 text-primary" />تعديل الكورس
+        <h1 className="text-3xl font-black text-foreground flex items-center gap-3">
+          <BookOpen className="w-8 h-8 text-primary" />تعديل الكورس
         </h1>
       </div>
       <div className="flex items-center gap-2 mb-8">
         {STEPS.map((s, i) => (
           <React.Fragment key={i}>
-            <div className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all', i === step ? 'bg-primary text-primary-foreground' : i < step ? 'bg-success/10 text-success' : 'bg-muted text-text-muted')}>
-              <span className={cn('w-5 h-5 rounded-full flex items-center justify-center text-xs font-black', i === step ? 'bg-white text-primary' : i < step ? 'bg-success text-white' : 'bg-border text-text-muted')}>
+            <div className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all', i === step ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' : i < step ? 'bg-success/10 text-success' : 'bg-muted text-text-muted')}>
+              <span className={cn('w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black', i === step ? 'bg-white text-primary' : i < step ? 'bg-success text-white' : 'bg-border text-text-muted')}>
                 {i < step ? '✓' : i + 1}
               </span>
               {s}
@@ -123,20 +123,20 @@ export default function EditCoursePage() {
           </React.Fragment>
         ))}
       </div>
-      <div className="bg-card border border-border/60 rounded-2xl p-6">
+      <div className="bg-card border border-border/40 rounded-3xl p-6 sm:p-8 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] mb-20">
         {step === 0 && (
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-bold mb-2">عنوان الكورس *</label>
+              <label className="block text-sm font-bold mb-2">عنوان الكورس <span className="text-error">*</span></label>
               <input type="text" value={form.title} onChange={(e) => update('title', e.target.value)}
                 placeholder="مثال: رياضيات أول ثانوي"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background focus:border-primary outline-none text-sm" />
+                className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm placeholder:text-text-muted/60" />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">وصف الكورس *</label>
+              <label className="block text-sm font-bold mb-2">وصف الكورس <span className="text-error">*</span></label>
               <textarea value={form.description} onChange={(e) => update('description', e.target.value)}
                 placeholder="اشرح ما سيتعلمه الطلاب..." rows={5}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background focus:border-primary outline-none text-sm resize-none" />
+                className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm placeholder:text-text-muted/60 resize-none" />
             </div>
           </div>
         )}
@@ -144,9 +144,9 @@ export default function EditCoursePage() {
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold mb-2">المادة الدراسية *</label>
+                <label className="block text-sm font-bold mb-2">المادة الدراسية <span className="text-error">*</span></label>
                 <select value={form.subjectId} onChange={(e) => update('subjectId', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background outline-none text-sm">
+                  className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm">
                   <option value="">اختر المادة</option>
                   {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
@@ -154,7 +154,7 @@ export default function EditCoursePage() {
               <div>
                 <label className="block text-sm font-bold mb-2">طريقة الوصول</label>
                 <select value={form.accessType} onChange={(e) => update('accessType', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background outline-none text-sm">
+                  className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm">
                   <option value="PAID">مدفوع</option>
                   <option value="FREE">مجاني</option>
                 </select>
@@ -162,12 +162,12 @@ export default function EditCoursePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold mb-2">الصفوف الدراسية المدعومة *</label>
-              <div className="flex flex-wrap gap-4 bg-muted p-4 rounded-xl border border-border">
+              <label className="block text-sm font-bold mb-2">الصفوف الدراسية المدعومة <span className="text-error">*</span></label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {GRADES.map((g) => {
                   const checked = form.grades.includes(g);
                   return (
-                    <label key={g} className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold">
+                    <label key={g} className={cn("flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all", checked ? "border-primary bg-primary/5 shadow-sm" : "border-border/60 bg-card hover:bg-muted/50")}>
                       <input
                         type="checkbox"
                         checked={checked}
@@ -177,9 +177,9 @@ export default function EditCoursePage() {
                             : [...form.grades, g];
                           update('grades', newGrades);
                         }}
-                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                        className="w-5 h-5 rounded-md border-border/60 text-primary focus:ring-primary accent-primary cursor-pointer"
                       />
-                      {g}
+                      <span className={cn("text-sm font-semibold", checked ? "text-primary" : "text-foreground")}>{g}</span>
                     </label>
                   );
                 })}
@@ -191,12 +191,12 @@ export default function EditCoursePage() {
                 <div>
                   <label className="block text-sm font-bold mb-2">السعر الأصلي (قبل الخصم)</label>
                   <input type="number" value={form.originalPrice} onChange={(e) => update('originalPrice', Number(e.target.value))} min={0}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background outline-none text-sm" />
+                    className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">السعر بعد الخصم (الحالي)</label>
                   <input type="number" value={form.price} onChange={(e) => update('price', Number(e.target.value))} min={0}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background outline-none text-sm" />
+                    className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm" />
                 </div>
               </div>
             )}
@@ -225,7 +225,7 @@ export default function EditCoursePage() {
                   setLoading(false);
                 }
               }}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-muted focus:bg-background outline-none text-sm" />
+                className="w-full px-4 py-3.5 rounded-2xl border border-border/60 bg-muted/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none text-sm transition-all shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
               <p className="text-xs text-text-muted mt-2">
                 يمكنك تركه فارغاً الآن وإضافته لاحقاً. ولا يشترط أبعاد معينة للصورة، سيتم ضبطها تلقائياً.
               </p>
@@ -243,27 +243,29 @@ export default function EditCoursePage() {
           </div>
         )}
       </div>
-      <div className="flex items-center justify-between mt-6">
-        <button onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border text-sm font-bold text-text-muted hover:text-foreground hover:bg-muted disabled:opacity-40">
-          <ChevronRight className="w-4 h-4" />السابق
-        </button>
-        {step < STEPS.length - 1 ? (
-          <button onClick={() => {
-            if (step === 0 && !form.title.trim()) { setError('عنوان الكورس مطلوب'); return; }
-            if (step === 0 && !form.description.trim()) { setError('الوصف مطلوب'); return; }
-            if (step === 1 && !form.subjectId) { setError('المادة الدراسية مطلوبة'); return; }
-            if (step === 1 && form.grades.length === 0) { setError('يجب اختيار صف دراسي واحد على الأقل'); return; }
-            setError(''); setStep(s => s + 1);
-          }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary-hover">
-            التالي<ChevronLeft className="w-4 h-4" />
+      <div className="fixed bottom-0 start-0 lg:start-64 end-0 p-4 border-t border-border/40 bg-background/80 backdrop-blur-md z-40">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <button onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-border/60 bg-card shadow-sm text-sm font-bold text-foreground hover:bg-muted disabled:opacity-40 transition-all">
+            <ChevronRight className="w-4 h-4" />السابق
           </button>
-        ) : (
-          <button onClick={handleSubmit} disabled={loading}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover disabled:opacity-50">
-            {loading ? 'جاري الحفظ...' : '✓ حفظ التعديلات'}
-          </button>
-        )}
+          {step < STEPS.length - 1 ? (
+            <button onClick={() => {
+              if (step === 0 && !form.title.trim()) { setError('عنوان الكورس مطلوب'); return; }
+              if (step === 0 && !form.description.trim()) { setError('الوصف مطلوب'); return; }
+              if (step === 1 && !form.subjectId) { setError('المادة الدراسية مطلوبة'); return; }
+              if (step === 1 && form.grades.length === 0) { setError('يجب اختيار صف دراسي واحد على الأقل'); return; }
+              setError(''); setStep(s => s + 1);
+            }} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-hover transition-all">
+              التالي<ChevronLeft className="w-4 h-4" />
+            </button>
+          ) : (
+            <button onClick={handleSubmit} disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-hover disabled:opacity-50 transition-all">
+              {loading ? 'جاري الحفظ...' : '✓ حفظ التعديلات'}
+            </button>
+          )}
+        </div>
       </div>
       {error && step < 2 && <p className="text-sm text-error font-semibold mt-3">{error}</p>}
     </div>

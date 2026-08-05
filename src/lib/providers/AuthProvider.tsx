@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { apiClient } from '@/shared/api/api.client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { createCommunityApi } from '@/features/community/services/community-api.service';
+import { useCommunityStore } from '@/features/community/store/community.store';
 
 interface AuthContextType {
   isReady: boolean;
@@ -11,7 +13,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({ isReady: false });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { setAuth, clearAuth, setLoading } = useAuthStore();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const setLoading = useAuthStore((state) => state.setLoading);
   const [isReady, setIsReady] = React.useState(false);
 
   useEffect(() => {
@@ -33,6 +36,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data: user } = await apiClient.get('/users/me');
         console.log('[AuthProvider] /users/me SUCCESS → role:', user?.role);
         useAuthStore.setState({ user, role: user.role, isAuthenticated: true });
+        
+        try {
+          const communityApi = createCommunityApi();
+          const memberships = await communityApi.getMyMemberships();
+          useCommunityStore.getState().setJoinedSpaces(memberships);
+        } catch (memErr) {
+          console.warn('[AuthProvider] Failed to fetch memberships', memErr);
+        }
       } catch (err: any) {
         console.warn('[AuthProvider] /users/me FAILED →', err?.response?.status, err?.message);
         clearAuth();
@@ -47,10 +58,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkSession();
-  }, []);
+  }, [clearAuth, setLoading]);
+
+  const value = React.useMemo(() => ({ isReady }), [isReady]);
 
   return (
-    <AuthContext.Provider value={{ isReady }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

@@ -81,11 +81,15 @@ export default function StudentDashboardPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-[2rem] border border-border/50 bg-card p-8 md:p-10 shadow-sm group">
-        {/* Decorative Background Mesh */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-indigo-600/5 opacity-50" />
-        <div className="absolute -top-40 -end-40 w-[500px] h-[500px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
-        <div className="absolute -bottom-40 -start-40 w-[500px] h-[500px] bg-indigo-600/10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-card p-8 md:p-10 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] group">
+        {/* Decorative Background Pattern instead of glows */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{ 
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c13.866 0 25.362 10.24 26.882 23.635l.025.263C38.22 55.452 49.333 65 62 65c13.866 0 25.362-10.24 26.882-23.635l.025-.263C89.22 27.548 100.333 18 113 18V0C96.432 0 82.5 12.09 80.203 28.188l-.025.263C79.866 41.76 68.37 52 55 52c-13.866 0-25.362-10.24-26.882-23.635l-.025-.263C27.78 14.548 16.667 5 4 5V23c16.568 0 30.5 12.09 32.797 28.188l.025.263C37.134 64.24 48.63 74.48 62 74.48c13.866 0 25.362-10.24 26.882-23.635l.025-.263C89.22 37.028 100.333 27.48 113 27.48V9.48c-16.568 0-30.5-12.09-32.797-28.188l-.025-.263C79.866 5.48 68.37-4.76 55-4.76c-13.866 0-25.362 10.24-26.882 23.635l-.025.263C27.78 32.48 16.667 42.028 4 42.028v18c16.568 0 30.5 12.09 32.797 28.188l.025.263C37.134 101.98 48.63 112.22 62 112.22c13.866 0 25.362-10.24 26.882-23.635l.025-.263C89.22 74.768 100.333 65.22 113 65.22V47.22c-16.568 0-30.5-12.09-32.797-28.188l-.025-.263C79.866 5.48 68.37-4.76 55-4.76c-13.866 0-25.362 10.24-26.882 23.635l-.025.263C27.78 32.48 16.667 42.028 4 42.028z' fill='%23000000' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+            backgroundSize: '150px' 
+          }} 
+        />
         
         <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8 relative z-10">
           <div className="flex-1 text-center md:text-start">
@@ -144,7 +148,7 @@ export default function StudentDashboardPage() {
           { label: 'ساعات الدراسة', value: data.stats.studyHoursTotal, icon: Clock, color: 'bg-info/10 text-info', suffix: 'س' },
           { label: 'أطول سلسلة', value: data.stats.longestStreak, icon: Flame, color: 'bg-warning/10 text-warning', suffix: 'يوم' },
         ].map((item, i) => (
-          <div key={i} className="bg-card border border-border/60 rounded-2xl p-5">
+          <div key={i} className="bg-card border border-border/40 rounded-2xl p-5 shadow-sm hover:shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:hover:shadow-[0px_8px_40px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-1">
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3', item.color)}>
               <item.icon className="w-5 h-5" />
             </div>
@@ -160,7 +164,7 @@ export default function StudentDashboardPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         
         {/* Enrolled Courses */}
-        <div className="lg:col-span-2 bg-card border border-border/60 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-card border border-border/40 rounded-3xl p-6 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <PlayCircle className="w-5 h-5 text-primary" />
@@ -222,7 +226,7 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Notifications */}
-        <div className="bg-card border border-border/60 rounded-2xl p-6">
+        <div className="bg-card border border-border/40 rounded-3xl p-6 shadow-[0px_8px_40px_rgba(0,0,0,0.04)] dark:shadow-[0px_8px_40px_rgba(0,0,0,0.2)]">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
@@ -267,24 +271,7 @@ export default function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'تصفح الكورسات', href: '/dashboard/student/explore', icon: TrendingUp, color: 'from-primary/10 to-primary/5 text-primary' },
-          { label: 'كورساتي', href: '/dashboard/student/courses', icon: BookOpen, color: 'from-success/10 to-success/5 text-success' },
-          { label: 'الإشعارات', href: '/dashboard/student/notifications', icon: Bell, color: 'from-warning/10 to-warning/5 text-warning' },
-          { label: 'الملف الشخصي', href: '/dashboard/student/profile', icon: Trophy, color: 'from-info/10 to-info/5 text-info' },
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn('flex flex-col items-center gap-2 p-5 rounded-2xl bg-gradient-to-br border border-border/40 hover:border-current/20 transition-all hover:scale-105 active:scale-95', item.color)}
-          >
-            <item.icon className="w-7 h-7" />
-            <span className="text-xs font-bold text-center">{item.label}</span>
-          </Link>
-        ))}
-      </div>
+
     </div>
   );
 }

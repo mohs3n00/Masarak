@@ -19,15 +19,15 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         data-slot="textarea"
         data-error={error || undefined}
         className={cn(
-          "w-full min-w-0 min-h-[100px] rounded-lg",
+          "w-full min-w-0 min-h-[100px] rounded-xl",
           "border border-input-border bg-input",
           "px-4 py-3 text-[15px] text-foreground",
           "placeholder:text-text-muted",
-          "resize-y transition-colors duration-200",
-          "hover:border-border-strong",
+          "resize-y smooth",
+          "hover:border-primary/50",
           "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
           "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
-          error && "border-error focus-visible:border-error focus-visible:ring-error/20",
+          error && "border-error focus-visible:border-error focus-visible:ring-2 focus-visible:ring-error/20",
           className
         )}
         {...props}

@@ -50,9 +50,10 @@ export function ConversationChatView({ conversationId, readOnly = false }: Conve
       }
     };
 
-    socket.on('academic.message.sent', handleNewMessage);
+    socket.on('newMessage', handleNewMessage);
+
     return () => {
-      socket.off('academic.message.sent', handleNewMessage);
+      socket.off('newMessage', handleNewMessage);
     };
   }, [socket, conversationId, scrollToBottom]);
 

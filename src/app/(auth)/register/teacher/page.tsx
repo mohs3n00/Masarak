@@ -8,7 +8,7 @@ import { TeacherRegistrationWizard } from '@/features/auth/components/wizard/Tea
 import { AuthFooter } from '@/features/auth/components/AuthFooter';
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants';
 
-import signUpImage from '@/assets/images/sign up.png';
+import signUpImage from '@/assets/images/signup.jpg';
 
 export default function TeacherRegisterPage() {
   return (
@@ -17,6 +17,7 @@ export default function TeacherRegisterPage() {
         title="أهلاً بك معلّمنا القدير"
         subtitle="انضم إلى نخبة المعلمين وشارك علمك مع آلاف الطلاب."
         videoSrc="/assets/video/register-video.webm"
+        illustration={signUpImage}
       >
         <AuthCard>
           <TeacherRegistrationWizard />

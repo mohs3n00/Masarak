@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const [form, setForm] = useState({
     name: '',
     bio: '',
-    academicYear: '',
+    grade: '',
     learningPreferences: '',
   });
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export default function SettingsPage() {
         setForm({
           name: data.name || '',
           bio: data.bio || '',
-          academicYear: data.studentProfile?.academicYear || '',
+          grade: data.studentProfile?.grade || data.studentProfile?.academicYear || '',
           learningPreferences: data.studentProfile?.learningPreferences || '',
         });
         setAvatar(data.avatar);
@@ -39,8 +39,8 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       await apiClient.patch('/users/me', { name: form.name, bio: form.bio });
+      // We no longer update the grade/academicYear here since it's read-only
       await apiClient.patch('/users/profile/student', {
-        academicYear: form.academicYear,
         learningPreferences: form.learningPreferences,
       });
       toast.success('تم حفظ التغييرات بنجاح');
@@ -157,7 +157,9 @@ export default function SettingsPage() {
                 
                 <div className="grid gap-2">
                   <label className="text-xs font-bold text-foreground">الصف الدراسي</label>
-                  <input type="text" value={form.academicYear} onChange={e => update('academicYear', e.target.value)} placeholder="مثال: الصف الأول الثانوي" className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-foreground focus:bg-background" />
+                  <div className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground/70 cursor-not-allowed">
+                    {form.grade || 'غير محدد'}
+                  </div>
                 </div>
 
                 <div className="grid gap-2">

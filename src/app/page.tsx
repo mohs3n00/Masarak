@@ -7,12 +7,16 @@ import { cn } from '@/lib/utils';
 import { FAQAccordion } from '@/features/marketing/components/blocks/FAQAccordion';
 import { SectionHeader } from '@/features/marketing/components/blocks/SectionHeader';
 import { CategoryCard } from '@/features/marketing/components/cards/CategoryCard';
-import { HeroBackground } from '@/features/marketing/components/hero/HeroBackground';
-import { HeroImage } from '@/features/marketing/components/hero/HeroImage';
+import Image from 'next/image';
 import { CTASection } from '@/features/marketing/components/blocks/CTASection';
-import { CourseCard } from '@/features/student-experience/components/CourseCard';
 import { TeacherCard } from '@/shared/components/organisms/TeacherCard';
-import homeStartImage from '@/assets/images/home start.png';
+import { TeachersCarousel } from '@/features/marketing/components/blocks/TeachersCarousel';
+import { HowItWorks } from '@/features/marketing/components/blocks/HowItWorks';
+import { CoursesBySubjects } from '@/features/marketing/components/blocks/CoursesBySubjects';
+import { CourseCard } from '@/features/student-experience/components/CourseCard';
+import homeImage from '@/assets/images/home.png';
+import newTeacherImage from '@/assets/images/new.jpeg';
+import ctaImage from '@/assets/images/teacher_whiteboard.png';
 import { fetchPublicCourses, fetchPublicTeachers, fetchPublicCategories } from '@/lib/api/public';
 import { faqs as defaultFaqs } from '@/mock/faq';
 import { ArrowLeft, BookOpen, GraduationCap, Users } from 'lucide-react';
@@ -38,177 +42,124 @@ export default async function LandingPage() {
   const token = cookieStore.get('accessToken')?.value || cookieStore.get('access_token')?.value;
 
   // Fetch everything in parallel
-  const [popularCoursesResult, newestCoursesResult, teachersResult] = await Promise.all([
+  const [popularCoursesResult, newestCoursesResult, teachersResult, categoriesResult] = await Promise.all([
     fetchPublicCourses({ take: 4, sort: 'popular', token }),
     fetchPublicCourses({ take: 4, sort: 'newest', token }),
     fetchPublicTeachers({ take: 4 }),
+    fetchPublicCategories(),
   ]);
 
   const featuredCourses = popularCoursesResult.data;
   const latestCourses = newestCoursesResult.data;
   const featuredTeachers = teachersResult.data;
+  const categories = categoriesResult.slice(0, 8);
 
   return (
     <div className="relative overflow-hidden w-full">
-      <HeroBackground />
-
       {/* 1. HERO SECTION */}
-      <AppContainer>
-        <Section className="pt-28 md:pt-40 pb-20 md:pb-32">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-            <div className="flex flex-col items-start text-start order-2 lg:order-1">
-              <h1 className="text-5xl md:text-6xl lg:text-[4.5rem] font-black tracking-tight leading-[1.2] mb-6 text-foreground">
-                <span className="text-primary">مسارك</span>
-                <br />
-                نحو التفوق
-              </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-lg font-medium">
-                منصة مسارك التعليمية، كل ما يحتاجه طالب الثانوية العامة في مكان واحد لتحقيق حلمه.
-              </p>
-              <div className="flex flex-wrap items-center gap-4 mb-8">
-                <Link
-                  href="/courses"
-                  className={cn(
-                    buttonVariants({ size: 'lg' }),
-                    'rounded-2xl px-12 font-bold h-14 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all',
-                  )}
-                >
-                  تصفح الكورسات
-                </Link>
-              </div>
-            </div>
-            <div className="relative flex justify-center lg:justify-end items-center order-1 lg:order-2 w-full aspect-[4/3] min-h-[400px]">
-              <HeroImage
-                src={homeStartImage}
-                alt="طالب ثانوية عامة"
-                className="w-full max-w-[700px] h-full object-contain scale-110"
-              />
-            </div>
-          </div>
-        </Section>
-      </AppContainer>
+      <div className="relative w-full min-h-[90vh] flex items-center justify-center pt-32 pb-16 overflow-hidden bg-background">
+        {/* Background Image with opacity */}
+        <div className="absolute inset-0 z-0">
+          <Image 
+            src={homeImage} 
+            alt="Hero Background" 
+            fill
+            className="object-cover opacity-[0.15]"
+            priority
+          />
+          {/* Optional gradient overlay for smooth transition to next section */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background" />
+        </div>
 
-      {/* 2. FEATURED COURSES */}
-      <div className="bg-muted/30 border-y border-border/50">
-        <AppContainer>
-          <Section className="py-20 md:py-24">
-            <div className="flex items-end justify-between mb-10">
-              <SectionHeader
-                badge="الكورسات"
-                title="أشهر الكورسات"
-                subtitle="أكثر الكورسات مبيعاً على منصة مسارك"
-                align="left"
-                className="mb-0 max-w-lg"
-              />
-              <Link href="/courses" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
-                عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
+        <AppContainer className="z-10 relative">
+          <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+            <h1 className="text-display text-foreground mb-6 font-bold leading-tight">
+              منصة متكاملة بها كل ما
+              <br />
+              يحتاجه <span className="text-primary">الطالب ليتفوق</span>
+            </h1>
+            <p className="text-body-lg text-muted-foreground mb-10 max-w-2xl leading-relaxed font-medium">
+              منصة متكاملة بتساعدك تذاكر صح، تختار مدرسينك، وتوصل لأعلى درجاتك في الثانوية العامة بكل سهولة وراحة.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto mt-4">
+              <Link
+                href="/choose-account"
+                className={cn(
+                  buttonVariants({ size: 'lg' }),
+                  'rounded-full px-12 py-7 text-xl font-bold w-full sm:w-auto shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all',
+                )}
+              >
+                ابدأ رحلتك
               </Link>
             </div>
-            <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredCourses.length > 0 ? (
-                featuredCourses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    id={course.id}
-                    title={course.title}
-                    teacher={course.teacher?.name || ''}
-                    teacherAvatar={course.teacher?.avatar || ''}
-                    thumbnail={course.thumbnailUrl || ''}
-                    subject={course.category?.name || ''}
-                    totalLessons={course.lessonsCount}
-                    rating={course.averageRating}
-                    studentsCount={course.enrollmentCount}
-                    price={Number(course.price)}
-                    originalPrice={course.originalPrice ? Number(course.originalPrice) : undefined}
-                  />
-                ))
-              ) : (
-                <EmptySection icon={BookOpen} label="كورس" />
-              )}
-            </AnimatedDiv>
-          </Section>
+          </div>
         </AppContainer>
       </div>
 
-      {/* 3. POPULAR TEACHERS */}
-      <AppContainer>
-        <Section className="py-20 md:py-24">
-          <div className="flex items-end justify-between mb-10">
-            <SectionHeader
-              badge="المعلمون"
-              title="أشهر المدرسين"
-              subtitle="نخبة من أفضل مدرسين الثانوية العامة في مصر"
-              align="left"
-              className="mb-0 max-w-lg"
-            />
-            <Link href="/teachers" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
-              عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
-            </Link>
+      {/* 2. POPULAR TEACHERS */}
+      <div className="bg-primary w-full overflow-hidden pt-20 md:pt-24 pb-20">
+        <AppContainer>
+          <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 mb-8 px-4">
+            <div className="text-right max-w-2xl text-white">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                المدرسين عندنا مش زي أي مدرسين!
+              </h2>
+              <p className="text-lg md:text-xl text-white/90 leading-relaxed font-medium">
+                في مسارك، اخترنالك نخبة من أفضل المدرسين في مصر. كل واحد فيهم عنده خبرة كبيرة، وطريقة شرح سهلة، وبيفهمك المعلومة من أول مرة!
+              </p>
+            </div>
           </div>
-          <AnimatedDiv variant="staggerContainer" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredTeachers.length > 0 ? (
-              featuredTeachers.map((teacher) => (
-                <TeacherCard
-                  key={teacher.id}
-                  id={teacher.id}
-                  name={teacher.name}
-                  subject={teacher.specializations[0] || ''}
-                  avatar={teacher.avatar || ''}
-                  bio={teacher.bio || ''}
-                  studentsCount={teacher.studentsCount}
-                  coursesCount={teacher.coursesCount}
-                />
-              ))
-            ) : (
-              <EmptySection icon={GraduationCap} label="مدرس" />
-            )}
-          </AnimatedDiv>
-        </Section>
-      </AppContainer>
+        </AppContainer>
+        <div className="w-full">
+          <TeachersCarousel teachers={featuredTeachers} />
+        </div>
+      </div>
 
+      {/* 3. HOW IT WORKS */}
+      <HowItWorks />
 
+      {/* 4. COURSES BY SUBJECT */}
+      <CoursesBySubjects categories={categories} />
 
-      {/* 5. LATEST COURSES */}
+      {/* 5. RECOMMENDED LECTURES */}
       <AppContainer>
-        <Section className="py-20 md:py-24">
-          <div className="flex items-end justify-between mb-10">
-            <SectionHeader
-              badge="جديد"
-              title="أحدث الكورسات"
-              subtitle="كورسات لسه نازلة جديد، ابدأ معاها من الأول"
-              align="left"
-              className="mb-0 max-w-lg"
-            />
-            <Link href="/courses" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 pb-1">
-              عرض الكل <ArrowLeft className="w-4 h-4 flip-rtl" />
-            </Link>
-          </div>
-          <AnimatedDiv variant="staggerContainer" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {latestCourses.length > 0 ? (
-              latestCourses.map((course) => (
+        <Section className="py-20 bg-background">
+          <SectionHeader
+            badge="المحاضرات المقترحة"
+            title="كورسات مختارة مخصوص ليك"
+            subtitle="ريحنا دماغك وجمعنا لك كورسات على مزاجك. مختارة بحب وعناية كأننا بنعمل شوبينج لأحسن شوية كورسات تساعدك وتلملك الدنيا!"
+          />
+          {featuredCourses && featuredCourses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
+              {featuredCourses.slice(0, 4).map((course) => (
                 <CourseCard
                   key={course.id}
                   id={course.id}
                   title={course.title}
-                  teacher={course.teacher?.name || ''}
+                  teacher={course.teacher?.name || 'مدرس مسارك'}
                   teacherAvatar={course.teacher?.avatar || ''}
                   thumbnail={course.thumbnailUrl || ''}
                   subject={course.category?.name || ''}
-                  totalLessons={course.lessonsCount}
-                  rating={course.averageRating}
-                  studentsCount={course.enrollmentCount}
-                  price={Number(course.price)}
-                  originalPrice={course.originalPrice ? Number(course.originalPrice) : undefined}
+                  grade={course.grade}
+                  price={course.price}
+                  originalPrice={course.originalPrice}
+                  totalLessons={course.lessonsCount || 0}
                 />
-              ))
-            ) : (
-              <EmptySection icon={BookOpen} label="كورس" />
-            )}
-          </AnimatedDiv>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-8 flex items-center justify-center gap-3 mt-8">
+              <span className="text-2xl">⚠️</span>
+              <p className="font-bold">سيتم اضافه المحاضرات قريباً...</p>
+            </div>
+          )}
+          <div className="flex justify-center mt-10">
+            <Link href="/courses" className="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition-colors">
+              عرض الكل
+            </Link>
+          </div>
         </Section>
       </AppContainer>
-
-
 
       {/* 6. FAQ */}
       <div className="bg-muted/30 border-t border-border/50">
@@ -231,9 +182,10 @@ export default async function LandingPage() {
         <Section className="pb-20 md:pb-24 pt-10">
           <AnimatedDiv variant="fadeUp">
             <CTASection
-              title="جاهز تبدأ تذاكر صح؟"
-              description="انضم لآلاف طلاب الثانوية العامة اللي بيعتمدوا على مسارك في مذاكرتهم."
-              primaryAction={{ label: 'اعمل حساب مجاني', href: '/register/student' }}
+              title="عايز تنضم لينا في فريق مسارك؟"
+              description="يمكنك الآن الانضمام لفريق المعلمين على المنصة، والمشاركة في تدريس المناهج التعليمية للصفوف الثانوية والمساهمة في تطوير المنصة وتعليم الطلاب بأفضل طريقة ممكنة!"
+              primaryAction={{ label: 'ابدأ رحلتك الآن', href: '/register/teacher' }}
+              imageSrc={newTeacherImage}
             />
           </AnimatedDiv>
         </Section>

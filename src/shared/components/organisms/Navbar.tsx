@@ -16,7 +16,7 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerClose } from 
 import {
   Menu, Moon, Sun, X,
   LogIn, UserPlus, ChevronRight,
-  LayoutDashboard, LogOut, User, ChevronDown,
+  LayoutDashboard, LogOut, User, ChevronDown, Search
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/features/auth/store/auth.store"
@@ -27,9 +27,10 @@ export function Navbar() {
   const router = useRouter()
   const [mounted, setMounted] = React.useState(false)
   const [isDark, setIsDark] = React.useState(false)
-  const [isScrolled, setIsScrolled] = React.useState(false)
 
-  const { user, isAuthenticated, clearAuth } = useAuthStore()
+  const user = useAuthStore((state) => state.user)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const clearAuth = useAuthStore((state) => state.clearAuth)
 
   React.useEffect(() => {
     setMounted(true)
@@ -42,10 +43,6 @@ export function Navbar() {
     } else {
       document.documentElement.classList.remove("dark")
     }
-
-    const handleScroll = () => setIsScrolled(window.scrollY > 10)
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   React.useEffect(() => {
@@ -83,306 +80,137 @@ export function Navbar() {
   }, [user])
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 inset-x-0 z-[100] w-full h-[68px] shrink-0",
-        "transition-all duration-300",
-        isScrolled
-          ? "bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm"
-          : "bg-background border-b border-transparent"
-      )}
-    >
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl h-full">
-        <div className="flex h-full items-center justify-between gap-4">
-
+    <div className="fixed top-4 inset-x-4 z-[100] flex justify-center pointer-events-none">
+      <header
+        className={cn(
+          "w-full max-w-7xl h-[72px] pointer-events-auto",
+          "bg-primary rounded-full shadow-lg border border-primary/20",
+          "flex items-center px-6 transition-all duration-300"
+        )}
+      >
+        <div className="flex h-full w-full items-center justify-between gap-4">
+          
           {/* Logo */}
-          <div className="flex items-center shrink-0">
-            <Logo
-              width={110}
-              height={30}
-              className="outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
-            />
+          <div className="flex items-center shrink-0 brightness-0 invert">
+            <Logo width={120} height={32} />
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+          {/* Theme Toggle & Search */}
+          <div className="hidden lg:flex items-center gap-3 mr-4">
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className="text-white hover:text-white/80 transition-colors"
+            >
+              {isDark ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+            </button>
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="ابحث في الموقع" 
+                className="bg-white/10 backdrop-blur-md text-white placeholder:text-white/70 border border-white/20 rounded-full h-10 px-4 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-white/50 w-64"
+              />
+              <Search className="w-4 h-4 text-white/70 absolute left-4 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-
-            {/* Theme Toggle */}
-            <div className="hidden lg:flex items-center gap-1">
-              <button
-                onClick={() => setIsDark(!isDark)}
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-1 mx-auto">
+            {MainNavigation.map((route) => (
+              <Link
+                key={route.href}
+                href={route.href}
                 className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center",
-                  "text-text-muted hover:text-foreground hover:bg-muted",
-                  "transition-all duration-200",
-                  "outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  "px-4 py-2 rounded-full text-[15px] font-bold transition-colors smooth",
+                  pathname === route.href
+                    ? "text-primary bg-white"
+                    : "text-white/90 hover:bg-white/10 hover:text-white"
                 )}
-                aria-label={isDark ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
               >
-                <span className="relative w-5 h-5 flex items-center justify-center">
-                  <Sun
-                    className={cn(
-                      "absolute size-[18px] transition-all duration-300",
-                      isDark ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
-                    )}
-                    aria-hidden="true"
-                  />
-                  <Moon
-                    className={cn(
-                      "absolute size-[18px] transition-all duration-300",
-                      isDark ? "opacity-0 rotate-90 scale-75" : "opacity-100 rotate-0 scale-100"
-                    )}
-                    aria-hidden="true"
-                  />
-                </span>
-              </button>
-              <div className="w-px h-6 bg-border mx-1" aria-hidden="true" />
-            </div>
+                {route.label}
+              </Link>
+            ))}
+          </nav>
 
-            {/* Auth Buttons — Desktop */}
-            <div className="hidden sm:flex items-center gap-2">
-              {isAuthenticated && user ? (
-                /* Authenticated User Menu */
-                <Dropdown>
-                  <DropdownTrigger render={
-                    <button
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-xl",
-                        "border border-border hover:border-primary/40",
-                        "bg-background hover:bg-muted transition-all duration-200",
-                        "outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      )}
-                    >
-                      {/* Avatar */}
-                      {user.avatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={user.avatar}
-                          alt={user.name}
-                          className="w-8 h-8 rounded-full object-cover border border-border"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                          {userInitials}
-                        </div>
-                      )}
-                      <div className="flex flex-col items-start">
-                        <span className="text-sm font-semibold text-foreground leading-tight max-w-[120px] truncate">
-                          {user.name}
-                        </span>
-                        <span className="text-[10px] text-text-muted capitalize">
-                          {user.role === 'SUPER_ADMIN' ? 'مدير عام' : user.role === 'ADMIN' ? 'مسؤول' : user.role === 'TEACHER' ? 'مدرس' : 'طالب'}
-                        </span>
-                      </div>
-                      <ChevronDown className="w-4 h-4 text-text-muted" />
-                    </button>
-                  } />
-                  <DropdownContent align="end" className="w-56 mt-2 p-1">
-                    {user.role !== 'STUDENT' && (
-                      <DropdownMenuItem>
-                        <button onClick={() => router.push(dashboardHref)} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-muted transition-colors text-foreground group cursor-pointer text-start">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shrink-0">
-                            <LayoutDashboard className="w-4 h-4" />
-                          </div>
-                          <span className="font-semibold text-sm">لوحة التحكم</span>
-                        </button>
-                      </DropdownMenuItem>
-                    )}
-                    {user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
-                      <DropdownMenuItem>
-                        <button onClick={() => router.push(user.role === 'STUDENT' ? '/dashboard/student' : '/dashboard/teacher/profile')} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer text-start">
-                          <User className="w-4 h-4 text-text-muted shrink-0" />
-                          <span className="font-semibold text-sm">الملف الشخصي</span>
-                        </button>
-                      </DropdownMenuItem>
-                    )}
-                    <div className="border-t border-border my-1" />
-                    <DropdownMenuItem>
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-error/10 text-error transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span className="font-semibold text-sm">تسجيل الخروج</span>
-                      </button>
-                    </DropdownMenuItem>
-                  </DropdownContent>
-                </Dropdown>
-              ) : (
-                /* Guest Buttons */
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost" size="sm" className="font-semibold text-text-secondary">
-                      <LogIn className="w-4 h-4 ml-1" />
-                      تسجيل الدخول
-                    </Button>
-                  </Link>
-                  <Link href="/choose-account">
-                    <Button size="sm" className="font-semibold">
-                      إنشاء حساب
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
+          {/* Spacer for mobile */}
+          <div className="flex-1 lg:hidden" />
 
-            {/* Mobile Menu */}
-            <Drawer>
-              <DrawerTrigger render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden"
-                  aria-label="فتح القائمة"
-                >
-                  <Menu className="size-5" />
-                </Button>
-              } />
-              <DrawerContent
-                side="right"
-                className="w-[80vw] max-w-[320px] border-s border-border bg-background flex flex-col p-0"
-              >
-                {/* Drawer Header */}
-                <DrawerHeader className="px-5 py-4 border-b border-border flex items-center justify-between">
-                  <Logo width={96} height={26} />
-                  <DrawerClose render={
-                    <button
-                      className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center",
-                        "bg-muted text-text-muted hover:text-foreground",
-                        "transition-colors duration-200"
-                      )}
-                      aria-label="إغلاق القائمة"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  } />
-                </DrawerHeader>
-
-                {/* User Info (Mobile — if authenticated) */}
-                {isAuthenticated && user && (
-                  <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+          {/* Right Actions (Auth) */}
+          <div className="flex items-center gap-3 shrink-0">
+            {isAuthenticated && user ? (
+              <Dropdown>
+                <DropdownTrigger render={
+                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white border border-white/20">
                     {user.avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                      <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/30" />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                      <div className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center text-xs font-bold">
                         {userInitials}
                       </div>
                     )}
-                    <div>
-                      <p className="font-bold text-sm text-foreground">{user.name}</p>
-                      <p className="text-xs text-text-muted">
-                        {user.role === 'SUPER_ADMIN' ? 'مدير عام' : user.role === 'ADMIN' ? 'مسؤول' : user.role === 'TEACHER' ? 'مدرس' : 'طالب'}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                } />
+                <DropdownContent align="end" className="w-56 mt-2 p-1">
+                  <DropdownMenuItem>
+                    <button onClick={() => router.push(dashboardHref)} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-muted transition-colors text-foreground group text-start">
+                      <LayoutDashboard className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-sm">لوحة التحكم</span>
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <button onClick={handleLogout} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-error/10 text-error transition-colors">
+                      <LogOut className="w-4 h-4" />
+                      <span className="font-semibold text-sm">تسجيل الخروج</span>
+                    </button>
+                  </DropdownMenuItem>
+                </DropdownContent>
+              </Dropdown>
+            ) : (
+              <div className="hidden sm:flex items-center gap-3">
+                <Link href="/login">
+                  <Button className="bg-slate-800 text-white hover:bg-slate-700 rounded-full font-bold h-10 px-6">
+                    تسجيل الدخول
+                  </Button>
+                </Link>
+                <Link href="/choose-account">
+                  <Button className="bg-white text-primary hover:bg-gray-100 rounded-full font-bold h-10 px-6">
+                    حساب جديد
+                  </Button>
+                </Link>
+              </div>
+            )}
 
-                {/* Navigation Links */}
-                <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="قائمة الهاتف">
+            {/* Mobile Menu Trigger */}
+            <Drawer>
+              <DrawerTrigger render={
+                <Button variant="ghost" size="icon" className="lg:hidden text-white hover:bg-white/10 rounded-full">
+                  <Menu className="size-6" />
+                </Button>
+              } />
+              <DrawerContent side="right" className="w-[80vw] max-w-[320px] bg-background p-0">
+                <DrawerHeader className="px-5 py-4 border-b border-border flex items-center justify-between">
+                  <Logo width={96} height={26} />
+                  <DrawerClose render={<button className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><X className="size-4" /></button>} />
+                </DrawerHeader>
+                <nav className="p-4 space-y-2">
                   {MainNavigation.map((route) => (
                     <DrawerClose key={route.href} render={
-                      <Link
-                        href={route.href}
-                        className={cn(
-                          "flex items-center justify-between px-4 py-3 rounded-lg",
-                          "text-base font-semibold transition-colors duration-200",
-                          pathname === route.href
-                            ? "bg-primary/8 text-primary"
-                            : "text-foreground hover:bg-muted"
-                        )}
-                        aria-current={pathname === route.href ? "page" : undefined}
-                      >
-                        <span>{route.label}</span>
-                        <ChevronRight
-                          className={cn(
-                            "size-4 text-text-muted",
-                            "rotate-180"
-                          )}
-                          aria-hidden="true"
-                        />
+                      <Link href={route.href} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted font-semibold">
+                        {route.label}
                       </Link>
                     } />
                   ))}
-                </nav>
-                {/* Drawer Footer */}
-                <div className="p-4 border-t border-border space-y-3 bg-surface">
-                  {isAuthenticated && user ? (
-                    <>
-                      {user.role !== 'STUDENT' && (
-                        <DrawerClose render={
-                          <Link href={dashboardHref} className="w-full block">
-                            <Button variant="outline" className="w-full gap-2">
-                              <LayoutDashboard className="size-4" aria-hidden="true" />
-                              لوحة التحكم
-                            </Button>
-                          </Link>
-                        } />
-                      )}
-                      {user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
-                        <DrawerClose render={
-                          <Link href={user.role === 'STUDENT' ? '/dashboard/student' : '/dashboard/teacher/profile'} className="w-full block">
-                            <Button variant="outline" className="w-full gap-2">
-                              <User className="size-4" aria-hidden="true" />
-                              الملف الشخصي
-                            </Button>
-                          </Link>
-                        } />
-                      )}
-                      <Button
-                        variant="ghost"
-                        className="w-full gap-2 text-error hover:bg-error/10"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="size-4" aria-hidden="true" />
-                        تسجيل الخروج
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <DrawerClose render={
-                        <Link href="/login" className="w-full block">
-                          <Button variant="outline" className="w-full gap-2">
-                            <LogIn className="size-4" aria-hidden="true" />
-                            تسجيل الدخول
-                          </Button>
-                        </Link>
-                      } />
-                      <DrawerClose render={
-                        <Link href="/choose-account" className="w-full block">
-                          <Button className="w-full gap-2">
-                            <UserPlus className="size-4" aria-hidden="true" />
-                            إنشاء حساب
-                          </Button>
-                        </Link>
-                      } />
-                    </>
-                  )}
-
-                  {/* Quick Settings Row */}
-                  <div className="flex items-center justify-between pt-3 border-t border-border">
-                    <span className="text-sm text-text-muted font-semibold">
-                      المظهر
-                    </span>
-                    <button
-                      onClick={() => setIsDark(!isDark)}
-                      className="w-9 h-9 rounded-lg flex items-center justify-center bg-background border border-border text-text-muted hover:text-foreground transition-colors"
-                      aria-label={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
-                    >
-                      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-                    </button>
+                  <div className="pt-4 border-t border-border flex flex-col gap-3">
+                    <Link href="/login"><Button className="w-full bg-slate-800">تسجيل الدخول</Button></Link>
+                    <Link href="/choose-account"><Button className="w-full">حساب جديد</Button></Link>
                   </div>
-                </div>
+                </nav>
               </DrawerContent>
             </Drawer>
-
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   )
 }

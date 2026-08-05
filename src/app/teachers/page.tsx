@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { AppContainer, Section } from '@/shared/layouts/Containers';
-import { TeacherPreviewCard } from '@/features/marketing/components/cards/TeacherCard';
+import { TeacherCard } from '@/shared/components/organisms/TeacherCard';
 import { GraduationCap, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TeacherSearchClient } from '@/features/marketing/components/filters/TeacherSearchClient';
@@ -45,7 +45,7 @@ export default async function TeachersPage(props: {
   }, []);
 
   return (
-    <div className="w-full bg-background min-h-screen pb-20">
+    <div className="w-full bg-background min-h-screen pt-28 md:pt-32 pb-20">
       {/* Hero Header */}
       <div className="bg-card border-b border-border relative overflow-hidden">
         {/* Subtle background decoration */}
@@ -114,19 +114,15 @@ export default async function TeachersPage(props: {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 gap-y-12">
             {teachers.length > 0 ? (
               teachers.map((teacher) => (
-                <TeacherPreviewCard
+                <TeacherCard
                   key={teacher.id}
-                  teacher={{
-                    id: teacher.id,
-                    name: teacher.name,
-                    specialization: teacher.specializations[0] || 'معلم',
-                    avatar: teacher.avatar,
-                    bio: teacher.bio,
-                    rating: 0,
-                    reviewsCount: 0,
-                    studentsCount: teacher.studentsCount,
-                    coursesCount: teacher.coursesCount,
-                  } as any}
+                  id={teacher.id}
+                  name={teacher.name}
+                  subject={teacher.specializations[0] || 'معلم'}
+                  avatar={teacher.avatar || ''}
+                  bio={teacher.bio || ''}
+                  studentsCount={teacher.studentsCount}
+                  coursesCount={teacher.coursesCount}
                 />
               ))
             ) : (
