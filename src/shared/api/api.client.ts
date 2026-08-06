@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ApiError } from './error.models';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { AUTH_STORAGE_KEYS } from '@/features/auth/constants/auth.constants';
 
 const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 const baseURL = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
@@ -18,7 +19,11 @@ apiClient.interceptors.request.use(
   (config) => {
     const state = useAuthStore.getState();
     const accessToken = state.accessToken;
-    if (accessToken && config.headers) {
+    
+    // Don't send Authorization header for refresh/auth routes to prevent server from rejecting with 401 due to expired access token
+    const isRefreshOrAuthRoute = config.url?.includes('/auth/refresh') || config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+    
+    if (accessToken && config.headers && !isRefreshOrAuthRoute) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
@@ -70,13 +75,14 @@ apiClient.interceptors.response.use(
         originalRequest._retry = true;
         isRefreshing = true;
 
+        const storeState = useAuthStore.getState();
+        const refreshToken = storeState.refreshToken;
+
         try {
-          const storeState = useAuthStore.getState();
-          const refreshToken = storeState.refreshToken;
           
           let localData: any = null;
           try {
-            const rawLocal = typeof window !== 'undefined' ? window.localStorage.getItem('masarak-user-data') : null;
+            const rawLocal = typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_STORAGE_KEYS.USER_DATA) : null;
             localData = rawLocal ? JSON.parse(rawLocal) : null;
           } catch {}
 
@@ -115,6 +121,32 @@ apiClient.interceptors.response.use(
           processQueue(err);
           // Only clear auth if we get a definitive authentication error from the server
           if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            // Check if another tab refreshed the token
+            let localRefreshToken = null;
+            try {
+              const rawLocal = typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_STORAGE_KEYS.USER_DATA) : null;
+              if (rawLocal) {
+                const parsed = JSON.parse(rawLocal);
+                localRefreshToken = parsed.state?.refreshToken;
+              }
+            } catch {}
+
+            if (localRefreshToken && localRefreshToken !== refreshToken) {
+              // Another tab has updated the refresh token!
+              // Let's retry the original request with the new access token from storage
+              const newAccessToken = JSON.parse(window.localStorage.getItem(AUTH_STORAGE_KEYS.USER_DATA) || '{}').state?.accessToken;
+              if (newAccessToken) {
+                 useAuthStore.getState().setTokens({
+                    accessToken: newAccessToken,
+                    refreshToken: localRefreshToken
+                 });
+                 if (originalRequest.headers) {
+                   originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                 }
+                 return apiClient(originalRequest);
+              }
+            }
+
             useAuthStore.getState().clearAuth();
             if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
               window.location.href = '/login?expired=1';

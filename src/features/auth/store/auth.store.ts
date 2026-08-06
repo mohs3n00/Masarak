@@ -34,8 +34,8 @@ export const useAuthStore = create<AuthStore>()(
 
       setAuth: (user, tokens) => {
         if (typeof window !== 'undefined' && tokens?.accessToken) {
-          document.cookie = `accessToken=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `accessToken=${tokens.accessToken}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=2592000; SameSite=Lax`;
         }
         set({
           user,
@@ -55,8 +55,8 @@ export const useAuthStore = create<AuthStore>()(
 
       setTokens: (tokens) => {
         if (typeof window !== 'undefined' && tokens?.accessToken) {
-          document.cookie = `accessToken=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `accessToken=${tokens.accessToken}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=2592000; SameSite=Lax`;
         }
         set({
           accessToken: tokens.accessToken,
@@ -69,7 +69,7 @@ export const useAuthStore = create<AuthStore>()(
           ...initialState,
         });
         if (typeof window !== 'undefined') {
-          window.localStorage.clear();
+          window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER_DATA);
           document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';

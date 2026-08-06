@@ -46,9 +46,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (err: any) {
         console.warn('[AuthProvider] /users/me FAILED →', err?.response?.status, err?.message);
-        clearAuth();
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
-          window.location.href = '/login?expired=1';
+        
+        // Only clear auth on definitive 401/403 errors, NOT on network/5xx errors
+        const isAuthError = err?.response?.status === 401 || err?.response?.status === 403 || err?.status === 401 || err?.status === 403;
+        
+        if (isAuthError) {
+          clearAuth();
+          if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+            window.location.href = '/login?expired=1';
+          }
         }
       } finally {
         setLoading(false);
